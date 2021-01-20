@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'detection',
     'overlay',
     'schedule',
+    'storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
