@@ -1,5 +1,7 @@
 from django.db import models
 
+from detection import models as detection
+
 
 class PTZSettings(models.Model):
     enabled = models.BooleanField()
@@ -48,9 +50,9 @@ class Camera(models.Model):
     password = models.CharField(max_length=255)
 
     # overlays is many-to-many to overlay.Overlay
-    # sound_detection_settings is one-to-one to detection.SoundDetectionSettings
-    # motion_detection_settings is one-to-one to detection.MotionDetectionSettings
+    sound_detection_settings = models.ForeignKey(detection.SoundDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
+    motion_detection_settings = models.ForeignKey(detection.MotionDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
     require_motion_to_detect = models.BooleanField()
-    # object_detection_settings is one-to-one to detection.ObjectDetectionSettings
-    # face_detection_settings is one-to-one to detection.FaceDetectionSettings
-    # alpr_settings is one-to-one to detection.ALPRSettings
+    object_detection_settings = models.ForeignKey(detection.ObjectDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
+    face_detection_settings = models.ForeignKey(detection.FaceDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
+    alpr_settings = models.ForeignKey(detection.ALPRSettings, null=True, blank=True, on_delete=models.SET_NULL)
