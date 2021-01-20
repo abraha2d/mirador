@@ -1,6 +1,7 @@
 from django.db import models
 
 from detection import models as detection
+from overlay import models as overlay
 
 
 class PTZSettings(models.Model):
@@ -49,7 +50,8 @@ class Camera(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
 
-    # overlays is many-to-many to overlay.Overlay
+    overlays = models.ManyToManyField(overlay.Overlay)
+
     sound_detection_settings = models.ForeignKey(detection.SoundDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
     motion_detection_settings = models.ForeignKey(detection.MotionDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
     require_motion_to_detect = models.BooleanField()
