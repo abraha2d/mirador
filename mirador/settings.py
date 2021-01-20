@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'camera',
     'detection',
     'overlay',
+    'schedule',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

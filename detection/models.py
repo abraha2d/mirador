@@ -2,17 +2,19 @@ from django.db import models
 
 from colorfield.fields import ColorField
 
+from schedule import models as schedule
+
 
 class SoundDetectionSettings(models.Model):
     enabled = models.BooleanField()
     sensitivity = models.FloatField()
-    # schedule is many-to-one to schedule.Schedule
+    schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
 
 
 class MotionDetectionSettings(models.Model):
     enabled = models.BooleanField()
     sensitivity = models.FloatField()
-    # schedule is many-to-one to schedule.Schedule
+    schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
     # regions is one-to-many to MotionDetectionRegion
 
 
