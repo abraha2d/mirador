@@ -5,6 +5,10 @@ from overlay import models as overlay
 
 
 class PTZSettings(models.Model):
+    class Meta:
+        verbose_name = "PTZ settings"
+        verbose_name_plural = "PTZ settings"
+
     enabled = models.BooleanField()
 
     pan_speed = models.FloatField(null=True, blank=True)
