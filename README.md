@@ -1,5 +1,3 @@
-# Mirador
-
 ```
 mir·a·dor    /ˈmirədôr/
 
