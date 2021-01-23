@@ -7,13 +7,13 @@ class Video(models.Model):
     camera = models.ForeignKey(camera.Camera, null=True, blank=True, on_delete=models.SET_NULL)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    file = models.FilePathField()
+    file = models.CharField(max_length=255)
 
 
 class Picture(models.Model):
     camera = models.ForeignKey(camera.Camera, null=True, blank=True, on_delete=models.SET_NULL)
     date = models.DateTimeField()
-    file = models.FilePathField()
+    file = models.CharField(max_length=255)
 
 
 class Event(models.Model):
