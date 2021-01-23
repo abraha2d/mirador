@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'colorfield',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

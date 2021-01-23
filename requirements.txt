@@ -9,6 +9,7 @@ cryptography==3.3.1
 daphne==3.0.1
 Django==3.1.5
 django-colorfield==0.4.1
+djangorestframework==3.12.2
 hyperlink==21.0.0
 idna==3.1
 incremental==17.5.0
