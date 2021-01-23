@@ -1,11 +1,6 @@
 from django.contrib import admin
-
-from .models import (
-    Camera,
-    CameraType,
-    PTZSettings,
-    Stream,
-)
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.forms import ModelForm, PasswordInput
 
 from detection.admin import (
     ALPRSettingsInline,
@@ -15,9 +10,27 @@ from detection.admin import (
     SoundDetectionSettingsInline,
 )
 
+from .models import (
+    Camera,
+    CameraType,
+    PTZSettings,
+    Stream,
+)
+
+
+class CameraAdminForm(ModelForm):
+    class Meta:
+        model = Camera
+        exclude = []
+        widgets = {
+            'password': PasswordInput(),
+            'overlays': FilteredSelectMultiple(verbose_name='overlays', is_stacked=False),
+        }
+
 
 @admin.register(Camera)
 class CameraAdmin(admin.ModelAdmin):
+    form = CameraAdminForm
     inlines = [
         SoundDetectionSettingsInline,
         MotionDetectionSettingsInline,
