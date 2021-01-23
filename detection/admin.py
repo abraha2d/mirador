@@ -9,26 +9,21 @@ from .models import (
 )
 
 
-@admin.register(ALPRSettings)
-class ALPRSettingsAdmin(admin.ModelAdmin):
-    pass
+class ALPRSettingsInline(admin.StackedInline):
+    model = ALPRSettings
 
 
-@admin.register(FaceDetectionSettings)
-class FaceDetectionSettingsAdmin(admin.ModelAdmin):
-    pass
+class FaceDetectionSettingsInline(admin.StackedInline):
+    model = FaceDetectionSettings
 
 
-@admin.register(MotionDetectionSettings)
-class MotionDetectionSettingsAdmin(admin.ModelAdmin):
-    pass
+class MotionDetectionSettingsInline(admin.StackedInline):
+    model = MotionDetectionSettings
 
 
-@admin.register(ObjectDetectionSettings)
-class ObjectDetectionSettingsAdmin(admin.ModelAdmin):
-    pass
+class ObjectDetectionSettingsInline(admin.StackedInline):
+    model = ObjectDetectionSettings
 
 
-@admin.register(SoundDetectionSettings)
-class SoundDetectionSettingsAdmin(admin.ModelAdmin):
-    pass
+class SoundDetectionSettingsInline(admin.StackedInline):
+    model = SoundDetectionSettings

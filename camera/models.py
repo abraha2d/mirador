@@ -1,7 +1,27 @@
 from django.db import models
 
-from detection import models as detection
 from overlay import models as overlay
+
+
+class CameraType(models.Model):
+    name = models.CharField(max_length=255)
+    # streams is one-to-many to Stream
+    # ptz_settings is one-to-one to PTZSettings
+
+
+class Stream(models.Model):
+
+    class Protocol(models.TextChoices):
+        RTSP = 'RTSP', 'RTSP'
+        HTTP = 'HTTP', 'HTTP'
+
+    enabled = models.BooleanField(default=True)
+    name = models.CharField(max_length=255)
+    protocol = models.CharField(max_length=4, choices=Protocol.choices, default=Protocol.RTSP)
+    port = models.PositiveSmallIntegerField(default=554)
+    url = models.CharField(max_length=255)
+
+    camera_type = models.ForeignKey(CameraType, on_delete=models.CASCADE, related_name="streams")
 
 
 class PTZSettings(models.Model):
@@ -29,25 +49,11 @@ class PTZSettings(models.Model):
     zoom_out_url = models.CharField(max_length=255, null=True, blank=True)
     zoom_out_stop_url = models.CharField(max_length=255, null=True, blank=True)
 
-
-class CameraType(models.Model):
-    name = models.CharField(max_length=255)
-    # streams is one-to-many to Stream
-    ptz_settings = models.ForeignKey(PTZSettings, on_delete=models.RESTRICT)
-
-
-class Stream(models.Model):
-    enabled = models.BooleanField()
-    name = models.CharField(max_length=255)
-    protocol = models.CharField(max_length=4)
-    port = models.PositiveSmallIntegerField()
-    url = models.CharField(max_length=255)
-
-    camera_type = models.ForeignKey(CameraType, on_delete=models.CASCADE, related_name="streams")
+    camera_type = models.OneToOneField(CameraType, on_delete=models.CASCADE)
 
 
 class Camera(models.Model):
-    enabled = models.BooleanField()
+    enabled = models.BooleanField(default=True)
     name = models.CharField(max_length=255)
     camera_type = models.ForeignKey(CameraType, on_delete=models.RESTRICT)
     host = models.CharField(max_length=255)
@@ -56,9 +62,8 @@ class Camera(models.Model):
 
     overlays = models.ManyToManyField(overlay.Overlay)
 
-    sound_detection_settings = models.ForeignKey(detection.SoundDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
-    motion_detection_settings = models.ForeignKey(detection.MotionDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
-    require_motion_to_detect = models.BooleanField()
-    object_detection_settings = models.ForeignKey(detection.ObjectDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
-    face_detection_settings = models.ForeignKey(detection.FaceDetectionSettings, null=True, blank=True, on_delete=models.SET_NULL)
-    alpr_settings = models.ForeignKey(detection.ALPRSettings, null=True, blank=True, on_delete=models.SET_NULL)
+    # sound_detection_settings is one-to-one to detection.SoundDetectionSettings
+    # motion_detection_settings is one-to-one to detection.MotionDetectionSettings
+    # object_detection_settings is one-to-one to detection.ObjectDetectionSettings
+    # face_detection_settings is one-to-one to detection.FaceDetectionSettings
+    # alpr_settings is one-to-one to detection.ALPRSettings

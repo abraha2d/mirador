@@ -2,6 +2,7 @@ from django.db import models
 
 from colorfield.fields import ColorField
 
+from camera import models as camera
 from schedule import models as schedule
 
 
@@ -13,6 +14,8 @@ class SoundDetectionSettings(models.Model):
     sensitivity = models.FloatField()
     schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
 
+    camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
+
 
 class MotionDetectionSettings(models.Model):
     class Meta:
@@ -22,6 +25,8 @@ class MotionDetectionSettings(models.Model):
     sensitivity = models.FloatField()
     schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
     # regions is one-to-many to MotionDetectionRegion
+
+    camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
 
 
 class MotionDetectionRegion(models.Model):
@@ -39,12 +44,16 @@ class ObjectDetectionSettings(models.Model):
     enabled = models.BooleanField()
     threshold = models.FloatField()
 
+    camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
+
 
 class FaceDetectionSettings(models.Model):
     class Meta:
         verbose_name_plural = "Face detection settings"
 
     enabled = models.BooleanField()
+
+    camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
 
 
 class ALPRSettings(models.Model):
@@ -53,3 +62,5 @@ class ALPRSettings(models.Model):
         verbose_name_plural = "ALPR settings"
 
     enabled = models.BooleanField()
+
+    camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)

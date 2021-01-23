@@ -7,22 +7,37 @@ from .models import (
     Stream,
 )
 
+from detection.admin import (
+    ALPRSettingsInline,
+    FaceDetectionSettingsInline,
+    MotionDetectionSettingsInline,
+    ObjectDetectionSettingsInline,
+    SoundDetectionSettingsInline,
+)
+
 
 @admin.register(Camera)
 class CameraAdmin(admin.ModelAdmin):
-    pass
+    inlines = [
+        SoundDetectionSettingsInline,
+        MotionDetectionSettingsInline,
+        ObjectDetectionSettingsInline,
+        FaceDetectionSettingsInline,
+        ALPRSettingsInline,
+    ]
+
+
+class StreamInline(admin.TabularInline):
+    model = Stream
+
+
+class PTZSettingsInline(admin.StackedInline):
+    model = PTZSettings
 
 
 @admin.register(CameraType)
 class CameraTypeAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(PTZSettings)
-class PTZSettingsAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Stream)
-class StreamAdmin(admin.ModelAdmin):
-    pass
+    inlines = [
+        StreamInline,
+        PTZSettingsInline,
+    ]
