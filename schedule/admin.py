@@ -6,11 +6,12 @@ from .models import (
 )
 
 
+class SchedulePartInline(admin.TabularInline):
+    model = SchedulePart
+
+
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(SchedulePart)
-class SchedulePartAdmin(admin.ModelAdmin):
-    pass
+    inlines = [
+        SchedulePartInline,
+    ]
