@@ -8,7 +8,7 @@ class Schedule(models.Model):
 
 
 class SchedulePart(models.Model):
-    enabled = models.BooleanField()
+    enabled = models.BooleanField(default=True)
 
     sunday = models.BooleanField()
     monday = models.BooleanField()
