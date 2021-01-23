@@ -8,6 +8,9 @@ class CameraType(models.Model):
     # streams is one-to-many to Stream
     # ptz_settings is one-to-one to PTZSettings
 
+    def __str__(self):
+        return self.name
+
 
 class Stream(models.Model):
 
@@ -15,7 +18,7 @@ class Stream(models.Model):
         RTSP = 'RTSP', 'RTSP'
         HTTP = 'HTTP', 'HTTP'
 
-    enabled = models.BooleanField(default=True)
+    enabled = models.BooleanField()
     name = models.CharField(max_length=255)
     protocol = models.CharField(max_length=4, choices=Protocol.choices, default=Protocol.RTSP)
     port = models.PositiveSmallIntegerField(default=554)
@@ -60,10 +63,13 @@ class Camera(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
 
-    overlays = models.ManyToManyField(overlay.Overlay)
+    overlays = models.ManyToManyField(overlay.Overlay, blank=True)
 
     # sound_detection_settings is one-to-one to detection.SoundDetectionSettings
     # motion_detection_settings is one-to-one to detection.MotionDetectionSettings
     # object_detection_settings is one-to-one to detection.ObjectDetectionSettings
     # face_detection_settings is one-to-one to detection.FaceDetectionSettings
     # alpr_settings is one-to-one to detection.ALPRSettings
+
+    def __str__(self):
+        return self.name

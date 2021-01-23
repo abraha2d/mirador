@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.forms import ModelForm, PasswordInput
+from django.forms import CharField, ModelForm, PasswordInput
 
 from detection.admin import (
     ALPRSettingsInline,
@@ -23,13 +23,27 @@ class CameraAdminForm(ModelForm):
         model = Camera
         exclude = []
         widgets = {
-            'password': PasswordInput(),
+            'password': PasswordInput(render_value=True),
             'overlays': FilteredSelectMultiple(verbose_name='overlays', is_stacked=False),
         }
 
 
+def make_enabled(modeladmin, request, queryset):
+    queryset.update(enabled=True)
+make_enabled.short_description = "Enable selected cameras"
+
+
+def make_disabled(modeladmin, request, queryset):
+    queryset.update(enabled=False)
+make_disabled.short_description = "Disable selected cameras"
+
+
 @admin.register(Camera)
 class CameraAdmin(admin.ModelAdmin):
+    list_display = ('name', 'host', 'camera_type', 'enabled')
+    ordering = ('name',)
+    actions = [make_enabled, make_disabled]
+
     form = CameraAdminForm
     inlines = [
         SoundDetectionSettingsInline,
@@ -38,6 +52,8 @@ class CameraAdmin(admin.ModelAdmin):
         FaceDetectionSettingsInline,
         ALPRSettingsInline,
     ]
+    save_as = True
+    save_on_top = True
 
 
 class StreamInline(admin.TabularInline):
@@ -50,7 +66,11 @@ class PTZSettingsInline(admin.StackedInline):
 
 @admin.register(CameraType)
 class CameraTypeAdmin(admin.ModelAdmin):
+    ordering = ('name',)
+
     inlines = [
         StreamInline,
         PTZSettingsInline,
     ]
+    save_as = True
+    save_on_top = True
