@@ -1,26 +1,28 @@
 import React from "react";
+import { Col, Container, Row } from "react-bootstrap";
+
+import { CameraSidebar } from "./components/CameraSidebar";
+import { TopNav } from "./components/TopNav";
+
 import logo from "./logo.svg";
 import "./App.css";
-import { TopNav } from "./components/TopNav";
 
 function App() {
   return (
-    <div className="App">
+    <div className="App h-100 d-flex flex-column">
       <TopNav />
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Container fluid className={"flex-grow-1 d-flex flex-column"}>
+        <Row className={"flex-grow-1"}>
+          <Col xs={2} className={"h-100 pr-0"}>
+            <CameraSidebar />
+          </Col>
+          <Col className={"h-100"}>
+            <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center live-container">
+              <img src={logo} className="live" alt="spinner" />
+            </div>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 }
