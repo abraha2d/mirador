@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Spinner, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
-import { CameraVideoFill } from "react-bootstrap-icons";
+import {
+  ArrowClockwise,
+  CameraVideoFill,
+  ExclamationTriangleFill,
+} from "react-bootstrap-icons";
 
 type CameraRowProps = {
   idx: number;
@@ -31,14 +35,35 @@ const CameraRow = ({
 );
 
 export const CameraSidebar = () => {
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(false);
+  const [isError, setError] = useState(false);
   const [data, setData] = useState([]);
-  useEffect(() => {
-    fetch("/api/cameras/")
-      .then((response) => response.json())
-      .then((response) => setData(response))
-      .then(() => setTimeout(() => setLoading(false), 1000));
-  }, []);
+
+  const loadCameras = () => {
+    setLoading(true);
+    setTimeout(
+      () =>
+        fetch("/api/cameras/")
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error();
+            }
+          })
+          .then((response) => {
+            setData(response);
+            setError(false);
+          })
+          .catch(() => {
+            setError(true);
+          })
+          .finally(() => setLoading(false)),
+      500
+    );
+  };
+
+  useEffect(loadCameras, []);
 
   const [value, setValue] = useState([] as number[]);
   const handleChange = (idx: number) => {
@@ -51,43 +76,53 @@ export const CameraSidebar = () => {
 
   return (
     <>
-      <div className="pb-2">Cameras:</div>
-      {isLoading ? (
-        <ToggleButtonGroup
-          type="checkbox"
-          value={value}
-          vertical
-          className="w-100"
-        >
+      <div className="pb-2 d-flex justify-content-between">
+        <span>Cameras</span>
+        {isLoading ? (
+          <Spinner animation="border" size="sm" />
+        ) : (
+          <ArrowClockwise onClick={loadCameras} />
+        )}
+      </div>
+      <ToggleButtonGroup
+        type="checkbox"
+        value={value}
+        vertical
+        className="w-100"
+      >
+        {isLoading && (isError || data.length === 0) && (
           <ToggleButton
             value={0}
             variant="light"
             className="d-flex align-items-center"
             disabled
           >
-            <Spinner animation="border" size="sm" className="mr-2" />
+            <Spinner animation="grow" size="sm" className="mr-2" />
             <span>Loading...</span>
           </ToggleButton>
-        </ToggleButtonGroup>
-      ) : (
-        <ToggleButtonGroup
-          type="checkbox"
-          value={value}
-          vertical
-          className="w-100"
-        >
-          {data.map((camera: any) => (
-            <CameraRow
-              key={camera.id}
-              idx={camera.id}
-              camName={camera.name}
-              disabled={!camera.enabled}
-              selected={value.includes(camera.id)}
-              onChange={handleChange}
-            />
-          ))}
-        </ToggleButtonGroup>
-      )}
+        )}
+        {isError && !isLoading && (
+          <ToggleButton
+            value={0}
+            variant="danger"
+            className="d-flex align-items-center"
+            disabled
+          >
+            <ExclamationTriangleFill className="mr-2" />
+            <span>An error occurred.</span>
+          </ToggleButton>
+        )}
+        {data.map((camera: any) => (
+          <CameraRow
+            key={camera.id}
+            idx={camera.id}
+            camName={camera.name}
+            disabled={!camera.enabled}
+            selected={value.includes(camera.id)}
+            onChange={handleChange}
+          />
+        ))}
+      </ToggleButtonGroup>
     </>
   );
 };
