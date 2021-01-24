@@ -1,31 +1,27 @@
 import React from "react";
-import { Col, Container, Row } from "react-bootstrap";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
-import { CameraSidebar } from "./components/CameraSidebar";
-import { TopNav } from "./components/TopNav";
+import TopNav from "./components/TopNav";
+import LiveView from "./components/LiveView";
+import PlaybackView from "./components/PlaybackView";
 
-import logo from "./logo.svg";
 import "./App.css";
 
 function App() {
   return (
-    <div className="App h-100 d-flex flex-column">
-      <TopNav />
-      <Container fluid className="flex-grow-1 d-flex flex-column">
-        <Row className="flex-grow-1">
-          <Col style={{ maxWidth: "16rem" }} className="pr-0 overflow-auto">
-            <CameraSidebar />
-          </Col>
-          <Col className="h-100">
-            <div className="live-container aspect-ratio--16x9">
-              <div className="aspect-ratio__inner-wrapper d-flex align-items-center justify-content-center">
-                <img src={logo} className="live" alt="spinner" />
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+    <Router>
+      <div className="h-100 d-flex flex-column">
+        <TopNav />
+        <Switch>
+          <Route path="/playback">
+            <PlaybackView />
+          </Route>
+          <Route path="/">
+            <LiveView />
+          </Route>
+        </Switch>
+      </div>
+    </Router>
   );
 }
 

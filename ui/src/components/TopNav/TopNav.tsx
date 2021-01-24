@@ -5,21 +5,27 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import NavItem from "react-bootstrap/NavItem";
 import NavLink from "react-bootstrap/NavLink";
 
+import { NavLink as Link } from "react-router-dom";
+
 import { PersonFill } from "react-bootstrap-icons";
 
 export const TopNav = () => {
   return (
     <Navbar bg="light" className="mb-3">
-      <NavbarBrand>Mirador</NavbarBrand>
+      <NavbarBrand href="/">Mirador</NavbarBrand>
       <Nav className={"flex-grow-1"}>
-        <NavItem className={"text-nowrap"}>
-          <NavLink active>Live View</NavLink>
+        <NavItem>
+          <NavLink>
+            <Link to="/">Live</Link>
+          </NavLink>
         </NavItem>
-        <NavItem className={"text-nowrap"}>
-          <NavLink>Playback</NavLink>
+        <NavItem>
+          <NavLink>
+            <Link to="/playback">Playback</Link>
+          </NavLink>
         </NavItem>
-        <NavItem className={"text-nowrap"}>
-          <NavLink href="/admin/">Configuration</NavLink>
+        <NavItem>
+          <NavLink href="//localhost:7999/admin/">Config</NavLink>
         </NavItem>
         <div className={"flex-grow-1"} />
         <NavDropdown

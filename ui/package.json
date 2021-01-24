@@ -47,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react-router-dom": "^5.1.7",
     "prettier": "2.2.1",
     "source-map-explorer": "^2.5.2"
   },
