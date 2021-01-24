@@ -9,7 +9,7 @@ import { PersonFill } from "react-bootstrap-icons";
 
 export const TopNav = () => {
   return (
-    <Navbar>
+    <Navbar bg="light" className="mb-3">
       <NavbarBrand>Mirador</NavbarBrand>
       <Nav className={"flex-grow-1"}>
         <NavItem className={"text-nowrap"}>
@@ -19,7 +19,7 @@ export const TopNav = () => {
           <NavLink>Playback</NavLink>
         </NavItem>
         <NavItem className={"text-nowrap"}>
-          <NavLink>Configuration</NavLink>
+          <NavLink href="/admin/">Configuration</NavLink>
         </NavItem>
         <div className={"flex-grow-1"} />
         <NavDropdown
