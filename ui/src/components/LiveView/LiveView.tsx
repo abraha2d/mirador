@@ -15,7 +15,7 @@ export const LiveView = () => {
           <CameraSidebar />
         </Col>
         <Col className="h-100">
-          <div className="live-container aspect-ratio--16x9">
+          <div className="aspect-ratio--16x9 bg-dark border-bottom border-right">
             <div className="aspect-ratio__inner-wrapper d-flex flex-column">
               {[...Array(Math.sqrt(gridSize)).keys()].map((i) => (
                 <div

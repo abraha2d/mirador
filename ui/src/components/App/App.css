@@ -17,10 +17,6 @@
   left: 0;
 }
 
-.live-container {
-  background-color: #282c34;
-}
-
 .live {
   height: 40vmin;
   animation: live-spin infinite 20s linear;

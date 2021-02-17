@@ -7,13 +7,13 @@ import { ArrowsFullscreen, Fullscreen } from "react-bootstrap-icons";
 export const ControlBar = () => {
   const [state, dispatch] = useContext(Context);
   return (
-    <div className="bg-light p-2 rounded-bottom">
+    <div className="bg-dark p-2 rounded-bottom" style={{ margin: "0 1px" }}>
       <ButtonToolbar className="justify-content-between">
         <ButtonGroup>
           {[1, 4, 9, 16].map((gridSize) => (
             <Button
               key={gridSize}
-              variant="outline-dark"
+              variant={state.gridSize === gridSize ? "light" : "secondary"}
               active={state.gridSize === gridSize}
               onClick={() =>
                 dispatch && dispatch({ type: SET_GRIDSIZE, payload: gridSize })
@@ -24,7 +24,7 @@ export const ControlBar = () => {
           ))}
         </ButtonGroup>
         <ButtonGroup>
-          <Button variant="outline-dark" className="d-flex align-items-center">
+          <Button variant="light" className="d-flex align-items-center">
             <ArrowsFullscreen />
           </Button>
         </ButtonGroup>
