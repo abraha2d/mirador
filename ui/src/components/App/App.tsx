@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
-import TopNav from "./components/TopNav";
-import LiveView from "./components/LiveView";
-import PlaybackView from "./components/PlaybackView";
+import LiveView from "components/LiveView";
+import PlaybackView from "components/PlaybackView";
+import TopNav from "components/TopNav";
 
 import "./App.css";
 

@@ -1,8 +1,8 @@
 import { Col, Container, Row } from "react-bootstrap";
 
-import { CameraSidebar } from "../CameraSidebar";
-import { ControlBar } from "../ControlBar";
-import { StreamContainer } from "../StreamContainer";
+import { CameraSidebar } from "components/CameraSidebar";
+import { ControlBar } from "components/ControlBar";
+import { StreamContainer } from "components/StreamContainer";
 
 export const LiveView = () => (
   <Container fluid className="flex-grow-1 d-flex flex-column">

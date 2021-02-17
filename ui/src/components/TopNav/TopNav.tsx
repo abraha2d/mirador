@@ -5,9 +5,9 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import NavItem from "react-bootstrap/NavItem";
 import NavLink from "react-bootstrap/NavLink";
 
-import { NavLink as Link } from "react-router-dom";
-
 import { PersonFill } from "react-bootstrap-icons";
+
+import { NavLink as Link } from "react-router-dom";
 
 export const TopNav = () => {
   return (
