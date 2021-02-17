@@ -16,7 +16,7 @@ function App() {
           <Route path="/playback">
             <PlaybackView />
           </Route>
-          <Route path="/">
+          <Route path="/" exact>
             <LiveView />
           </Route>
         </Switch>

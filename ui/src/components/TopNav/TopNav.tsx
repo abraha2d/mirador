@@ -15,14 +15,14 @@ export const TopNav = () => {
       <NavbarBrand href="/">Mirador</NavbarBrand>
       <Nav className={"flex-grow-1"}>
         <NavItem>
-          <NavLink>
-            <Link to="/">Live</Link>
-          </NavLink>
+          <Link className="nav-link" to="/" exact>
+            Live
+          </Link>
         </NavItem>
         <NavItem>
-          <NavLink>
-            <Link to="/playback">Playback</Link>
-          </NavLink>
+          <Link className="nav-link" to="/playback">
+            Playback
+          </Link>
         </NavItem>
         <NavItem>
           <NavLink href="//localhost:7999/admin/">Config</NavLink>
