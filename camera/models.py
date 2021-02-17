@@ -15,8 +15,8 @@ class CameraType(models.Model):
 class Stream(models.Model):
 
     class Protocol(models.TextChoices):
-        RTSP = 'RTSP', 'RTSP'
-        HTTP = 'HTTP', 'HTTP'
+        RTSP = 'rtsp', 'RTSP'
+        HTTP = 'http', 'HTTP'
 
     enabled = models.BooleanField()
     name = models.CharField(max_length=255)
