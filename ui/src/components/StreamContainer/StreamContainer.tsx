@@ -1,7 +1,12 @@
 import logo from "logo.svg";
 
-export const StreamContainer = () => (
-  <div>
-    <img src={logo} className="live" alt="spinner" />
+type StreamContainerProps = {
+  width: string;
+  height: string;
+};
+
+export const StreamContainer = ({ width, height }: StreamContainerProps) => (
+  <div className="d-flex justify-content-center" style={{ width, height }}>
+    <img src={logo} className="live w-100 h-100" />
   </div>
 );

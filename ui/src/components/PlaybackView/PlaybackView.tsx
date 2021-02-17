@@ -1,14 +1,14 @@
 import { Col, Container, Row } from "react-bootstrap";
 
-import { StreamContainer } from "../StreamContainer";
+import { CameraSidebar } from "components/CameraSidebar";
 
-import logo from "../../logo.svg";
+import logo from "logo.svg";
 
 export const PlaybackView = () => (
   <Container fluid className="flex-grow-1 d-flex flex-column">
     <Row className="flex-grow-1">
       <Col style={{ maxWidth: "16rem" }} className="pr-0 overflow-auto">
-        <StreamContainer />
+        <CameraSidebar />
       </Col>
       <Col className="h-100">
         <div className="live-container aspect-ratio--16x9">

@@ -7,22 +7,20 @@ import TopNav from "components/TopNav";
 
 import "./App.css";
 
-function App() {
-  return (
-    <Router>
-      <div className="h-100 d-flex flex-column">
-        <TopNav />
-        <Switch>
-          <Route path="/playback">
-            <PlaybackView />
-          </Route>
-          <Route path="/" exact>
-            <LiveView />
-          </Route>
-        </Switch>
-      </div>
-    </Router>
-  );
-}
+export const App = () => (
+  <Router>
+    <div className="h-100 d-flex flex-column">
+      <TopNav />
+      <Switch>
+        <Route path="/playback">
+          <PlaybackView />
+        </Route>
+        <Route path="/" exact>
+          <LiveView />
+        </Route>
+      </Switch>
+    </div>
+  </Router>
+);
 
 export default App;
