@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import { Context } from "components/Store";
 import { SET_GRIDSIZE } from "components/Store/constants";
-import { ArrowsFullscreen, Fullscreen } from "react-bootstrap-icons";
+import { ArrowsFullscreen } from "react-bootstrap-icons";
 
 export const ControlBar = () => {
   const [state, dispatch] = useContext(Context);

@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Spinner, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import {
   ArrowClockwise,
   CameraVideoFill,
   ExclamationTriangleFill,
 } from "react-bootstrap-icons";
+
+import { Context } from "components/Store";
+import { START_STREAM, STOP_STREAM } from "components/Store/constants";
 
 type CameraRowProps = {
   idx: number;
@@ -39,6 +42,8 @@ export const CameraSidebar = () => {
   const [isError, setError] = useState(false);
   const [data, setData] = useState([]);
 
+  const [state, dispatch] = useContext(Context);
+
   const loadCameras = () => {
     setLoading(true);
     setTimeout(
@@ -65,15 +70,6 @@ export const CameraSidebar = () => {
 
   useEffect(loadCameras, []);
 
-  const [value, setValue] = useState([] as number[]);
-  const handleChange = (idx: number) => {
-    if (value.includes(idx)) {
-      setValue(value.filter((v) => v !== idx));
-    } else {
-      setValue(value.concat([idx]));
-    }
-  };
-
   return (
     <>
       <div className="pb-2 d-flex justify-content-between">
@@ -86,7 +82,7 @@ export const CameraSidebar = () => {
       </div>
       <ToggleButtonGroup
         type="checkbox"
-        value={value}
+        value={Array.from(state.streams.keys())}
         vertical
         className="w-100"
       >
@@ -118,8 +114,28 @@ export const CameraSidebar = () => {
             idx={camera.id}
             camName={camera.name}
             disabled={!camera.enabled}
-            selected={value.includes(camera.id)}
-            onChange={handleChange}
+            selected={Array.from(state.streams)
+              .map(([, s]) => s && s.id)
+              .includes(camera.id)}
+            onChange={(id) => {
+              if (
+                Array.from(state.streams)
+                  .map(([, s]) => s && s.id)
+                  .includes(id)
+              ) {
+                dispatch &&
+                  dispatch({
+                    type: STOP_STREAM,
+                    payload: id,
+                  });
+              } else {
+                dispatch &&
+                  dispatch({
+                    type: START_STREAM,
+                    payload: { id, url: camera.name },
+                  });
+              }
+            }}
           />
         ))}
       </ToggleButtonGroup>

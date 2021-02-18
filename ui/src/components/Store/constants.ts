@@ -1,3 +1,4 @@
 export const SET_GRIDSIZE = "SET_GRIDSIZE";
-export const ADD_CAMERA = "ADD_CAMERA";
-export const REMOVE_CAMERA = "REMOVE_CAMERA";
+export const SET_STREAMS = "SET_CAMERAS";
+export const START_STREAM = "ADD_CAMERA";
+export const STOP_STREAM = "REMOVE_CAMERA";

@@ -8,7 +8,7 @@ type StoreProps = {
 
 const initialState: StateType = {
   gridSize: 1,
-  cameras: [],
+  streams: new Map(),
 };
 
 export const Store = ({ children }: StoreProps) => {
