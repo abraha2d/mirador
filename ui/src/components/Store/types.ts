@@ -6,6 +6,7 @@ export type Stream = {
 };
 
 export type StateType = {
+  cameras: any[];
   gridSize: number;
   streams: Map<number, Stream>;
 };

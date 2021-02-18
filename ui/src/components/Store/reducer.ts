@@ -1,4 +1,11 @@
-import { START_STREAM, STOP_STREAM, SET_GRIDSIZE } from "./constants";
+import {
+  SET_CAMERAS,
+  SET_GRIDSIZE,
+  START_STREAM,
+  START_STREAM_ALL,
+  STOP_STREAM,
+  STOP_STREAM_ALL,
+} from "./constants";
 import { StateType, Stream } from "components/Store/types";
 
 const findOpenIdx = (state: StateType): number => {
@@ -57,6 +64,11 @@ const resizeGrid = (state: StateType, newGridSize: number): StateType => {
 
 export const Reducer = (state: StateType, action: any): StateType => {
   switch (action.type) {
+    case SET_CAMERAS:
+      return {
+        ...state,
+        cameras: action.payload,
+      };
     case SET_GRIDSIZE:
       return resizeGrid(state, action.payload);
     case START_STREAM:
@@ -71,6 +83,19 @@ export const Reducer = (state: StateType, action: any): StateType => {
       return {
         ...state,
       };
+    case START_STREAM_ALL:
+      for (const camera of state.cameras) {
+        if (!camera.enabled || findStreamIdx(state, camera.id) > -1) {
+          continue;
+        }
+        const openIdx = findOpenIdx(state);
+        if (openIdx > -1) {
+          state.streams.set(openIdx, { id: camera.id, url: camera.name });
+        }
+      }
+      return {
+        ...state,
+      };
     case STOP_STREAM:
       const streamIdx = findStreamIdx(state, action.payload);
       if (streamIdx > -1) {
@@ -78,6 +103,11 @@ export const Reducer = (state: StateType, action: any): StateType => {
       }
       return {
         ...state,
+      };
+    case STOP_STREAM_ALL:
+      return {
+        ...state,
+        streams: new Map(),
       };
     default:
       return state;

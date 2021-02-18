@@ -7,6 +7,7 @@ type StoreProps = {
 };
 
 const initialState: StateType = {
+  cameras: [],
   gridSize: 1,
   streams: new Map(),
 };

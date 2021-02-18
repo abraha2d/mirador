@@ -9,7 +9,11 @@ import {
 import { useDrag } from "react-dnd";
 
 import { Context } from "components/Store";
-import { START_STREAM, STOP_STREAM } from "components/Store/constants";
+import {
+  SET_CAMERAS,
+  START_STREAM,
+  STOP_STREAM,
+} from "components/Store/constants";
 
 import { DragItemTypes } from "utils";
 
@@ -65,6 +69,7 @@ export const CameraSidebar = () => {
           })
           .then((response) => {
             setData(response);
+            dispatch && dispatch({ type: SET_CAMERAS, payload: response });
             setError(false);
           })
           .catch(() => {
@@ -75,7 +80,7 @@ export const CameraSidebar = () => {
     );
   };
 
-  useEffect(loadCameras, []);
+  useEffect(loadCameras, [dispatch]);
 
   return (
     <>
