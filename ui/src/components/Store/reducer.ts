@@ -62,6 +62,10 @@ export const Reducer = (state: StateType, action: any): StateType => {
     case START_STREAM:
       const idx = action.payload.idx || findOpenIdx(state);
       if (idx > -1) {
+        const existingIdx = findStreamIdx(state, action.payload.stream.id);
+        if (existingIdx > -1) {
+          state.streams.delete(existingIdx);
+        }
         state.streams.set(idx, action.payload.stream);
       }
       return {
