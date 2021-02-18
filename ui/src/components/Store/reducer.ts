@@ -24,33 +24,46 @@ const findStreamIdx = (state: StateType, streamId: number): number => {
   return -1;
 };
 
-const idxToCoord = (idx: number, gridSize: number): [number, number] => [
-  idx % gridSize,
-  Math.floor(idx / gridSize),
+const idxToCoord = (idx: number, gridSide: number): [number, number] => [
+  idx % gridSide,
+  Math.floor(idx / gridSide),
 ];
 
-const coordToIdx = (coord: [number, number], gridSize: number): number =>
-  coord[1] * gridSize + coord[0];
+const coordToIdx = (coord: [number, number], gridSide: number): number =>
+  coord[0] < gridSide && coord[1] < gridSide
+    ? coord[1] * gridSide + coord[0]
+    : -1;
 
 const resizeGrid = (state: StateType, newGridSize: number): StateType => {
   const newStreams: Map<number, Stream> = new Map();
+  const displacedStreams: Stream[] = [];
   for (let i = 0; i < state.gridSize; i++) {
-    newStreams.set(
-      coordToIdx(idxToCoord(i, state.gridSize), newGridSize),
-      state.streams.get(i)!
-    );
+    if (state.streams.get(i)) {
+      const newIdx = coordToIdx(
+        idxToCoord(i, Math.sqrt(state.gridSize)),
+        Math.sqrt(newGridSize)
+      );
+      if (newIdx !== -1 && newIdx < newGridSize && !newStreams.get(newIdx)) {
+        newStreams.set(newIdx, state.streams.get(i)!);
+      } else {
+        displacedStreams.push(state.streams.get(i)!);
+      }
+    }
   }
-  state.gridSize = newGridSize;
-  state.streams = newStreams;
-  return state;
+  const newState = { ...state, gridSize: newGridSize, streams: newStreams };
+  for (const stream of displacedStreams) {
+    const openIdx = findOpenIdx(newState);
+    if (openIdx > -1) {
+      newState.streams.set(openIdx, stream);
+    }
+  }
+  return newState;
 };
 
 export const Reducer = (state: StateType, action: any): StateType => {
   switch (action.type) {
     case SET_GRIDSIZE:
-      return {
-        ...resizeGrid(state, action.payload),
-      };
+      return resizeGrid(state, action.payload);
     case SET_STREAMS:
       return {
         ...state,
