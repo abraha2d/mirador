@@ -1,5 +1,6 @@
 import React from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
 import { START_STREAM } from "components/Store/constants";
 import { Stream } from "components/Store/types";
@@ -60,11 +61,13 @@ export const StreamContainer = ({
     canDrag: !!stream,
   });
 
+  const handle = useFullScreenHandle();
+
   return (
     <div
       className={`border-top border-left${
         isDragging
-          ? " bg-info"
+          ? " bg-secondary"
           : isOver
           ? ""
           : stream
@@ -73,18 +76,21 @@ export const StreamContainer = ({
       }`}
       style={{ width, height }}
       ref={drop}
+      onDoubleClick={handle.active ? handle.exit : handle.enter}
     >
       {stream && (
-        <div
-          className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
-          ref={drag}
-        >
-          <span className="text-light">ID: {stream.id}</span>
-          <span className="text-light text-center text-truncate w-100 px-3">
-            URL: {stream.url}
-          </span>
-          <img src={logo} className="live w-50 h-50" alt="" />
-        </div>
+        <FullScreen handle={handle}>
+          <div
+            className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+            ref={drag}
+          >
+            <span className="text-light">ID: {stream.id}</span>
+            <span className="text-light text-center text-truncate w-100 px-3">
+              URL: {stream.url}
+            </span>
+            <img src={logo} className="live w-50 h-50" alt="" />
+          </div>
+        </FullScreen>
       )}
     </div>
   );
