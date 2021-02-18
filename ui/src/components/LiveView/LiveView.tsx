@@ -7,7 +7,7 @@ import { Context } from "components/Store";
 import { StreamContainer } from "components/StreamContainer";
 
 export const LiveView = () => {
-  const [{ gridSize, streams }] = useContext(Context);
+  const [{ gridSize, streams }, dispatch] = useContext(Context);
   return (
     <Container fluid className="flex-grow-1 d-flex flex-column">
       <Row className="flex-grow-1">
@@ -28,10 +28,12 @@ export const LiveView = () => {
                 >
                   {[...Array(Math.sqrt(gridSize)).keys()].map((j) => (
                     <StreamContainer
-                      key={j}
+                      key={Math.sqrt(gridSize) * i + j}
+                      idx={Math.sqrt(gridSize) * i + j}
                       height="100%"
                       width={`${100 / Math.sqrt(gridSize)}%`}
                       stream={streams.get(Math.sqrt(gridSize) * i + j)}
+                      dispatch={dispatch}
                     />
                   ))}
                 </div>

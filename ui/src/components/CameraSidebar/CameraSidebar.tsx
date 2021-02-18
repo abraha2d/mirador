@@ -6,36 +6,42 @@ import {
   ExclamationTriangleFill,
 } from "react-bootstrap-icons";
 
+import { useDrag } from "react-dnd";
+
 import { Context } from "components/Store";
 import { START_STREAM, STOP_STREAM } from "components/Store/constants";
 
+import { DragItemTypes } from "utils";
+
 type CameraRowProps = {
-  idx: number;
-  camName: string;
-  disabled: boolean;
+  camera: any;
   selected: boolean;
   onChange: (idx: number) => void;
 };
 
-const CameraRow = ({
-  idx,
-  camName,
-  disabled,
-  selected,
-  onChange,
-}: CameraRowProps) => (
-  <ToggleButton
-    type="checkbox"
-    value={idx}
-    variant={selected ? "primary" : "light"}
-    disabled={disabled}
-    onChange={() => onChange(idx)}
-    className="d-flex align-items-center"
-  >
-    <CameraVideoFill className="mr-2" />
-    <span className="text-truncate">{camName}</span>
-  </ToggleButton>
-);
+const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
+  const [{ isDragging }, drag] = useDrag({
+    item: { type: DragItemTypes.CAMERA, camera },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  return (
+    <ToggleButton
+      type="checkbox"
+      value={camera.id}
+      variant={selected || isDragging ? "primary" : "light"}
+      disabled={!camera.enabled}
+      onChange={() => onChange(camera.id)}
+      className="d-flex align-items-center"
+      ref={drag}
+    >
+      <CameraVideoFill className="mr-2" />
+      <span className="text-truncate">{camera.name}</span>
+    </ToggleButton>
+  );
+};
 
 export const CameraSidebar = () => {
   const [isLoading, setLoading] = useState(false);
@@ -88,7 +94,7 @@ export const CameraSidebar = () => {
       >
         {isLoading && (isError || data.length === 0) && (
           <ToggleButton
-            value={0}
+            value={-1}
             variant="light"
             className="d-flex align-items-center"
             disabled
@@ -99,7 +105,7 @@ export const CameraSidebar = () => {
         )}
         {isError && !isLoading && (
           <ToggleButton
-            value={0}
+            value={-1}
             variant="danger"
             className="d-flex align-items-center"
             disabled
@@ -111,9 +117,7 @@ export const CameraSidebar = () => {
         {data.map((camera: any) => (
           <CameraRow
             key={camera.id}
-            idx={camera.id}
-            camName={camera.name}
-            disabled={!camera.enabled}
+            camera={camera}
             selected={Array.from(state.streams)
               .map(([, s]) => s && s.id)
               .includes(camera.id)}
@@ -132,7 +136,7 @@ export const CameraSidebar = () => {
                 dispatch &&
                   dispatch({
                     type: START_STREAM,
-                    payload: { id, url: camera.name },
+                    payload: { stream: { id, url: camera.name } },
                   });
               }
             }}

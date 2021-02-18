@@ -1,9 +1,4 @@
-import {
-  START_STREAM,
-  STOP_STREAM,
-  SET_STREAMS,
-  SET_GRIDSIZE,
-} from "./constants";
+import { START_STREAM, STOP_STREAM, SET_GRIDSIZE } from "./constants";
 import { StateType, Stream } from "components/Store/types";
 
 const findOpenIdx = (state: StateType): number => {
@@ -64,15 +59,10 @@ export const Reducer = (state: StateType, action: any): StateType => {
   switch (action.type) {
     case SET_GRIDSIZE:
       return resizeGrid(state, action.payload);
-    case SET_STREAMS:
-      return {
-        ...state,
-        streams: action.payload,
-      };
     case START_STREAM:
-      const openIdx = findOpenIdx(state);
-      if (openIdx > -1) {
-        state.streams.set(openIdx, action.payload);
+      const idx = action.payload.idx || findOpenIdx(state);
+      if (idx > -1) {
+        state.streams.set(idx, action.payload.stream);
       }
       return {
         ...state,

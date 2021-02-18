@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import App from "components/App";
-import Store from "components/Store";
 import reportWebVitals from "./reportWebVitals";
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -10,9 +9,7 @@ import "./index.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <Store>
-      <App />
-    </Store>
+    <App />
   </React.StrictMode>,
   document.getElementById("root")
 );
