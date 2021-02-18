@@ -63,7 +63,13 @@ export const StreamContainer = ({
   return (
     <div
       className={`border-top border-left${
-        isDragging ? " bg-info" : isOver ? "" : " bg-primary"
+        isDragging
+          ? " bg-info"
+          : isOver
+          ? ""
+          : stream
+          ? " bg-danger"
+          : " bg-primary"
       }`}
       style={{ width, height }}
       ref={drop}
