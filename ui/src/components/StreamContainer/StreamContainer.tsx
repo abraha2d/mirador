@@ -32,7 +32,7 @@ export const StreamContainer = ({
             type: START_STREAM,
             payload: {
               idx,
-              stream: { id: camera.id, url: camera.name },
+              stream: { id: camera.id, url: camera.urls[0] },
             },
           });
       } else if (item.type === DragItemTypes.STREAM) {
@@ -80,7 +80,9 @@ export const StreamContainer = ({
           ref={drag}
         >
           <span className="text-light">ID: {stream.id}</span>
-          <span className="text-light">URL: {stream.url}</span>
+          <span className="text-light text-center text-truncate w-100 px-3">
+            URL: {stream.url}
+          </span>
           <img src={logo} className="live w-50 h-50" alt="" />
         </div>
       )}

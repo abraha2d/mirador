@@ -142,7 +142,7 @@ export const CameraSidebar = () => {
                 dispatch &&
                   dispatch({
                     type: START_STREAM,
-                    payload: { stream: { id, url: camera.name } },
+                    payload: { stream: { id, url: camera.urls[0] } },
                   });
               }
             }}

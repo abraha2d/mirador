@@ -71,5 +71,11 @@ class Camera(models.Model):
     # face_detection_settings is one-to-one to detection.FaceDetectionSettings
     # alpr_settings is one-to-one to detection.ALPRSettings
 
+    def urls(self):
+        return [
+            f"{stream.protocol.lower()}://{self.username}:{self.password}@{self.host}:{stream.port}{stream.url}"
+            for stream in self.camera_type.streams.all()
+        ]
+
     def __str__(self):
         return self.name
