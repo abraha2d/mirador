@@ -72,7 +72,8 @@ export const Reducer = (state: StateType, action: any): StateType => {
     case SET_GRIDSIZE:
       return resizeGrid(state, action.payload);
     case START_STREAM:
-      const idx = action.payload.idx || findOpenIdx(state);
+      const idx =
+        action.payload.idx > -1 ? action.payload.idx : findOpenIdx(state);
       if (idx > -1) {
         const existingIdx = findStreamIdx(state, action.payload.stream.id);
         if (existingIdx > -1) {
