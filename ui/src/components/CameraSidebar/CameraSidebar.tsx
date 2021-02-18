@@ -25,6 +25,7 @@ const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
+    canDrag: camera.enabled,
   });
 
   return (
