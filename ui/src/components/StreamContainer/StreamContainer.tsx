@@ -66,13 +66,7 @@ export const StreamContainer = ({
   return (
     <div
       className={`${isFullscreen ? "" : "border-top border-left"}${
-        isDragging
-          ? " bg-secondary"
-          : isOver
-          ? ""
-          : stream
-          ? " bg-danger"
-          : " bg-primary"
+        isDragging ? " bg-secondary" : isOver ? "" : " bg-primary"
       }`}
       style={{ width, height }}
       ref={drop}
