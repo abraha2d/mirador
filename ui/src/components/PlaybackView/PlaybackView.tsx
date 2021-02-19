@@ -2,8 +2,6 @@ import { Col, Container, Row } from "react-bootstrap";
 
 import { CameraSidebar } from "components/CameraSidebar";
 
-import logo from "logo.svg";
-
 export const PlaybackView = () => (
   <Container fluid className="flex-grow-1 d-flex flex-column">
     <Row className="flex-grow-1">
@@ -12,9 +10,7 @@ export const PlaybackView = () => (
       </Col>
       <Col className="h-100">
         <div className="live-container aspect-ratio--16x9">
-          <div className="aspect-ratio__inner-wrapper d-flex align-items-center justify-content-center">
-            <img src={logo} className="live" alt="spinner" />
-          </div>
+          <div className="aspect-ratio__inner-wrapper d-flex align-items-center justify-content-center" />
         </div>
         This is playback, bois!
       </Col>

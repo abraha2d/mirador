@@ -6,8 +6,6 @@ import { START_STREAM } from "components/Store/constants";
 import { Stream } from "components/Store/types";
 import { DragItemTypes } from "utils";
 
-import logo from "logo.svg";
-
 type StreamContainerProps = {
   idx: number;
   width: string;
@@ -88,11 +86,10 @@ export const StreamContainer = ({
             className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
             ref={drag}
           >
-            <span className="text-light">ID: {stream.id}</span>
+            <h1 className="text-light">ID: {stream.id}</h1>
             <span className="text-light text-center text-truncate w-100 px-3">
               URL: {stream.url}
             </span>
-            <img src={logo} className="live w-50 h-50" alt="" />
           </div>
         </FullScreen>
       )}

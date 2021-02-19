@@ -16,16 +16,3 @@
 label.disabled   {
   cursor: not-allowed;
 }
-
-.live {
-  animation: live-spin infinite 20s linear;
-}
-
-@keyframes live-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
