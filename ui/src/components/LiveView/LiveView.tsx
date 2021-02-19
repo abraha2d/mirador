@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
@@ -9,12 +9,13 @@ import { StreamContainer } from "components/StreamContainer";
 
 export const LiveView = () => {
   const [{ gridSize, streams }, dispatch] = useContext(Context);
+  const [isDragging, setDragging] = useState(false);
   const handle = useFullScreenHandle();
   return (
     <Container fluid className="flex-grow-1 d-flex flex-column">
       <Row className="flex-grow-1">
         <Col style={{ maxWidth: "16rem" }} className="pr-0 overflow-auto">
-          <CameraSidebar />
+          <CameraSidebar showTrash={isDragging} />
         </Col>
         <Col className="h-100">
           <FullScreen
@@ -47,6 +48,7 @@ export const LiveView = () => {
                         stream={streams.get(Math.sqrt(gridSize) * i + j)}
                         isFullscreen={handle.active}
                         dispatch={dispatch}
+                        onDrag={setDragging}
                       />
                     ))}
                   </div>

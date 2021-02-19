@@ -13,6 +13,7 @@ type StreamContainerProps = {
   stream?: Stream;
   isFullscreen: boolean;
   dispatch?: React.Dispatch<any>;
+  onDrag: (dragStart: boolean) => void;
 };
 
 export const StreamContainer = ({
@@ -22,6 +23,7 @@ export const StreamContainer = ({
   stream,
   isFullscreen,
   dispatch,
+  onDrag,
 }: StreamContainerProps) => {
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
@@ -60,6 +62,8 @@ export const StreamContainer = ({
       isDragging: monitor.isDragging(),
     }),
     canDrag: !!stream,
+    begin: () => onDrag(true),
+    end: () => onDrag(false),
   });
 
   const handle = useFullScreenHandle();

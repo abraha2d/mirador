@@ -4,9 +4,10 @@ import {
   ArrowClockwise,
   CameraVideoFill,
   ExclamationTriangleFill,
+  TrashFill,
 } from "react-bootstrap-icons";
 
-import { useDrag } from "react-dnd";
+import { useDrag, useDrop } from "react-dnd";
 
 import { Context } from "components/Store";
 import {
@@ -48,12 +49,31 @@ const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
   );
 };
 
-export const CameraSidebar = () => {
+type CameraSidebarProps = {
+  showTrash: boolean;
+};
+
+export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
   const [data, setData] = useState([]);
 
   const [state, dispatch] = useContext(Context);
+
+  const [{ isOver }, drop] = useDrop({
+    accept: [DragItemTypes.STREAM],
+    drop: (item) => {
+      const stream = (item as any).stream;
+      dispatch &&
+        dispatch({
+          type: STOP_STREAM,
+          payload: stream.id,
+        });
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  });
 
   const loadCameras = () => {
     setLoading(true);
@@ -98,6 +118,26 @@ export const CameraSidebar = () => {
         vertical
         className="w-100"
       >
+        <div
+          style={{
+            zIndex: 1,
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            pointerEvents: showTrash ? "auto" : "none",
+            opacity: showTrash ? (isOver ? 1 : "80%") : 0,
+            transition: "opacity 250ms, background-color 150ms",
+          }}
+          className={`
+            position-absolute ${
+              isOver ? "bg-danger" : "bg-secondary"
+            } rounded d-flex align-items-center justify-content-center left-0
+          `}
+          ref={drop}
+        >
+          <TrashFill color="white" size={72} />
+        </div>
         {isLoading && (isError || data.length === 0) && (
           <ToggleButton
             value={-1}
