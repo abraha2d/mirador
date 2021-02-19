@@ -1,18 +1,23 @@
 import { useContext } from "react";
 import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
+import { ArrowsFullscreen, PlayFill, StopFill } from "react-bootstrap-icons";
+import { FullScreenHandle } from "react-full-screen";
 import { Context } from "components/Store";
 import {
   SET_GRIDSIZE,
   START_STREAM_ALL,
   STOP_STREAM_ALL,
 } from "components/Store/constants";
-import { ArrowsFullscreen, PlayFill, StopFill } from "react-bootstrap-icons";
 
-export const ControlBar = () => {
+export type ControlBarProps = {
+  fullscreenHandle: FullScreenHandle;
+};
+
+export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
   const [state, dispatch] = useContext(Context);
   return (
     <div
-      className="d-flex justify-content-between bg-dark p-2 rounded-bottom"
+      className="d-flex justify-content-between p-2 rounded-bottom"
       style={{ margin: "0 1px" }}
     >
       <ButtonToolbar className="">
@@ -49,7 +54,15 @@ export const ControlBar = () => {
           </Button>
         </ButtonGroup>
         <ButtonGroup>
-          <Button variant="light" className="d-flex align-items-center">
+          <Button
+            variant={fullscreenHandle.active ? "primary" : "light"}
+            className="d-flex align-items-center"
+            onClick={
+              fullscreenHandle.active
+                ? fullscreenHandle.exit
+                : fullscreenHandle.enter
+            }
+          >
             <ArrowsFullscreen />
           </Button>
         </ButtonGroup>

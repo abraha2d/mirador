@@ -1,7 +1,3 @@
-#root {
-  height: 100vh;
-}
-
 .aspect-ratio--16x9 {
   width: 100%;
   height: 0;
@@ -17,8 +13,11 @@
   left: 0;
 }
 
+label.disabled   {
+  cursor: not-allowed;
+}
+
 .live {
-  height: 40vmin;
   animation: live-spin infinite 20s linear;
 }
 
@@ -29,8 +28,4 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-label.disabled   {
-  cursor: not-allowed;
 }

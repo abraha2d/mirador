@@ -13,6 +13,7 @@ type StreamContainerProps = {
   width: string;
   height: string;
   stream?: Stream;
+  isFullscreen: boolean;
   dispatch?: React.Dispatch<any>;
 };
 
@@ -21,6 +22,7 @@ export const StreamContainer = ({
   width,
   height,
   stream,
+  isFullscreen,
   dispatch,
 }: StreamContainerProps) => {
   const [{ isOver }, drop] = useDrop({
@@ -65,7 +67,7 @@ export const StreamContainer = ({
 
   return (
     <div
-      className={`border-top border-left${
+      className={`${isFullscreen ? "" : "border-top border-left"}${
         isDragging
           ? " bg-secondary"
           : isOver
@@ -76,10 +78,12 @@ export const StreamContainer = ({
       }`}
       style={{ width, height }}
       ref={drop}
-      onDoubleClick={handle.active ? handle.exit : handle.enter}
+      onDoubleClick={
+        stream ? (handle.active ? handle.exit : handle.enter) : () => {}
+      }
     >
       {stream && (
-        <FullScreen handle={handle}>
+        <FullScreen handle={handle} className="h-100">
           <div
             className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
             ref={drag}
