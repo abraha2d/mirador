@@ -70,16 +70,8 @@ export const StreamContainer = ({
 
   return (
     <div
-      className={`${isFullscreen ? "" : "border-top border-left"}${
-        isDragging
-          ? " bg-secondary"
-          : isOver
-          ? stream
-            ? itemType === DragItemTypes.CAMERA
-              ? " bg-danger"
-              : " bg-info"
-            : " bg-primary"
-          : ""
+      className={`position-relative${
+        isFullscreen ? "" : " border-top border-left"
       }`}
       style={{ width, height }}
       ref={drop}
@@ -87,6 +79,29 @@ export const StreamContainer = ({
         stream ? (handle.active ? handle.exit : handle.enter) : () => {}
       }
     >
+      <div
+        style={{
+          zIndex: 1,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          pointerEvents: isOver ? "auto" : "none",
+          opacity: isDragging || isOver ? "80%" : 0,
+          transition: "opacity 250ms, background-color 150ms",
+        }}
+        className={`position-absolute${
+          isDragging
+            ? " bg-secondary"
+            : isOver
+            ? stream
+              ? itemType === DragItemTypes.CAMERA
+                ? " bg-danger"
+                : " bg-info"
+              : " bg-primary"
+            : ""
+        }`}
+      />
       {stream && (
         <FullScreen handle={handle} className="h-100">
           <div

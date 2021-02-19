@@ -121,10 +121,10 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         <div
           style={{
             zIndex: 1,
+            bottom: 0,
             left: 0,
             right: 0,
             top: 0,
-            bottom: 0,
             pointerEvents: showTrash ? "auto" : "none",
             opacity: showTrash ? (isOver ? 1 : "80%") : 0,
             transition: "opacity 250ms, background-color 150ms",
