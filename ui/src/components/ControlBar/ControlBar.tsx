@@ -1,6 +1,11 @@
 import { useContext } from "react";
 import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
-import { ArrowsFullscreen, PlayFill, StopFill } from "react-bootstrap-icons";
+import {
+  ArrowsFullscreen,
+  PlayFill,
+  StopFill,
+  VolumeUpFill,
+} from "react-bootstrap-icons";
 import { FullScreenHandle } from "react-full-screen";
 import { Context } from "components/Store";
 import {
@@ -37,7 +42,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
         </ButtonGroup>
       </ButtonToolbar>
       <ButtonToolbar>
-        <ButtonGroup className="pr-2">
+        <ButtonGroup className="pl-2">
           <Button
             variant="light"
             className="d-flex align-items-center"
@@ -53,7 +58,12 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
             <StopFill />
           </Button>
         </ButtonGroup>
-        <ButtonGroup>
+        <ButtonGroup className="pl-2">
+          <Button variant="light" className="d-flex align-items-center">
+            <VolumeUpFill />
+          </Button>
+        </ButtonGroup>
+        <ButtonGroup className="pl-2">
           <Button
             variant={fullscreenHandle.active ? "primary" : "light"}
             className="d-flex align-items-center"
