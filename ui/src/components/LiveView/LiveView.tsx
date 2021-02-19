@@ -24,35 +24,26 @@ export const LiveView = () => {
               handle.active ? "" : " bg-dark"
             }`}
           >
-            <div
-              className={`aspect-ratio--16x9${
-                handle.active ? "" : " border-bottom border-right"
-              }`}
-            >
-              <div className="aspect-ratio__inner-wrapper d-flex flex-column">
-                {[...Array(Math.sqrt(gridSize)).keys()].map((i) => (
-                  <div
-                    key={i}
-                    className="d-flex"
-                    style={{
-                      width: "100%",
-                      height: `${100 / Math.sqrt(gridSize)}%`,
-                    }}
-                  >
-                    {[...Array(Math.sqrt(gridSize)).keys()].map((j) => (
-                      <StreamContainer
-                        key={Math.sqrt(gridSize) * i + j}
-                        idx={Math.sqrt(gridSize) * i + j}
-                        height="100%"
-                        width={`${100 / Math.sqrt(gridSize)}%`}
-                        stream={streams.get(Math.sqrt(gridSize) * i + j)}
-                        isFullscreen={handle.active}
-                        dispatch={dispatch}
-                        onDrag={setDragging}
-                      />
-                    ))}
-                  </div>
-                ))}
+            <div className="aspect-ratio--16x9 border-top border-left">
+              <div className="aspect-ratio__inner-wrapper d-flex flex-column overflow-hidden">
+                {[...Array(4).keys()].map((i) =>
+                  [...Array(4).keys()].map((j) => (
+                    <StreamContainer
+                      key={`${j}${i}`}
+                      gridSide={Math.sqrt(gridSize)}
+                      x={j}
+                      y={i}
+                      stream={
+                        i < gridSize && j < gridSize
+                          ? streams.get(Math.sqrt(gridSize) * i + j)
+                          : undefined
+                      }
+                      isFullscreen={handle.active}
+                      dispatch={dispatch}
+                      onDrag={setDragging}
+                    />
+                  ))
+                )}
               </div>
             </div>
             <ControlBar fullscreenHandle={handle} />

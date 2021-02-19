@@ -133,7 +133,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
           <TrashFill
             color="white"
             className="w-100 h-100"
-            style={{ padding: "25%" }}
+            style={{ padding: "30%" }}
           />
         </div>
         {isLoading && (isError || data.length === 0) && (

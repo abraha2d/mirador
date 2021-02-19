@@ -7,9 +7,9 @@ import { Stream } from "components/Store/types";
 import { DragItemTypes } from "utils";
 
 type StreamContainerProps = {
-  idx: number;
-  width: string;
-  height: string;
+  gridSide: number;
+  x: number;
+  y: number;
   stream?: Stream;
   isFullscreen: boolean;
   dispatch?: React.Dispatch<any>;
@@ -17,9 +17,9 @@ type StreamContainerProps = {
 };
 
 export const StreamContainer = ({
-  idx,
-  width,
-  height,
+  gridSide,
+  x,
+  y,
   stream,
   isFullscreen,
   dispatch,
@@ -28,27 +28,21 @@ export const StreamContainer = ({
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
     drop: (item) => {
+      let stream = {};
       if (item.type === DragItemTypes.CAMERA) {
         const camera = (item as any).camera;
-        dispatch &&
-          dispatch({
-            type: START_STREAM,
-            payload: {
-              idx,
-              stream: { id: camera.id, url: camera.urls[0] },
-            },
-          });
+        stream = { id: camera.id, url: camera.urls[0] };
       } else if (item.type === DragItemTypes.STREAM) {
-        const stream = (item as any).stream;
-        dispatch &&
-          dispatch({
-            type: START_STREAM,
-            payload: {
-              idx,
-              stream,
-            },
-          });
+        stream = (item as any).stream;
       }
+      dispatch &&
+        dispatch({
+          type: START_STREAM,
+          payload: {
+            idx: y * gridSide + x,
+            stream,
+          },
+        });
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
@@ -70,10 +64,14 @@ export const StreamContainer = ({
 
   return (
     <div
-      className={`position-relative${
-        isFullscreen ? "" : " border-top border-left"
-      }`}
-      style={{ width, height }}
+      className="position-absolute border-bottom border-right"
+      style={{
+        width: `${100 / gridSide}%`,
+        height: `${100 / gridSide}%`,
+        left: `calc(${x} * ${100 / gridSide}%)`,
+        top: `calc(${y} * ${100 / gridSide}%)`,
+        transition: "width 150ms, height 150ms, left 150ms, top 150ms",
+      }}
       ref={drop}
       onDoubleClick={
         stream ? (handle.active ? handle.exit : handle.enter) : () => {}
