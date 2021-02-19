@@ -120,23 +120,21 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       >
         <div
           style={{
-            zIndex: 1,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            top: 0,
             pointerEvents: showTrash ? "auto" : "none",
             opacity: showTrash ? (isOver ? 1 : "80%") : 0,
-            transition: "opacity 250ms, background-color 150ms",
           }}
           className={`
-            position-absolute ${
+            coloroverlay position-absolute ${
               isOver ? "bg-danger" : "bg-secondary"
-            } rounded d-flex align-items-center justify-content-center left-0
+            } rounded d-flex align-items-center justify-content-center
           `}
           ref={drop}
         >
-          <TrashFill color="white" size={72} />
+          <TrashFill
+            color="white"
+            className="w-100 h-100"
+            style={{ padding: "25%" }}
+          />
         </div>
         {isLoading && (isError || data.length === 0) && (
           <ToggleButton
