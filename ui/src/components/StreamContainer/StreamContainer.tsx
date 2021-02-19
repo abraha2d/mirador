@@ -29,9 +29,11 @@ export const StreamContainer = ({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
     drop: (item) => {
       let stream = {};
+      let replace = false;
       if (item.type === DragItemTypes.CAMERA) {
         const camera = (item as any).camera;
         stream = { id: camera.id, url: camera.urls[0] };
+        replace = true;
       } else if (item.type === DragItemTypes.STREAM) {
         stream = (item as any).stream;
       }
@@ -41,6 +43,7 @@ export const StreamContainer = ({
           payload: {
             idx: y * gridSide + x,
             stream,
+            replace,
           },
         });
     },

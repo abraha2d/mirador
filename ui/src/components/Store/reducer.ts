@@ -82,7 +82,7 @@ export const Reducer = (state: StateType, action: any): StateType => {
         const existingIdx = findStreamIdx(state, action.payload.stream.id);
         if (existingIdx > -1) {
           const streamToSwapWith = state.streams.get(idx);
-          if (streamToSwapWith) {
+          if (streamToSwapWith && !action.payload.replace) {
             state.streams.set(existingIdx, streamToSwapWith);
           } else {
             state.streams.delete(existingIdx);
