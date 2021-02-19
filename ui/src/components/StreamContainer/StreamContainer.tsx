@@ -23,7 +23,7 @@ export const StreamContainer = ({
   isFullscreen,
   dispatch,
 }: StreamContainerProps) => {
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
     drop: (item) => {
       if (item.type === DragItemTypes.CAMERA) {
@@ -49,7 +49,8 @@ export const StreamContainer = ({
       }
     },
     collect: (monitor) => ({
-      isOver: !monitor.isOver(),
+      isOver: monitor.isOver(),
+      itemType: monitor.getItemType(),
     }),
   });
 
@@ -66,7 +67,15 @@ export const StreamContainer = ({
   return (
     <div
       className={`${isFullscreen ? "" : "border-top border-left"}${
-        isDragging ? " bg-secondary" : isOver ? "" : " bg-primary"
+        isDragging
+          ? " bg-secondary"
+          : isOver
+          ? stream
+            ? itemType === DragItemTypes.CAMERA
+              ? " bg-danger"
+              : " bg-info"
+            : " bg-primary"
+          : ""
       }`}
       style={{ width, height }}
       ref={drop}

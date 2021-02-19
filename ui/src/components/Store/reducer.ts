@@ -100,7 +100,7 @@ export const Reducer = (state: StateType, action: any): StateType => {
         }
         const openIdx = findOpenIdx(state);
         if (openIdx > -1) {
-          state.streams.set(openIdx, { id: camera.id, url: camera.name });
+          state.streams.set(openIdx, { id: camera.id, url: camera.urls[0] });
         }
       }
       return {
