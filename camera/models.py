@@ -13,18 +13,21 @@ class CameraType(models.Model):
 
 
 class Stream(models.Model):
-
     class Protocol(models.TextChoices):
-        RTSP = 'rtsp', 'RTSP'
-        HTTP = 'http', 'HTTP'
+        RTSP = "rtsp", "RTSP"
+        HTTP = "http", "HTTP"
 
     enabled = models.BooleanField()
     name = models.CharField(max_length=255)
-    protocol = models.CharField(max_length=4, choices=Protocol.choices, default=Protocol.RTSP)
+    protocol = models.CharField(
+        max_length=4, choices=Protocol.choices, default=Protocol.RTSP
+    )
     port = models.PositiveSmallIntegerField(default=554)
     url = models.CharField(max_length=255)
 
-    camera_type = models.ForeignKey(CameraType, on_delete=models.CASCADE, related_name="streams")
+    camera_type = models.ForeignKey(
+        CameraType, on_delete=models.CASCADE, related_name="streams"
+    )
 
 
 class PTZSettings(models.Model):

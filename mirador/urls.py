@@ -30,13 +30,19 @@ admin.site.site_header = "Mirador"
 admin.site.index_title = "Configuration"
 
 router = routers.DefaultRouter()
-router.register('cameras', camera_api.CameraViewSet)
+router.register("cameras", camera_api.CameraViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('api/auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('admin/', admin.site.urls),
-    path('__debug__/', include(debug_toolbar.urls)),
-    path('', login_required(TemplateView.as_view(template_name="index.html"), login_url="/admin/login/"), name='index'),
+    path("api/", include(router.urls)),
+    path("api/auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("accounts/", include("django.contrib.auth.urls")),
+    path("admin/", admin.site.urls),
+    path("__debug__/", include(debug_toolbar.urls)),
+    path(
+        "",
+        login_required(
+            TemplateView.as_view(template_name="index.html"), login_url="/admin/login/"
+        ),
+        name="index",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

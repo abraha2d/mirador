@@ -13,7 +13,9 @@ class SoundDetectionSettings(models.Model):
     enabled = models.BooleanField()
     visualize = models.BooleanField()
     sensitivity = models.FloatField()
-    schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
+    schedule = models.ForeignKey(
+        schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True
+    )
 
     camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
 
@@ -25,7 +27,9 @@ class MotionDetectionSettings(models.Model):
     enabled = models.BooleanField()
     visualize = models.BooleanField()
     sensitivity = models.FloatField()
-    schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
+    schedule = models.ForeignKey(
+        schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True
+    )
     # regions is one-to-many to MotionDetectionRegion
 
     camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
@@ -33,10 +37,12 @@ class MotionDetectionSettings(models.Model):
 
 class MotionDetectionRegion(models.Model):
     enabled = models.BooleanField()
-    color = ColorField(format='hexa')
+    color = ColorField(format="hexa")
     points = models.JSONField()
 
-    motion_detection_settings = models.ForeignKey(MotionDetectionSettings, on_delete=models.CASCADE, related_name="regions")
+    motion_detection_settings = models.ForeignKey(
+        MotionDetectionSettings, on_delete=models.CASCADE, related_name="regions"
+    )
 
 
 class ObjectDetectionSettings(models.Model):

@@ -21,4 +21,6 @@ class SchedulePart(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
 
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name="parts")
+    schedule = models.ForeignKey(
+        Schedule, on_delete=models.CASCADE, related_name="parts"
+    )

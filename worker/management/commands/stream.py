@@ -10,17 +10,17 @@ from camera.models import Camera
 
 
 class Command(BaseCommand):
-    help = 'Starts streaming the specified camera'
+    help = "Starts streaming the specified camera"
 
     def add_arguments(self, parser):
-        parser.add_argument('camera_id', type=int)
+        parser.add_argument("camera_id", type=int)
 
     def handle(self, *args, **options):
         print("Fetching camera details...")
         try:
-            camera = Camera.objects.get(pk=options['camera_id'])
+            camera = Camera.objects.get(pk=options["camera_id"])
         except Camera.DoesNotExist:
-            raise CommandError('Camera "%s" does not exist' % options['camera_id'])
+            raise CommandError('Camera "%s" does not exist' % options["camera_id"])
 
         if not camera.enabled:
             print(f"'{camera.name}' is disabled, exiting...")
@@ -36,15 +36,18 @@ class Command(BaseCommand):
             print(e.stderr.decode("utf-8"), file=sys.stderr)
             sys.exit(1)
 
-        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+        video_stream = next(
+            (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+            None,
+        )
         if video_stream is None:
-            print('No video stream found', file=sys.stderr)
+            print("No video stream found", file=sys.stderr)
             sys.exit(1)
 
-        codec_name = video_stream['codec_name']
-        width = int(video_stream['width'])
-        height = int(video_stream['height'])
-        r_frame_rate_parts = video_stream['r_frame_rate'].split('/')
+        codec_name = video_stream["codec_name"]
+        width = int(video_stream["width"])
+        height = int(video_stream["height"])
+        r_frame_rate_parts = video_stream["r_frame_rate"].split("/")
         r_frame_rate = int(r_frame_rate_parts[0]) / int(r_frame_rate_parts[1])
 
         print("Preparing to start stream...")
@@ -84,13 +87,17 @@ class Command(BaseCommand):
 
         drawtext_enabled = True if camera.overlays.count() > 0 else False
         drawbox_enabled = md_visualize or od_visualize or fd_visualize or ld_visualize
-        detect_enabled = drawbox_enabled or md_enabled or od_enabled or fd_enabled or ld_enabled
+        detect_enabled = (
+            drawbox_enabled or md_enabled or od_enabled or fd_enabled or ld_enabled
+        )
 
         decode_enabled = detect_enabled
         overlay_enabled = drawtext_enabled and drawbox_enabled
         encode_enabled = drawtext_enabled or drawbox_enabled
         transcode_enabled = not encode_enabled
-        copy_enabled = transcode_enabled and (codec_name == 'h264' or codec_name == 'hevc')
+        copy_enabled = transcode_enabled and (
+            codec_name == "h264" or codec_name == "hevc"
+        )
 
         # TODO: Add appropriate hardware acceleration
         # Intel/AMD:
@@ -114,12 +121,12 @@ class Command(BaseCommand):
         outputs = []
 
         if decode_enabled:
-            outputs.append(output.output('pipe:', **rawvideo_params))
+            outputs.append(output.output("pipe:", **rawvideo_params))
         if drawtext_enabled:
             drawtext = output.drawtext("Hello, world!")
             output = drawtext
         if drawbox_enabled:
-            drawbox = ffmpeg.input('pipe:', **rawvideo_params)
+            drawbox = ffmpeg.input("pipe:", **rawvideo_params)
             output = drawbox
         if overlay_enabled:
             output = ffmpeg.overlay(drawtext, drawbox)
@@ -130,44 +137,49 @@ class Command(BaseCommand):
         else:
             inputs = [output, output]
 
-        outputs.append(inputs[0].output(
-            f'{stream_dir}/out.m3u8',
-            vcodec='copy' if copy_enabled else 'h264',
-            **hls_params,
-        ))
-        outputs.append(inputs[1].output(
-            f'{record_dir}/out.mp4',
-            vcodec='copy' if copy_enabled else 'h264',
-        ).overwrite_output())
+        outputs.append(
+            inputs[0].output(
+                f"{stream_dir}/out.m3u8",
+                vcodec="copy" if copy_enabled else "h264",
+                **hls_params,
+            )
+        )
+        outputs.append(
+            inputs[1]
+            .output(
+                f"{record_dir}/out.mp4",
+                vcodec="copy" if copy_enabled else "h264",
+            )
+            .overwrite_output()
+        )
 
         main_cmd = ffmpeg.merge_outputs(*outputs)
-        print(' '.join(main_cmd.compile()))
+        print(" ".join(main_cmd.compile()))
 
         print("Starting stream...")
         main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
 
         try:
-            while True:
-                if decode_enabled:
-                    in_bytes = main_process.stdout.read(width * height * 3)
-                    if not in_bytes:
-                        break
+            while decode_enabled:
+                in_bytes = main_process.stdout.read(width * height * 3)
+                if not in_bytes:
+                    break
 
-                    # TODO: Process in_bytes to make in_frame
-                    in_frame = in_bytes
+                # TODO: Process in_bytes to make in_frame
+                in_frame = in_bytes
 
-                    if detect_enabled:
-                        # TODO: Do detection on in_frame
-                        pass
+                if detect_enabled:
+                    # TODO: Do detection on in_frame
+                    pass
 
-                    if drawbox_enabled:
-                        # TODO: DO drawbox on in_frame to make out_frame
-                        out_frame = in_frame
+                if drawbox_enabled:
+                    # TODO: DO drawbox on in_frame to make out_frame
+                    out_frame = in_frame
 
-                        # TODO: Process out_frame to make out_bytes
-                        out_bytes = out_frame
+                    # TODO: Process out_frame to make out_bytes
+                    out_bytes = out_frame
 
-                        main_process.write(out_bytes)
+                    main_process.write(out_bytes)
 
         except KeyboardInterrupt:
             print("Exiting...")
