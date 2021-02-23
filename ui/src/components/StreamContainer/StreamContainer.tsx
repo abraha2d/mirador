@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import ReactHlsPlayer from "react-hls-player";
@@ -15,7 +15,6 @@ type StreamContainerProps = {
   x: number;
   y: number;
   stream?: Stream;
-  isFullscreen: boolean;
   dispatch?: React.Dispatch<any>;
   onDrag: (dragStart: boolean) => void;
 };
@@ -25,7 +24,6 @@ export const StreamContainer = ({
   x,
   y,
   stream,
-  isFullscreen,
   dispatch,
   onDrag,
 }: StreamContainerProps) => {
@@ -69,25 +67,31 @@ export const StreamContainer = ({
 
   const handle = useFullScreenHandle();
 
+  const videoRefContainer = useRef(null);
+  const [isLoading, setLoading] = useState(true);
+
   const video = useMemo(
-    () => (
-      <>
-        {stream &&
-          (HlsJs.isSupported() ? (
-            <ReactHlsPlayer url={stream.url} autoPlay style={{ zIndex: 1 }} />
-          ) : (
-            <video src={stream.url} autoPlay style={{ zIndex: 1 }} />
-          ))}
-        <Spinner
-          animation="border"
-          variant="light"
-          className="position-absolute"
+    () =>
+      stream &&
+      (HlsJs.isSupported() ? (
+        <ReactHlsPlayer
+          url={stream.url}
+          autoPlay
+          playerRef={videoRefContainer}
+          onLoadStart={() => setLoading(true)}
+          onPlaying={() => setLoading(false)}
+          onPause={() => setLoading(true)}
         />
-        {stream && (
-          <span className="text-light position-absolute">{stream.id}</span>
-        )}
-      </>
-    ),
+      ) : (
+        <video
+          src={stream.url}
+          autoPlay
+          ref={videoRefContainer}
+          onLoadStart={() => setLoading(true)}
+          onPlaying={() => setLoading(false)}
+          onPause={() => setLoading(true)}
+        />
+      )),
     [stream]
   );
 
@@ -130,6 +134,20 @@ export const StreamContainer = ({
             ref={drag}
           >
             {video}
+            {isLoading && (
+              <>
+                <Spinner
+                  animation="border"
+                  variant="light"
+                  className="position-absolute p-4"
+                />
+                {stream && (
+                  <span className="text-light position-absolute">
+                    {stream.id}
+                  </span>
+                )}
+              </>
+            )}
           </div>
         </FullScreen>
       )}

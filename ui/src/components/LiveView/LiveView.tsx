@@ -38,7 +38,6 @@ export const LiveView = () => {
                           ? streams.get(Math.sqrt(gridSize) * i + j)
                           : undefined
                       }
-                      isFullscreen={handle.active}
                       dispatch={dispatch}
                       onDrag={setDragging}
                     />
