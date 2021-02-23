@@ -103,6 +103,7 @@ export const Reducer = (state: StateType, action: any): StateType => {
           state.streams.set(openIdx, {
             id: camera.id,
             url: `/static/stream/${camera.id}/out.m3u8`,
+            name: camera.name,
           });
         }
       }

@@ -3,6 +3,7 @@ import React from "react";
 export type Stream = {
   id: number;
   url: string;
+  name: string;
 };
 
 export type StateType = {

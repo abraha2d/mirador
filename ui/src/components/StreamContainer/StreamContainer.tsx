@@ -34,7 +34,11 @@ export const StreamContainer = ({
       let replace = false;
       if (item.type === DragItemTypes.CAMERA) {
         const camera = (item as any).camera;
-        stream = { id: camera.id, url: `/static/stream/${camera.id}/out.m3u8` };
+        stream = {
+          id: camera.id,
+          url: `/static/stream/${camera.id}/out.m3u8`,
+          name: camera.name,
+        };
         replace = true;
       } else if (item.type === DragItemTypes.STREAM) {
         stream = (item as any).stream;
@@ -139,11 +143,14 @@ export const StreamContainer = ({
                 <Spinner
                   animation="border"
                   variant="light"
-                  className="position-absolute p-4"
+                  className="position-absolute p-3"
                 />
                 {stream && (
-                  <span className="text-light position-absolute">
-                    {stream.id}
+                  <span
+                    className="position-absolute p-1 w-100 text-center text-truncate text-light"
+                    style={{ bottom: 0 }}
+                  >
+                    {stream.name}
                   </span>
                 )}
               </>
