@@ -180,7 +180,9 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
                 dispatch &&
                   dispatch({
                     type: START_STREAM,
-                    payload: { stream: { id, url: camera.urls[0] } },
+                    payload: {
+                      stream: { id, url: `/static/stream/${id}/out.m3u8` },
+                    },
                   });
               }
             }}

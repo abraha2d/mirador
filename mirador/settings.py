@@ -25,7 +25,10 @@ SECRET_KEY = 'lo)5udl(8!rvyzz))afxjpqx#l0z(c8=!&2*isoeo&%!&_ma)s'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "192.168.108.105",
+]
 
 
 # Application definition
@@ -46,9 +49,11 @@ INSTALLED_APPS = [
     'channels',
     'colorfield',
     'rest_framework',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,7 +68,10 @@ ROOT_URLCONF = 'mirador.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'ui/build',
+        ]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -129,3 +137,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "ui/build/static",
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
+LOGOUT_REDIRECT_URL = "/"

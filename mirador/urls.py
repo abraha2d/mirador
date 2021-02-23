@@ -13,13 +13,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 from rest_framework import routers
+import debug_toolbar
 
 from camera.api import views as camera_api
-
 
 admin.site.site_title = "Mirador"
 admin.site.site_header = "Mirador"
@@ -31,5 +35,8 @@ router.register('cameras', camera_api.CameraViewSet)
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('admin/', admin.site.urls),
-]
+    path('__debug__/', include(debug_toolbar.urls)),
+    path('', login_required(TemplateView.as_view(template_name="index.html"), login_url="/admin/login/"), name='index'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

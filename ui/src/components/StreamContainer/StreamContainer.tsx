@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import ReactHlsPlayer from "react-hls-player";
+import HlsJs from "hls.js";
 
 import { START_STREAM } from "components/Store/constants";
 import { Stream } from "components/Store/types";
@@ -32,7 +34,7 @@ export const StreamContainer = ({
       let replace = false;
       if (item.type === DragItemTypes.CAMERA) {
         const camera = (item as any).camera;
-        stream = { id: camera.id, url: camera.urls[0] };
+        stream = { id: camera.id, url: `/static/stream/${camera.id}/out.m3u8` };
         replace = true;
       } else if (item.type === DragItemTypes.STREAM) {
         stream = (item as any).stream;
@@ -64,6 +66,17 @@ export const StreamContainer = ({
   });
 
   const handle = useFullScreenHandle();
+
+  const video = useMemo(
+    () =>
+      stream &&
+      (HlsJs.isSupported() ? (
+        <ReactHlsPlayer url={stream.url} autoPlay />
+      ) : (
+        <video src={stream.url} autoPlay />
+      )),
+    [stream && stream.url]
+  );
 
   return (
     <div
@@ -103,10 +116,7 @@ export const StreamContainer = ({
             className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
             ref={drag}
           >
-            <h1 className="text-light">ID: {stream.id}</h1>
-            <span className="text-light text-center text-truncate w-100 px-3">
-              URL: {stream.url}
-            </span>
+            {video}
           </div>
         </FullScreen>
       )}

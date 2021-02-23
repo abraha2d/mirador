@@ -100,7 +100,10 @@ export const Reducer = (state: StateType, action: any): StateType => {
         }
         const openIdx = findOpenIdx(state);
         if (openIdx > -1) {
-          state.streams.set(openIdx, { id: camera.id, url: camera.urls[0] });
+          state.streams.set(openIdx, {
+            id: camera.id,
+            url: `/static/stream/${camera.id}/out.m3u8`,
+          });
         }
       }
       return {

@@ -11,6 +11,7 @@ class SoundDetectionSettings(models.Model):
         verbose_name_plural = "Sound detection settings"
 
     enabled = models.BooleanField()
+    visualize = models.BooleanField()
     sensitivity = models.FloatField()
     schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
 
@@ -22,6 +23,7 @@ class MotionDetectionSettings(models.Model):
         verbose_name_plural = "Motion detection settings"
 
     enabled = models.BooleanField()
+    visualize = models.BooleanField()
     sensitivity = models.FloatField()
     schedule = models.ForeignKey(schedule.Schedule, on_delete=models.RESTRICT, null=True, blank=True)
     # regions is one-to-many to MotionDetectionRegion
@@ -42,6 +44,7 @@ class ObjectDetectionSettings(models.Model):
         verbose_name_plural = "Object detection settings"
 
     enabled = models.BooleanField()
+    visualize = models.BooleanField()
     threshold = models.FloatField()
 
     camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
@@ -52,6 +55,7 @@ class FaceDetectionSettings(models.Model):
         verbose_name_plural = "Face detection settings"
 
     enabled = models.BooleanField()
+    visualize = models.BooleanField()
 
     camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)
 
@@ -62,5 +66,6 @@ class ALPRSettings(models.Model):
         verbose_name_plural = "ALPR settings"
 
     enabled = models.BooleanField()
+    visualize = models.BooleanField()
 
     camera = models.OneToOneField(camera.Camera, on_delete=models.CASCADE)

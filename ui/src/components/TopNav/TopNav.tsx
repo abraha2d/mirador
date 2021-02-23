@@ -25,7 +25,7 @@ export const TopNav = () => {
           </Link>
         </NavItem>
         <NavItem>
-          <NavLink href="//localhost:7999/admin/">Config</NavLink>
+          <NavLink href="/admin/">Config</NavLink>
         </NavItem>
         <div className={"flex-grow-1"} />
         <NavDropdown
@@ -39,7 +39,7 @@ export const TopNav = () => {
           alignRight
         >
           <NavItem>
-            <NavLink>Logout</NavLink>
+            <NavLink href="/accounts/logout/">Logout</NavLink>
           </NavItem>
         </NavDropdown>
       </Nav>
