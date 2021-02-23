@@ -4,6 +4,8 @@ import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import ReactHlsPlayer from "react-hls-player";
 import HlsJs from "hls.js";
 
+import { Spinner } from "react-bootstrap";
+
 import { START_STREAM } from "components/Store/constants";
 import { Stream } from "components/Store/types";
 import { DragItemTypes } from "utils";
@@ -68,14 +70,25 @@ export const StreamContainer = ({
   const handle = useFullScreenHandle();
 
   const video = useMemo(
-    () =>
-      stream &&
-      (HlsJs.isSupported() ? (
-        <ReactHlsPlayer url={stream.url} autoPlay />
-      ) : (
-        <video src={stream.url} autoPlay />
-      )),
-    [stream && stream.url]
+    () => (
+      <>
+        {stream &&
+          (HlsJs.isSupported() ? (
+            <ReactHlsPlayer url={stream.url} autoPlay style={{ zIndex: 1 }} />
+          ) : (
+            <video src={stream.url} autoPlay style={{ zIndex: 1 }} />
+          ))}
+        <Spinner
+          animation="border"
+          variant="light"
+          className="position-absolute"
+        />
+        {stream && (
+          <span className="text-light position-absolute">{stream.id}</span>
+        )}
+      </>
+    ),
+    [stream]
   );
 
   return (
