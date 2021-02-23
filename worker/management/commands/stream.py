@@ -160,29 +160,30 @@ class Command(BaseCommand):
         main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
 
         try:
-            while decode_enabled:
-                in_bytes = main_process.stdout.read(width * height * 3)
-                if not in_bytes:
-                    break
+            if decode_enabled:
+                while True:
+                    in_bytes = main_process.stdout.read(width * height * 3)
+                    if not in_bytes:
+                        break
 
-                # TODO: Process in_bytes to make in_frame
-                in_frame = in_bytes
+                    # TODO: Process in_bytes to make in_frame
+                    in_frame = in_bytes
 
-                if detect_enabled:
-                    # TODO: Do detection on in_frame
-                    pass
+                    if detect_enabled:
+                        # TODO: Do detection on in_frame
+                        pass
 
-                if drawbox_enabled:
-                    # TODO: DO drawbox on in_frame to make out_frame
-                    out_frame = in_frame
+                    if drawbox_enabled:
+                        # TODO: DO drawbox on in_frame to make out_frame
+                        out_frame = in_frame
 
-                    # TODO: Process out_frame to make out_bytes
-                    out_bytes = out_frame
+                        # TODO: Process out_frame to make out_bytes
+                        out_bytes = out_frame
 
-                    main_process.write(out_bytes)
-
+                        main_process.stdin.write(out_bytes)
+            else:
+                # TODO: chop stream at 15 mins or whatever
+                main_process.wait()
         except KeyboardInterrupt:
             print("Exiting...")
-
-        main_process.stdin.close()
-        main_process.wait()
+            main_process.terminate()
