@@ -140,15 +140,16 @@ export const StreamContainer = ({
             {video}
             {isLoading && (
               <>
-                <Spinner
-                  animation="border"
-                  variant="light"
-                  className="position-absolute p-3"
-                />
+                <div
+                  className="position-absolute p-3 rounded-circle bg-dark"
+                  style={{ opacity: 0.75 }}
+                >
+                  <Spinner animation="border" variant="light" className="p-3" />
+                </div>
                 {stream && (
                   <span
-                    className="position-absolute p-1 w-100 text-center text-truncate text-light"
-                    style={{ bottom: 0 }}
+                    className="position-absolute p-1 w-100 text-center text-truncate text-light bg-dark"
+                    style={{ bottom: 0, opacity: 0.75 }}
                   >
                     {stream.name}
                   </span>
