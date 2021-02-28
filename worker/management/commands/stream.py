@@ -1,19 +1,20 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from multiprocessing import Process
 from os import mkfifo, makedirs
 from os.path import join
 from sys import stderr
 from tempfile import mkdtemp
-from time import strftime
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 import ffmpeg
 import numpy as np
 
 from camera.models import Camera
+from storage.models import Video
 
 
 def get_detection_settings(camera):
@@ -196,11 +197,13 @@ def handle_stream(camera_id):
     record_process = Process(
         target=segment_h264,
         args=(
+            camera,
             fifo_path,
             h264_params,
             f"{record_dir}/VID_%Y%m%d_%H%M%S.mp4",
             mp4_params,
         ),
+        name=f"'{camera.name}'-record",
     )
     record_process.start()
 
@@ -222,63 +225,85 @@ def handle_stream(camera_id):
                 main_process.stdin.write(frame.astype(np.uint8).tobytes())
 
         main_process.wait()
-        record_process.wait()
+        record_process.join()
 
     except KeyboardInterrupt:
         print(f"{camera_id}: Stopping stream...")
         main_process.terminate()
-        record_process.terminate()
+        record_process.join()
 
 
-def segment_h264(input_fifo_path, h264_params, record_path, mp4_params):
+def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
     buffer = []
-    next_split = datetime.now().replace(minute=int(datetime.now().minute / 15) * 15)
+    next_split = timezone.now().replace(minute=int(timezone.now().minute / 15) * 15)
     record_process = None
+    start_date = None
+    file_path = None
 
     with open(input_fifo_path, "rb") as input_stream:
-        while True:
-            b = input_stream.read(1)
-            if b == "":
-                break
+        try:
+            while True:
+                b = input_stream.read(1)
+                if b == "":
+                    break
 
-            while len(buffer) >= 5:
-                p = buffer.pop(0)
-                if record_process is not None:
-                    record_process.stdin.write(p)
-            buffer.append(b)
+                while len(buffer) >= 5:
+                    p = buffer.pop(0)
+                    if record_process is not None:
+                        record_process.stdin.write(p)
+                buffer.append(b)
 
-            if (
-                buffer == [b"\x00", b"\x00", b"\x00", b"\x01", b"\x67"]
-                and datetime.now() > next_split
-            ):
-                if record_process is not None:
-                    record_process.stdin.close()
-                    record_process.wait()
+                if (
+                    buffer == [b"\x00", b"\x00", b"\x00", b"\x01", b"\x67"]
+                    and timezone.now() > next_split
+                ):
+                    current_date = timezone.now()
 
-                record_cmd = (
-                    ffmpeg.input(
-                        "pipe:",
-                        **h264_params,
+                    if record_process is not None:
+                        record_process.stdin.close()
+                        record_process.wait()
+                        Video.objects.create(
+                            camera=camera,
+                            start_date=start_date,
+                            end_date=current_date,
+                            file=file_path,
+                        )
+
+                    start_date = current_date
+                    file_path = start_date.strftime(record_path)
+                    record_cmd = (
+                        ffmpeg.input(
+                            "pipe:",
+                            **h264_params,
+                        )
+                        .output(
+                            file_path,
+                            vcodec="copy",
+                            **mp4_params,
+                        )
+                        .global_args(
+                            "-hide_banner",
+                            "-loglevel",
+                            "error",
+                        )
+                        .overwrite_output()
                     )
-                    .output(
-                        strftime(record_path),
-                        vcodec="copy",
-                        **mp4_params,
-                    )
-                    .global_args(
-                        "-hide_banner",
-                        "-loglevel",
-                        "error",
-                    )
-                    .overwrite_output()
-                )
-                record_process = record_cmd.run_async(pipe_stdin=True)
+                    record_process = record_cmd.run_async(pipe_stdin=True)
 
-                next_split += timedelta(minutes=15)
+                    next_split += timedelta(minutes=15)
+
+        except KeyboardInterrupt:
+            pass
 
         if record_process is not None:
             record_process.stdin.close()
             record_process.wait()
+            Video.objects.create(
+                camera=camera,
+                start_date=start_date,
+                end_date=timezone.now(),
+                file=file_path,
+            )
 
 
 class Command(BaseCommand):
@@ -291,7 +316,10 @@ class Command(BaseCommand):
         if options.get("camera", None) is None:
             print("Streaming all cameras...")
             qs = Camera.objects.all()
-            processes = [Process(target=handle_stream, args=(c.id,)) for c in qs]
+            processes = [
+                Process(target=handle_stream, args=(c.id,), name=f"'{c.name}'-main")
+                for c in qs
+            ]
             for p in processes:
                 p.start()
             for p in processes:
