@@ -24,6 +24,7 @@ from rest_framework import routers
 import debug_toolbar
 
 from camera.api import views as camera_api
+from storage.api import views as storage_api
 
 admin.site.site_title = "Mirador"
 admin.site.site_header = "Mirador"
@@ -31,6 +32,7 @@ admin.site.index_title = "Configuration"
 
 router = routers.DefaultRouter()
 router.register("cameras", camera_api.CameraViewSet)
+router.register("videos", storage_api.VideoViewSet)
 
 urlpatterns = [
     path("api/", include(router.urls)),

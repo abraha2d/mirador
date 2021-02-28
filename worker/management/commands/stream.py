@@ -266,7 +266,7 @@ def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
                             camera=camera,
                             start_date=start_date,
                             end_date=current_date,
-                            file=file_path,
+                            file="/".join(file_path.split("/")[-3:]),
                         )
 
                     start_date = current_date
@@ -302,7 +302,7 @@ def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
                 camera=camera,
                 start_date=start_date,
                 end_date=timezone.now(),
-                file=file_path,
+                file="/".join(file_path.split("/")[-3:]),
             )
 
 
