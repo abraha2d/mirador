@@ -187,17 +187,12 @@ def handle_stream(camera_id):
     )
 
     main_cmd = ffmpeg.merge_outputs(*outputs)
-    main_cmd = main_cmd.global_args(
-        "-use_wallclock_as_timestamps", "-hide_banner", "-loglevel", "error"
-    )
+    main_cmd = main_cmd.global_args("-hide_banner", "-loglevel", "error")
 
     print(f"{camera_id}: Starting stream...")
-
-    print(" ".join(main_cmd.compile()))
     main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
 
     print(f"{camera_id}: Starting segmented recorder...")
-
     record_process = Process(
         target=segment_h264,
         args=(
@@ -237,7 +232,7 @@ def handle_stream(camera_id):
 
 def segment_h264(input_fifo_path, h264_params, record_path, mp4_params):
     buffer = []
-    next_split = datetime.now().replace(second=0)
+    next_split = datetime.now().replace(minute=int(datetime.now().minute / 15) * 15)
     record_process = None
 
     with open(input_fifo_path, "rb") as input_stream:
@@ -271,17 +266,15 @@ def segment_h264(input_fifo_path, h264_params, record_path, mp4_params):
                         **mp4_params,
                     )
                     .global_args(
-                        "-use_wallclock_as_timestamps",
                         "-hide_banner",
                         "-loglevel",
                         "error",
                     )
                     .overwrite_output()
                 )
-                print(" ".join(record_cmd.compile()))
                 record_process = record_cmd.run_async(pipe_stdin=True)
 
-                next_split += timedelta(minutes=1)
+                next_split += timedelta(minutes=15)
 
         if record_process is not None:
             record_process.stdin.close()
