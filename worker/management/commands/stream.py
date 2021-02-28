@@ -57,11 +57,11 @@ def mkfifotemp(extension):
 
 
 def handle_stream(camera_id):
-    print("Fetching camera details...")
+    print(f"{camera_id}: Fetching camera details...")
     try:
         camera = Camera.objects.get(pk=camera_id)
     except Camera.DoesNotExist:
-        raise CommandError('Camera "%s" does not exist' % camera_id)
+        raise CommandError(f'Camera "{camera_id}" does not exist')
 
     if not camera.enabled:
         print(f"'{camera.name}' is disabled, exiting...")
@@ -69,7 +69,7 @@ def handle_stream(camera_id):
 
     stream_url = camera.urls()[0]
 
-    print("Probing camera...")
+    print(f"{camera_id}: Probing camera...")
     try:
         probe = ffmpeg.probe(stream_url)
     except ffmpeg.Error as e:
@@ -81,7 +81,7 @@ def handle_stream(camera_id):
         None,
     )
     if video_stream is None:
-        print("No video stream found", file=stderr)
+        print(f"{camera_id}: No video stream found", file=stderr)
         exit(1)
 
     codec_name = video_stream["codec_name"]
@@ -90,7 +90,7 @@ def handle_stream(camera_id):
     r_frame_rate_parts = video_stream["r_frame_rate"].split("/")
     r_frame_rate = int(r_frame_rate_parts[0]) / int(r_frame_rate_parts[1])
 
-    print("Getting camera settings...")
+    print(f"{camera_id}: Getting camera settings...")
 
     ds = get_detection_settings(camera)
 
@@ -109,7 +109,7 @@ def handle_stream(camera_id):
         or ds["ld_enabled"]
     )
 
-    print("Setting up pipelines...")
+    print(f"{camera_id}: Setting up pipelines...")
 
     decode_enabled = detect_enabled
     overlay_enabled = drawtext_enabled and drawbox_enabled
@@ -144,7 +144,7 @@ def handle_stream(camera_id):
         "movflags": "+faststart",
     }
 
-    print("Preparing stream...")
+    print(f"{camera_id}: Preparing stream...")
 
     stream_dir = f"{settings.STATICFILES_DIRS[0]}/stream/{camera.id}"
     record_dir = f"{settings.STATICFILES_DIRS[0]}/record/{camera.id}"
@@ -191,10 +191,12 @@ def handle_stream(camera_id):
         "-use_wallclock_as_timestamps", "-hide_banner", "-loglevel", "error"
     )
 
-    print("Starting stream...")
+    print(f"{camera_id}: Starting stream...")
 
     print(" ".join(main_cmd.compile()))
     main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
+
+    print(f"{camera_id}: Starting segmented recorder...")
 
     record_process = Process(
         target=segment_h264,
@@ -208,93 +210,81 @@ def handle_stream(camera_id):
     record_process.start()
 
     try:
-        while True:
-            if decode_enabled:
-                in_bytes = main_process.stdout.read(width * height * 3)
-                if not in_bytes:
-                    break
-                frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
+        while decode_enabled:
+            in_bytes = main_process.stdout.read(width * height * 3)
+            if not in_bytes:
+                break
+            frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
 
-                if detect_enabled:
-                    # TODO: Do detection on frame
-                    pass
+            if detect_enabled:
+                # TODO: Do detection on frame
+                pass
 
-                if drawbox_enabled:
-                    # TODO: Do drawbox on frame
-                    pass
+            if drawbox_enabled:
+                # TODO: Do drawbox on frame
+                pass
 
-                    main_process.stdin.write(frame.astype(np.uint8).tobytes())
+                main_process.stdin.write(frame.astype(np.uint8).tobytes())
 
         main_process.wait()
+        record_process.wait()
 
     except KeyboardInterrupt:
-        print("Stopping stream...")
+        print(f"{camera_id}: Stopping stream...")
         main_process.terminate()
-
-    record_process.terminate()
+        record_process.terminate()
 
 
 def segment_h264(input_fifo_path, h264_params, record_path, mp4_params):
-    record_process = None
-    output_stream = None
-
     buffer = []
-
     next_split = datetime.now().replace(second=0)
-
-    print("Starting segmented recorder...")
+    record_process = None
 
     with open(input_fifo_path, "rb") as input_stream:
-        try:
-            while True:
-                b = input_stream.read(1)
-                if b == "":
-                    break
+        while True:
+            b = input_stream.read(1)
+            if b == "":
+                break
 
-                while len(buffer) >= 5:
-                    p = buffer.pop(0)
-                    if output_stream is not None:
-                        output_stream.write(p)
-                buffer.append(b)
+            while len(buffer) >= 5:
+                p = buffer.pop(0)
+                if record_process is not None:
+                    record_process.stdin.write(p)
+            buffer.append(b)
 
-                if (
-                    buffer == [b"\x00", b"\x00", b"\x00", b"\x01", b"\x67"]
-                    and datetime.now() > next_split
-                ):
-                    if output_stream is not None:
-                        output_stream.close()
-                        record_process.wait()
+            if (
+                buffer == [b"\x00", b"\x00", b"\x00", b"\x01", b"\x67"]
+                and datetime.now() > next_split
+            ):
+                if record_process is not None:
+                    record_process.stdin.close()
+                    record_process.wait()
 
-                    output_fifo_path = mkfifotemp("h264")
-                    record_cmd = (
-                        ffmpeg.input(
-                            output_fifo_path,
-                            **h264_params,
-                        )
-                        .output(
-                            strftime(record_path),
-                            vcodec="copy",
-                            **mp4_params,
-                        )
-                        .global_args(
-                            "-use_wallclock_as_timestamps",
-                            "-hide_banner",
-                            "-loglevel",
-                            "error",
-                        )
-                        .overwrite_output()
+                record_cmd = (
+                    ffmpeg.input(
+                        "pipe:",
+                        **h264_params,
                     )
-                    print(" ".join(record_cmd.compile()))
-                    record_process = record_cmd.run_async()
-                    output_stream = open(output_fifo_path, "wb")
+                    .output(
+                        strftime(record_path),
+                        vcodec="copy",
+                        **mp4_params,
+                    )
+                    .global_args(
+                        "-use_wallclock_as_timestamps",
+                        "-hide_banner",
+                        "-loglevel",
+                        "error",
+                    )
+                    .overwrite_output()
+                )
+                print(" ".join(record_cmd.compile()))
+                record_process = record_cmd.run_async(pipe_stdin=True)
 
-                    next_split += timedelta(minutes=1)
+                next_split += timedelta(minutes=1)
 
-        except KeyboardInterrupt:
-            print("Stopping segmented recorder...")
-
-        if output_stream is not None:
-            output_stream.close()
+        if record_process is not None:
+            record_process.stdin.close()
             record_process.wait()
 
 
