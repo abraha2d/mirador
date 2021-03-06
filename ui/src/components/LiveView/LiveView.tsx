@@ -20,11 +20,13 @@ export const LiveView = () => {
         <Col className="h-100">
           <FullScreen
             handle={handle}
-            className={`d-flex flex-column justify-content-center${
-              handle.active ? "" : " bg-dark"
-            }`}
+            className={`d-flex flex-column justify-content-center`}
           >
-            <div className="aspect-ratio--16x9 border-top border-left">
+            <div
+              className={`aspect-ratio--16x9${
+                handle.active ? "" : " border-top border-left bg-dark"
+              }`}
+            >
               <div className="aspect-ratio__inner-wrapper d-flex flex-column overflow-hidden">
                 {[...Array(4).keys()].map((i) =>
                   [...Array(4).keys()].map((j) => (
@@ -40,6 +42,7 @@ export const LiveView = () => {
                       }
                       dispatch={dispatch}
                       onDrag={setDragging}
+                      fullscreenHandle={handle}
                     />
                   ))
                 )}

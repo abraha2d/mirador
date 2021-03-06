@@ -1,6 +1,10 @@
 import React, { useMemo, useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import {
+  FullScreen,
+  FullScreenHandle,
+  useFullScreenHandle,
+} from "react-full-screen";
 import ReactHlsPlayer from "react-hls-player";
 import HlsJs from "hls.js";
 
@@ -17,6 +21,7 @@ type StreamContainerProps = {
   stream?: Stream;
   dispatch?: React.Dispatch<any>;
   onDrag: (dragStart: boolean) => void;
+  fullscreenHandle: FullScreenHandle;
 };
 
 export const StreamContainer = ({
@@ -26,6 +31,7 @@ export const StreamContainer = ({
   stream,
   dispatch,
   onDrag,
+  fullscreenHandle,
 }: StreamContainerProps) => {
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
@@ -101,7 +107,9 @@ export const StreamContainer = ({
 
   return (
     <div
-      className="position-absolute border-bottom border-right"
+      className={`position-absolute${
+        fullscreenHandle.active ? "" : " border-bottom border-right"
+      }`}
       style={{
         width: `${100 / gridSide}%`,
         height: `${100 / gridSide}%`,

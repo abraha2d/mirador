@@ -1,3 +1,4 @@
+import { Timeline } from "components/Timeline";
 import { useContext } from "react";
 import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import {
@@ -22,11 +23,13 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
   const [state, dispatch] = useContext(Context);
   return (
     <div
-      className="d-flex justify-content-between p-2 rounded-bottom"
+      className={`d-flex justify-content-between p-2 rounded-bottom${
+        fullscreenHandle.active ? "" : " bg-dark"
+      }`}
       style={{ margin: "0 1px" }}
     >
-      <ButtonToolbar className="">
-        <ButtonGroup>
+      <ButtonToolbar>
+        <ButtonGroup className="pr-2">
           {[1, 4, 9, 16].map((gridSize) => (
             <Button
               key={gridSize}
@@ -41,6 +44,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
           ))}
         </ButtonGroup>
       </ButtonToolbar>
+      <Timeline />
       <ButtonToolbar>
         <ButtonGroup className="pl-2">
           <Button
