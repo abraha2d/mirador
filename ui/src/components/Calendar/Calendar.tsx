@@ -17,6 +17,25 @@ const MONTHS = [
   "December",
 ];
 
+const getMonthArray = (year: number, month: number) => {
+  const preDays = new Date(year, month, 1).getDay();
+  const numDays = 32 - new Date(year, month, 32).getDate();
+  const numDaysLast = 32 - new Date(year, month - 1, 32).getDate();
+  const numWeeks = Math.ceil((preDays + numDays) / 7);
+  const postDays = numWeeks * 7 - (preDays + numDays);
+
+  const preArray: (string | number)[] = [...Array(preDays).keys()].map((i) =>
+    (numDaysLast + i - preDays + 1).toString()
+  );
+  const daysArray = [...Array(numDays).keys()].map((i) => i + 1);
+  const postArray = [...Array(postDays).keys()].map((i) => (i + 1).toString());
+  const monthArray = preArray.concat(daysArray).concat(postArray);
+
+  const month2D = [];
+  while (monthArray.length) month2D.push(monthArray.splice(0, 7));
+  return month2D;
+};
+
 type CalendarProps = {
   date: Date;
   onClickDate: (date: Date) => void;
@@ -25,6 +44,7 @@ type CalendarProps = {
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
   const [year, setYear] = useState(date.getFullYear());
   const [month, setMonth] = useState(date.getMonth());
+  const today = new Date();
 
   const changeMonth = (increment: number) => () => {
     let newMonth = month + increment;
@@ -39,9 +59,11 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
   };
 
   const resetMonth = () => {
-    setMonth(date.getMonth());
-    setYear(date.getFullYear());
+    setMonth(today.getMonth());
+    setYear(today.getFullYear());
   };
+
+  const monthArray = getMonthArray(year, month);
 
   return (
     <>
@@ -52,19 +74,18 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         <Button variant="light" size="sm" onClick={resetMonth}>
           {MONTHS[month]} {year}
         </Button>
-        <Button variant="light" size="sm" onClick={changeMonth(1)}>
+        <Button
+          variant="light"
+          size="sm"
+          onClick={changeMonth(1)}
+          disabled={year === today.getFullYear() && month === today.getMonth()}
+        >
           <CaretRightFill />
         </Button>
       </Popover.Title>
       <Popover.Content>
         <div>
-          {[
-            ["31", 1, 2, 3, 4, 5, 6],
-            [7, 8, 9, 10, 11, 12, 13],
-            [14, 15, 16, 17, 18, 19, 20],
-            [21, 22, 23, 24, 25, 26, 27],
-            [28, 29, 30, 31, "1", "2", "3"],
-          ].map((week, i) => (
+          {monthArray.map((week, i) => (
             <div className="d-flex" key={i}>
               {week.map((day, j) => (
                 <Button
@@ -72,7 +93,12 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                   variant={typeof day === "number" ? "light" : ""}
                   size="sm"
                   style={{ aspectRatio: "1", width: "36px" }}
-                  disabled={typeof day !== "number"}
+                  disabled={
+                    typeof day !== "number" ||
+                    (year === today.getFullYear() &&
+                      month === today.getMonth() &&
+                      day > today.getDate())
+                  }
                   onClick={() =>
                     typeof day == "number" &&
                     onClickDate(new Date(year, month, day))
