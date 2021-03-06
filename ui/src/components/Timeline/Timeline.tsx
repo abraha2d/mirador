@@ -12,7 +12,10 @@ export const Timeline = () => {
   const [showCal, setShowCal] = useState(false);
   const nodeRef = useRef(null);
   return (
-    <div className="flex-grow-1 rounded d-flex" style={{ margin: "0 1px" }}>
+    <div
+      className="bg-secondary flex-grow-1 rounded d-flex"
+      style={{ margin: "0 1px" }}
+    >
       <OverlayTrigger
         placement="top"
         trigger="click"
@@ -55,7 +58,7 @@ export const Timeline = () => {
             style={{ width: "100px", top: 0, bottom: 0 }}
           >
             {Array.from(streams.values()).map((stream) => (
-              <div key={stream.id} className="flex-grow-1 bg-secondary" />
+              <div key={stream.id} className="flex-grow-1 bg-light" />
             ))}
           </div>
         </Draggable>

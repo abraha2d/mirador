@@ -1,19 +1,10 @@
 import { Timeline } from "components/Timeline";
 import { useContext } from "react";
 import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
-import {
-  ArrowsFullscreen,
-  PlayFill,
-  StopFill,
-  VolumeUpFill,
-} from "react-bootstrap-icons";
+import { ArrowsFullscreen, VolumeUpFill } from "react-bootstrap-icons";
 import { FullScreenHandle } from "react-full-screen";
 import { Context } from "components/Store";
-import {
-  SET_GRIDSIZE,
-  START_STREAM_ALL,
-  STOP_STREAM_ALL,
-} from "components/Store/constants";
+import { SET_GRIDSIZE } from "components/Store/constants";
 
 export type ControlBarProps = {
   fullscreenHandle: FullScreenHandle;
@@ -34,7 +25,6 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
             <Button
               key={gridSize}
               variant={state.gridSize === gridSize ? "light" : "secondary"}
-              active={state.gridSize === gridSize}
               onClick={() =>
                 dispatch && dispatch({ type: SET_GRIDSIZE, payload: gridSize })
               }
@@ -46,22 +36,6 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
       </ButtonToolbar>
       <Timeline />
       <ButtonToolbar>
-        <ButtonGroup className="pl-2">
-          <Button
-            variant="light"
-            className="d-flex align-items-center"
-            onClick={() => dispatch && dispatch({ type: START_STREAM_ALL })}
-          >
-            <PlayFill />
-          </Button>
-          <Button
-            variant="light"
-            className="d-flex align-items-center"
-            onClick={() => dispatch && dispatch({ type: STOP_STREAM_ALL })}
-          >
-            <StopFill />
-          </Button>
-        </ButtonGroup>
         <ButtonGroup className="pl-2">
           <Button variant="light" className="d-flex align-items-center">
             <VolumeUpFill />
