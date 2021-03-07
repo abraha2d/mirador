@@ -30,10 +30,10 @@ const getDateFromPosition = (
 
 const getTextForZoomLevel = (zoom: number) => {
   if (zoom < 0.75) {
-    return "12 hrs";
+    return "6 hrs";
   } else if (zoom < 3) {
     return "1 hour";
-  } else if (zoom < 12) {
+  } else if (zoom < 6) {
     return "30 mins";
   } else {
     return "5 mins";
@@ -191,15 +191,15 @@ export const Timeline = () => {
                   }}
                 />
               ))}
-              {[...Array(11).keys()].map((i) => (
+              {[...Array(21).keys()].map((i) => (
                 <div
-                  key={`12hour-${i}`}
+                  key={`6hour-${i}`}
                   className="bg-light position-absolute"
                   style={{
                     width: "1px",
                     height: "0.75em",
                     bottom: 0,
-                    left: `${10 * i}%`,
+                    left: `${5 * i}%`,
                   }}
                 />
               ))}
@@ -229,7 +229,7 @@ export const Timeline = () => {
                     }}
                   />
                 ))}
-              {zoom >= 16 &&
+              {zoom >= 8 &&
                 [...Array(1441).keys()].map((i) => (
                   <div
                     key={`5min-${i}`}
