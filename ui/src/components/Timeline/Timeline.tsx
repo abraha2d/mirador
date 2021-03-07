@@ -8,15 +8,13 @@ import { Context } from "components/Store";
 
 export const Timeline = () => {
   const [{ streams }] = useContext(Context);
+  const [date, setDate] = useState(new Date());
   const [position, setPosition] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showCal, setShowCal] = useState(false);
   const nodeRef = useRef(null);
   return (
-    <div
-      className="bg-secondary flex-grow-1 rounded d-flex"
-      style={{ margin: "0 1px" }}
-    >
+    <ButtonGroup className="bg-secondary flex-grow-1 rounded d-flex">
       <OverlayTrigger
         placement="top"
         trigger="click"
@@ -26,9 +24,9 @@ export const Timeline = () => {
         overlay={
           <Popover id="calendar">
             <Calendar
-              date={new Date()}
+              date={date}
               onClickDate={(date) => {
-                console.log(date);
+                setDate(date);
                 setShowCal(false);
               }}
             />
@@ -39,7 +37,7 @@ export const Timeline = () => {
           <Button
             ref={ref}
             variant="light"
-            className="d-flex align-items-center"
+            className="flex-grow-0 d-flex align-items-center"
             {...triggerHandler}
             style={{ marginRight: "-0.25rem", zIndex: 1 }}
           >
@@ -48,78 +46,87 @@ export const Timeline = () => {
         )}
       </OverlayTrigger>
       <div className="flex-grow-1 overflow-hidden position-relative">
-        <div className="position-absolute w-50 h-100">
-          <Draggable
-            axis="x"
-            nodeRef={nodeRef}
-            onDrag={(event) => {
-              setPosition(position + (event as any).movementX);
-            }}
-            onStop={() =>
-              setPosition(
-                Math.min(
-                  Math.max(position, 0),
-                  (nodeRef.current as any).clientWidth
-                )
+        <Draggable
+          axis="x"
+          nodeRef={nodeRef}
+          onDrag={(event) => {
+            setPosition(position + (event as any).movementX);
+          }}
+          onStop={() =>
+            setPosition(
+              Math.min(
+                Math.max(position, 0),
+                (nodeRef.current as any).clientWidth
               )
-            }
-            position={{ x: position, y: 0 }}
+            )
+          }
+          position={{ x: position, y: 0 }}
+        >
+          <div
+            ref={nodeRef}
+            className="position-absolute h-100 d-flex flex-column"
+            style={{
+              width: `${200 * zoom}%`,
+              right: "50%",
+              ...(position === 0 ||
+              position === (nodeRef.current as any).clientWidth
+                ? { transition: "transform 250ms" }
+                : {}),
+            }}
           >
-            <div
-              ref={nodeRef}
-              className="position-absolute h-100 d-flex flex-column"
-              style={{
-                width: `${200 * zoom}%`,
-                right: 0,
-                ...(position === 0 ||
-                position === (nodeRef.current as any).clientWidth
-                  ? { transition: "transform 250ms" }
-                  : {}),
-              }}
-            >
-              {Array.from(streams.values()).map((stream) => (
-                <div key={stream.id} className="flex-grow-1 bg-primary" />
-              ))}
-            </div>
-          </Draggable>
-        </div>
+            {Array.from(streams.values()).map((stream) => (
+              <div key={stream.id} className="flex-grow-1 bg-primary" />
+            ))}
+            {/*TODO: Add ticks*/}
+          </div>
+        </Draggable>
         <CaretUpFill
-          className="text-danger position-absolute m-auto"
-          style={{ bottom: "-0.3em", left: "0", right: "0" }}
+          className="text-light position-absolute m-auto"
+          style={{ bottom: "-0.5em", left: "0", right: "0" }}
         />
+        <ButtonGroup
+          className="position-absolute mr-2 mt-1"
+          style={{ right: 0 }}
+        >
+          <Button
+            variant="outline-light"
+            size="sm"
+            className="py-0 px-1 text-monospace border-0"
+            disabled={zoom <= 0.25}
+            onClick={() => {
+              setZoom(zoom * 0.5);
+              setPosition(position * 0.5);
+            }}
+          >
+            <span style={{ lineHeight: 1 }}>-</span>
+          </Button>
+          <Button
+            variant="outline-light"
+            size="sm"
+            className="py-0 px-1 text-monospace border-0"
+            disabled={zoom >= 32}
+            onClick={() => {
+              setZoom(zoom * 2);
+              setPosition(position * 2);
+            }}
+          >
+            <span style={{ lineHeight: 1 }}>+</span>
+          </Button>
+        </ButtonGroup>
       </div>
-      <ButtonGroup vertical style={{ marginLeft: "-0.25rem", zIndex: 1 }}>
-        <Button
-          variant="light"
-          size="sm"
-          className="py-0"
-          disabled={zoom >= 32}
-          onClick={() => setZoom(zoom * 2)}
-          style={{ borderTopRightRadius: 0 }}
-        >
-          +
-        </Button>
-        <Button
-          variant="light"
-          size="sm"
-          className="py-0"
-          disabled={zoom <= 0.25}
-          onClick={() => setZoom(zoom * 0.5)}
-          style={{ borderBottomRightRadius: 0 }}
-        >
-          -
-        </Button>
-      </ButtonGroup>
       <Button
         variant="light"
-        className="d-flex align-items-center"
+        className="flex-grow-0 d-flex align-items-center"
         disabled={position === 0}
         onClick={() => setPosition(0)}
         title="Go live"
-        style={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0 }}
+        style={{
+          marginLeft: "-0.25rem",
+          zIndex: 1,
+        }}
       >
         <SkipEndFill />
       </Button>
-    </div>
+    </ButtonGroup>
   );
 };
