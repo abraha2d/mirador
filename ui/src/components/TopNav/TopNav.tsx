@@ -16,16 +16,11 @@ export const TopNav = () => {
       <Nav className={"flex-grow-1"}>
         <NavItem>
           <Link className="nav-link" to="/" exact>
-            Live
+            Live View
           </Link>
         </NavItem>
         <NavItem>
-          <Link className="nav-link" to="/playback">
-            Playback
-          </Link>
-        </NavItem>
-        <NavItem>
-          <NavLink href="/admin/">Config</NavLink>
+          <NavLink href="/admin/">Settings</NavLink>
         </NavItem>
         <div className={"flex-grow-1"} />
         <NavDropdown
