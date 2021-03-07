@@ -10,9 +10,13 @@ import { useInterval } from "hooks";
 const withoutTime = (date: Date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-const getPositionFromDate = (date: Date, maxPosition: number) => {
+const getPercentFromDate = (date: Date) => {
   const msOnly = date.getTime() - withoutTime(date).getTime();
-  return (msOnly / 8.64e7) * maxPosition;
+  return msOnly / 8.64e7;
+};
+
+const getPositionFromDate = (date: Date, maxPosition: number) => {
+  return getPercentFromDate(date) * maxPosition;
 };
 
 const getDateFromPosition = (
@@ -22,6 +26,18 @@ const getDateFromPosition = (
 ) => {
   const msOnly = (position / maxPosition) * 8.64e7;
   return new Date(withoutTime(date).getTime() + msOnly);
+};
+
+const getTextForZoomLevel = (zoom: number) => {
+  if (zoom < 0.75) {
+    return "12 hrs";
+  } else if (zoom < 3) {
+    return "1 hour";
+  } else if (zoom < 12) {
+    return "30 mins";
+  } else {
+    return "5 mins";
+  }
 };
 
 export const Timeline = () => {
@@ -62,7 +78,7 @@ export const Timeline = () => {
             <div
               key={stream.id}
               className="flex-grow-1 bg-primary text-light small"
-              style={{ width: `${getPositionFromDate(now, 1) * 100}%` }}
+              style={{ width: `${getPercentFromDate(now) * 100}%` }}
             />
           ))}
         </>
@@ -71,6 +87,14 @@ export const Timeline = () => {
       return <></>;
     }
   };
+
+  const dateArray = [
+    new Date(date.getTime() - 8.64e7 * 2),
+    new Date(date.getTime() - 8.64e7),
+    date,
+    new Date(date.getTime() + 8.64e7),
+    new Date(date.getTime() + 8.64e7 * 2),
+  ];
 
   return (
     <ButtonGroup className="bg-secondary flex-grow-1 rounded d-flex">
@@ -131,23 +155,15 @@ export const Timeline = () => {
             className="position-absolute h-100"
             style={{
               width: `${100 * zoom}%`,
-              left: `calc(50% - ${Math.round(
-                getPositionFromDate(date, draggerWidth)
-              )}px)`,
+              left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
             }}
           >
-            {[
-              new Date(date.getTime() - 8.64e7 * 2),
-              new Date(date.getTime() - 8.64e7),
-              date,
-              new Date(date.getTime() + 8.64e7),
-              new Date(date.getTime() + 8.64e7 * 2),
-            ].map((date, i) => (
+            {dateArray.map((date, i) => (
               <div
                 key={date.toLocaleDateString()}
                 className="w-100 h-100 position-absolute d-flex flex-column"
                 style={{
-                  left: `${(i - 2) * draggerWidth}px`,
+                  left: `${(i - 2) * 100}%`,
                 }}
               >
                 {getStreamDivsForDate(date)}
@@ -155,10 +171,14 @@ export const Timeline = () => {
             ))}
             <div
               className="h-100 position-absolute"
-              style={{ width: "500%", left: `${-2 * draggerWidth}px` }}
+              style={{
+                width: `${dateArray.length * 100}%`,
+                left: `${-Math.floor(dateArray.length / 2) * 100}%`,
+              }}
             >
               {[...Array(6).keys()].map((i) => (
                 <div
+                  key={`day-${i}`}
                   className="bg-light position-absolute"
                   style={{
                     width: "1px",
@@ -170,6 +190,7 @@ export const Timeline = () => {
               ))}
               {[...Array(11).keys()].map((i) => (
                 <div
+                  key={`12hour-${i}`}
                   className="bg-light position-absolute"
                   style={{
                     width: "1px",
@@ -182,36 +203,39 @@ export const Timeline = () => {
               {zoom >= 1 &&
                 [...Array(121).keys()].map((i) => (
                   <div
+                    key={`hour-${i}`}
                     className="bg-light position-absolute"
                     style={{
                       width: "1px",
                       height: "0.75em",
                       bottom: 0,
-                      left: `${0.833333333 * i}%`,
+                      left: `${(5 / 6) * i}%`,
                     }}
                   />
                 ))}
               {zoom >= 4 &&
                 [...Array(241).keys()].map((i) => (
                   <div
+                    key={`30min-${i}`}
                     className="bg-light position-absolute"
                     style={{
                       width: "1px",
                       height: "0.5em",
                       bottom: 0,
-                      left: `${0.416666667 * i}%`,
+                      left: `${(5 / 12) * i}%`,
                     }}
                   />
                 ))}
               {zoom >= 16 &&
                 [...Array(1441).keys()].map((i) => (
                   <div
+                    key={`5min-${i}`}
                     className="bg-light position-absolute"
                     style={{
                       width: "1px",
                       height: "0.5em",
                       bottom: 0,
-                      left: `${0.069444444 * i}%`,
+                      left: `${(5 / 72) * i}%`,
                     }}
                   />
                 ))}
@@ -228,38 +252,47 @@ export const Timeline = () => {
           }}
         />
         <span
+          className="text-light position-absolute ml-3 small"
+          style={{ top: 0, left: "0", pointerEvents: "none" }}
+        >
+          {date.toLocaleDateString()}
+        </span>
+        <span
           className="text-light position-absolute text-center small"
           style={{ top: 0, left: "0", right: "0", pointerEvents: "none" }}
         >
-          {date.toLocaleString()}
+          {date.toLocaleTimeString()}
         </span>
-        <ButtonGroup
-          className="position-absolute mr-2 mt-1"
-          style={{ right: 0 }}
-        >
+        <div className="d-flex position-absolute mr-2" style={{ right: 0 }}>
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 text-monospace border-0"
+            className="py-0 px-1 mr-1 text-monospace border-0"
             disabled={zoom <= 0.25}
             onClick={() => {
               setZoom(zoom * 0.5);
             }}
           >
-            <span style={{ lineHeight: 1 }}>-</span>
+            <span>-</span>
           </Button>
+          <span
+            className="small text-light text-center"
+            style={{ width: "3.5em" }}
+          >
+            {getTextForZoomLevel(zoom)}
+          </span>
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 text-monospace border-0"
+            className="py-0 px-1 ml-1 text-monospace border-0"
             disabled={zoom >= 32}
             onClick={() => {
               setZoom(zoom * 2);
             }}
           >
-            <span style={{ lineHeight: 1 }}>+</span>
+            <span>+</span>
           </Button>
-        </ButtonGroup>
+        </div>
       </div>
       <Button
         variant="light"
