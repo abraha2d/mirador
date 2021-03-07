@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Popover } from "react-bootstrap";
+import { Button, ButtonGroup, Popover } from "react-bootstrap";
 import { CaretLeftFill, CaretRightFill } from "react-bootstrap-icons";
 
 const MONTHS = [
@@ -24,16 +24,20 @@ const getMonthArray = (year: number, month: number) => {
   const numWeeks = Math.ceil((preDays + numDays) / 7);
   const postDays = numWeeks * 7 - (preDays + numDays);
 
-  const preArray: (string | number)[] = [...Array(preDays).keys()].map((i) =>
-    (numDaysLast + i - preDays + 1).toString()
+  const preArray = [...Array(preDays).keys()].map(
+    (i) => new Date(year, month - 1, numDaysLast + i - preDays + 1)
   );
-  const daysArray = [...Array(numDays).keys()].map((i) => i + 1);
-  const postArray = [...Array(postDays).keys()].map((i) => (i + 1).toString());
+  const daysArray = [...Array(numDays).keys()].map(
+    (i) => new Date(year, month, i + 1)
+  );
+  const postArray = [...Array(postDays).keys()].map(
+    (i) => new Date(year, month + 1, i + 1)
+  );
   const monthArray = preArray.concat(daysArray).concat(postArray);
 
   const month2D = [];
   while (monthArray.length) month2D.push(monthArray.splice(0, 7));
-  return month2D;
+  return { monthArray: month2D, numWeeks };
 };
 
 type CalendarProps = {
@@ -63,7 +67,29 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
     setYear(today.getFullYear());
   };
 
-  const monthArray = getMonthArray(year, month);
+  const { monthArray: monthArrayPrev, numWeeks: numWeeksPrev } = getMonthArray(
+    year,
+    month - 1
+  );
+  const { monthArray, numWeeks } = getMonthArray(year, month);
+  const { monthArray: monthArrayNext, numWeeks: numWeeksNext } = getMonthArray(
+    year,
+    month + 1
+  );
+
+  if (
+    monthArrayPrev[monthArrayPrev.length - 1][0].getDate() ===
+    monthArray[0][0].getDate()
+  ) {
+    monthArrayPrev.splice(monthArrayPrev.length - 1, 1);
+  }
+
+  if (
+    monthArrayNext[0][0].getDate() ===
+    monthArray[monthArray.length - 1][0].getDate()
+  ) {
+    monthArrayNext.splice(0, 1);
+  }
 
   return (
     <>
@@ -84,45 +110,64 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         </Button>
       </Popover.Title>
       <Popover.Content>
-        <div>
-          {monthArray.map((week, i) => (
-            <div className="d-flex" key={i}>
-              {week.map((day, j) => (
-                <Button
-                  key={`${i},${j}`}
-                  variant={
-                    year === date.getFullYear() &&
-                    month === date.getMonth() &&
-                    day === date.getDate()
-                      ? "primary"
-                      : typeof day === "number"
-                      ? "light"
-                      : ""
-                  }
-                  size="sm"
-                  style={{ aspectRatio: "1", width: "36px" }}
-                  disabled={
-                    typeof day !== "number" ||
-                    (year === today.getFullYear() &&
-                      month === today.getMonth() &&
-                      day > today.getDate())
-                  }
-                  onClick={() =>
-                    typeof day == "number" &&
-                    onClickDate(new Date(year, month, day))
-                  }
-                >
-                  {year === today.getFullYear() &&
-                  month === today.getMonth() &&
-                  day === today.getDate() ? (
-                    <strong>{day}</strong>
-                  ) : (
-                    day
-                  )}
-                </Button>
-              ))}
-            </div>
-          ))}
+        <div
+          className="position-relative overflow-hidden"
+          style={{
+            height: "216px",
+            width: "246px",
+          }}
+        >
+          {monthArrayPrev
+            .concat(monthArray)
+            .concat(monthArrayNext)
+            .map((weekArray: Date[], i: number) => (
+              <ButtonGroup
+                className="position-absolute d-flex"
+                key={`week-${weekArray[0].toLocaleDateString()}`}
+                id={`week-${weekArray[0].toLocaleDateString()}`}
+                style={{
+                  transition: "top 150ms",
+                  top: `${(i - monthArrayPrev.length) * 35}px`,
+                }}
+              >
+                {weekArray.map((d) => {
+                  const dYear = d.getFullYear();
+                  const dMonth = d.getMonth();
+                  const dDay = d.getDate();
+                  return (
+                    <Button
+                      key={d.toLocaleDateString()}
+                      id={d.toLocaleDateString()}
+                      variant={
+                        dYear === date.getFullYear() &&
+                        dMonth === date.getMonth() &&
+                        dDay === date.getDate()
+                          ? "primary"
+                          : dYear === year && dMonth === month
+                          ? "outline-dark"
+                          : ""
+                      }
+                      size="sm"
+                      style={{
+                        aspectRatio: "1",
+                        width: "36px",
+                      }}
+                      className="rounded-0"
+                      disabled={d > today}
+                      onClick={() => onClickDate(new Date(dYear, dMonth, dDay))}
+                    >
+                      {dYear === today.getFullYear() &&
+                      dMonth === today.getMonth() &&
+                      dDay === today.getDate() ? (
+                        <strong>{dDay}</strong>
+                      ) : (
+                        dDay
+                      )}
+                    </Button>
+                  );
+                })}
+              </ButtonGroup>
+            ))}
         </div>
       </Popover.Content>
     </>
