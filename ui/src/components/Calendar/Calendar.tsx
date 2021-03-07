@@ -90,7 +90,15 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
               {week.map((day, j) => (
                 <Button
                   key={`${i},${j}`}
-                  variant={typeof day === "number" ? "light" : ""}
+                  variant={
+                    year === date.getFullYear() &&
+                    month === date.getMonth() &&
+                    day === date.getDate()
+                      ? "primary"
+                      : typeof day === "number"
+                      ? "light"
+                      : ""
+                  }
                   size="sm"
                   style={{ aspectRatio: "1", width: "36px" }}
                   disabled={
@@ -104,9 +112,9 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                     onClickDate(new Date(year, month, day))
                   }
                 >
-                  {year === date.getFullYear() &&
-                  month === date.getMonth() &&
-                  day === date.getDate() ? (
+                  {year === today.getFullYear() &&
+                  month === today.getMonth() &&
+                  day === today.getDate() ? (
                     <strong>{day}</strong>
                   ) : (
                     day
