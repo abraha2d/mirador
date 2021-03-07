@@ -177,6 +177,11 @@ export const Timeline = () => {
               width: `${100 * zoom}%`,
               left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
               pointerEvents: "all",
+              ...(isDragging
+                ? {}
+                : {
+                    transition: "width 250ms, left 250ms",
+                  }),
             }}
           >
             {dateArray.map((date, i) => (
