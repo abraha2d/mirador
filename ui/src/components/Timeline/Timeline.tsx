@@ -29,14 +29,12 @@ const getDateFromPosition = (
 };
 
 const getTextForZoomLevel = (zoom: number) => {
-  if (zoom < 0.75) {
-    return "6 hrs";
-  } else if (zoom < 3) {
-    return "1 hour";
-  } else if (zoom < 6) {
-    return "30 mins";
+  if (zoom < 1) {
+    return `${1 / zoom} days`;
+  } else if (zoom < 16) {
+    return `${24 / zoom} hrs`;
   } else {
-    return "5 mins";
+    return `${1440 / zoom} mins`;
   }
 };
 
@@ -84,11 +82,11 @@ export const Timeline = () => {
   };
 
   const dateArray = [
-    ...(zoom < 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),
+    ...(zoom <= 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),
     new Date(date.getTime() - 8.64e7),
     date,
     new Date(date.getTime() + 8.64e7),
-    ...(zoom < 0.5 ? [new Date(date.getTime() + 8.64e7 * 2)] : []),
+    ...(zoom <= 0.5 ? [new Date(date.getTime() + 8.64e7 * 2)] : []),
   ];
 
   return (
@@ -255,15 +253,15 @@ export const Timeline = () => {
                   />
                 ))}
               {zoom >= 8 &&
-                [...Array(dateArray.length * 24 * 12 + 1).keys()].map((i) => (
+                [...Array(dateArray.length * 24 * 6 + 1).keys()].map((i) => (
                   <div
-                    key={`5min-${i}`}
+                    key={`10min-${i}`}
                     className="bg-light position-absolute"
                     style={{
                       width: "1px",
                       height: "0.5em",
                       bottom: 0,
-                      left: `${(100 / (dateArray.length * 24 * 12)) * i}%`,
+                      left: `${(100 / (dateArray.length * 24 * 6)) * i}%`,
                     }}
                   />
                 ))}
@@ -327,7 +325,7 @@ export const Timeline = () => {
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
-        disabled={now.getTime() - date.getTime() < 1000}
+        disabled={now.getTime() - date.getTime() < 2000}
         onClick={() => setDate(now)}
         title="Go live"
         style={{
