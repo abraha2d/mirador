@@ -153,7 +153,69 @@ export const Timeline = () => {
                 {getStreamDivsForDate(date)}
               </div>
             ))}
-            {/*TODO: Add ticks*/}
+            <div
+              className="h-100 position-absolute"
+              style={{ width: "500%", left: `${-2 * draggerWidth}px` }}
+            >
+              {[...Array(6).keys()].map((i) => (
+                <div
+                  className="bg-light position-absolute"
+                  style={{
+                    width: "1px",
+                    height: "1em",
+                    bottom: 0,
+                    left: `${20 * i}%`,
+                  }}
+                />
+              ))}
+              {[...Array(11).keys()].map((i) => (
+                <div
+                  className="bg-light position-absolute"
+                  style={{
+                    width: "1px",
+                    height: "0.75em",
+                    bottom: 0,
+                    left: `${10 * i}%`,
+                  }}
+                />
+              ))}
+              {zoom >= 1 &&
+                [...Array(121).keys()].map((i) => (
+                  <div
+                    className="bg-light position-absolute"
+                    style={{
+                      width: "1px",
+                      height: "0.75em",
+                      bottom: 0,
+                      left: `${0.833333333 * i}%`,
+                    }}
+                  />
+                ))}
+              {zoom >= 4 &&
+                [...Array(241).keys()].map((i) => (
+                  <div
+                    className="bg-light position-absolute"
+                    style={{
+                      width: "1px",
+                      height: "0.5em",
+                      bottom: 0,
+                      left: `${0.416666667 * i}%`,
+                    }}
+                  />
+                ))}
+              {zoom >= 16 &&
+                [...Array(1441).keys()].map((i) => (
+                  <div
+                    className="bg-light position-absolute"
+                    style={{
+                      width: "1px",
+                      height: "0.5em",
+                      bottom: 0,
+                      left: `${0.069444444 * i}%`,
+                    }}
+                  />
+                ))}
+            </div>
           </div>
         </DraggableCore>
         <CaretUpFill
@@ -202,7 +264,7 @@ export const Timeline = () => {
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
-        disabled={now.getTime() - date.getTime() < 1}
+        disabled={now.getTime() - date.getTime() < 5}
         onClick={() => setDate(now)}
         title="Go live"
         style={{
