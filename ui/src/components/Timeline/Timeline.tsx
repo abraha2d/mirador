@@ -297,7 +297,7 @@ export const Timeline = () => {
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
-        disabled={now.getTime() - date.getTime() < 5}
+        disabled={now.getTime() - date.getTime() < 1000}
         onClick={() => setDate(now)}
         title="Go live"
         style={{
