@@ -2,42 +2,50 @@ import { useState } from "react";
 import { Button, ButtonGroup, Popover } from "react-bootstrap";
 import { CaretLeftFill, CaretRightFill } from "react-bootstrap-icons";
 
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+const getMonthArray = (monthDate: Date) => {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
 
-const getMonthArray = (year: number, month: number) => {
-  const preDays = new Date(year, month, 1).getDay();
+  const monthDatePrev = new Date(
+    monthDate.getFullYear(),
+    monthDate.getMonth() - 1,
+    1
+  );
+  const monthDateNext = new Date(
+    monthDate.getFullYear(),
+    monthDate.getMonth() + 1,
+    1
+  );
+
+  const preDaysPrev = monthDatePrev.getDay();
+  const numDaysPrev = 32 - new Date(year, month - 1, 32).getDate();
+  const numWeeksPrev = Math.floor((preDaysPrev + numDaysPrev) / 7);
+
+  const preDays = monthDate.getDay();
   const numDays = 32 - new Date(year, month, 32).getDate();
-  const numDaysLast = 32 - new Date(year, month - 1, 32).getDate();
   const numWeeks = Math.ceil((preDays + numDays) / 7);
-  const postDays = numWeeks * 7 - (preDays + numDays);
 
-  const preArray = [...Array(preDays).keys()].map(
-    (i) => new Date(year, month - 1, numDaysLast + i - preDays + 1)
-  );
-  const daysArray = [...Array(numDays).keys()].map(
-    (i) => new Date(year, month, i + 1)
-  );
-  const postArray = [...Array(postDays).keys()].map(
-    (i) => new Date(year, month + 1, i + 1)
-  );
-  const monthArray = preArray.concat(daysArray).concat(postArray);
+  const firstDaysNext = monthDateNext.getDay();
+  const numDaysNext = 32 - new Date(year, month + 1, 32).getDate();
+  const numWeeksNext = Math.ceil((numDaysNext - firstDaysNext) / 7);
 
-  const month2D = [];
-  while (monthArray.length) month2D.push(monthArray.splice(0, 7));
-  return { monthArray: month2D, numWeeks };
+  let date = new Date(
+    monthDatePrev.getFullYear(),
+    monthDatePrev.getMonth(),
+    1 - preDaysPrev
+  );
+
+  const monthArray = [];
+  for (const i of Array(numWeeksPrev + numWeeks + numWeeksNext).keys()) {
+    const weekArray = [];
+    for (const j of Array(7).keys()) {
+      weekArray[j] = date;
+      date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+    }
+    monthArray[i] = weekArray;
+  }
+
+  return { monthArray, numWeeksPrev, numWeeks };
 };
 
 type CalendarProps = {
@@ -46,50 +54,18 @@ type CalendarProps = {
 };
 
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
-  const [year, setYear] = useState(date.getFullYear());
-  const [month, setMonth] = useState(date.getMonth());
-  const today = new Date();
+  const [month, setMonth] = useState(
+    new Date(date.getFullYear(), date.getMonth(), 1)
+  );
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  const changeMonth = (increment: number) => () => {
-    let newMonth = month + increment;
-    if (newMonth < 0) {
-      newMonth = 11;
-      setYear(year - 1);
-    } else if (newMonth > 11) {
-      newMonth = 0;
-      setYear(year + 1);
-    }
-    setMonth(newMonth);
+  const changeMonth = (amount: number) => () => {
+    setMonth(new Date(month.getFullYear(), month.getMonth() + amount, 1));
   };
 
-  const resetMonth = () => {
-    setMonth(today.getMonth());
-    setYear(today.getFullYear());
-  };
-
-  const { monthArray: monthArrayPrev, numWeeks: numWeeksPrev } = getMonthArray(
-    year,
-    month - 1
-  );
-  const { monthArray, numWeeks } = getMonthArray(year, month);
-  const { monthArray: monthArrayNext, numWeeks: numWeeksNext } = getMonthArray(
-    year,
-    month + 1
-  );
-
-  if (
-    monthArrayPrev[monthArrayPrev.length - 1][0].getDate() ===
-    monthArray[0][0].getDate()
-  ) {
-    monthArrayPrev.splice(monthArrayPrev.length - 1, 1);
-  }
-
-  if (
-    monthArrayNext[0][0].getDate() ===
-    monthArray[monthArray.length - 1][0].getDate()
-  ) {
-    monthArrayNext.splice(0, 1);
-  }
+  const { monthArray, numWeeksPrev, numWeeks } = getMonthArray(month);
 
   return (
     <>
@@ -97,14 +73,17 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         <Button variant="light" size="sm" onClick={changeMonth(-1)}>
           <CaretLeftFill />
         </Button>
-        <Button variant="light" size="sm" onClick={resetMonth}>
-          {MONTHS[month]} {year}
+        <Button variant="light" size="sm" onClick={() => setMonth(thisMonth)}>
+          {month.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
         </Button>
         <Button
           variant="light"
           size="sm"
+          disabled={month >= thisMonth}
           onClick={changeMonth(1)}
-          disabled={year === today.getFullYear() && month === today.getMonth()}
         >
           <CaretRightFill />
         </Button>
@@ -113,61 +92,53 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         <div
           className="position-relative overflow-hidden"
           style={{
-            height: "216px",
             width: "246px",
+            height: `${numWeeks * 35 + 1}px`,
+            transition: "height 150ms",
           }}
         >
-          {monthArrayPrev
-            .concat(monthArray)
-            .concat(monthArrayNext)
-            .map((weekArray: Date[], i: number) => (
-              <ButtonGroup
-                className="position-absolute d-flex"
-                key={`week-${weekArray[0].toLocaleDateString()}`}
-                id={`week-${weekArray[0].toLocaleDateString()}`}
-                style={{
-                  transition: "top 150ms",
-                  top: `${(i - monthArrayPrev.length) * 35}px`,
-                }}
-              >
-                {weekArray.map((d) => {
-                  const dYear = d.getFullYear();
-                  const dMonth = d.getMonth();
-                  const dDay = d.getDate();
-                  return (
-                    <Button
-                      key={d.toLocaleDateString()}
-                      id={d.toLocaleDateString()}
-                      variant={
-                        dYear === date.getFullYear() &&
-                        dMonth === date.getMonth() &&
-                        dDay === date.getDate()
-                          ? "primary"
-                          : dYear === year && dMonth === month
+          {monthArray.map((weekArray, i) => (
+            <ButtonGroup
+              key={`week-of-${weekArray[0].toLocaleDateString()}`}
+              className="position-absolute d-flex"
+              style={{
+                transition: "top 150ms",
+                top: `${(i - numWeeksPrev) * 35}px`,
+              }}
+            >
+              {weekArray.map((d) => {
+                return (
+                  <Button
+                    key={d.toLocaleDateString()}
+                    variant={
+                      d.getTime() === date.getTime()
+                        ? "primary"
+                        : d.getFullYear() === month.getFullYear() &&
+                          d.getMonth() === month.getMonth()
+                        ? d <= today
                           ? "outline-dark"
-                          : ""
-                      }
-                      size="sm"
-                      style={{
-                        aspectRatio: "1",
-                        width: "36px",
-                      }}
-                      className="rounded-0"
-                      disabled={d > today}
-                      onClick={() => onClickDate(new Date(dYear, dMonth, dDay))}
-                    >
-                      {dYear === today.getFullYear() &&
-                      dMonth === today.getMonth() &&
-                      dDay === today.getDate() ? (
-                        <strong>{dDay}</strong>
-                      ) : (
-                        dDay
-                      )}
-                    </Button>
-                  );
-                })}
-              </ButtonGroup>
-            ))}
+                          : "outline-secondary"
+                        : ""
+                    }
+                    size="sm"
+                    className="rounded-0"
+                    style={{
+                      aspectRatio: "1",
+                      width: "36px",
+                    }}
+                    disabled={d > today}
+                    onClick={() => onClickDate(d)}
+                  >
+                    {d.getTime() === today.getTime() ? (
+                      <strong>{d.getDate()}</strong>
+                    ) : (
+                      d.getDate()
+                    )}
+                  </Button>
+                );
+              })}
+            </ButtonGroup>
+          ))}
         </div>
       </Popover.Content>
     </>
