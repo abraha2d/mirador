@@ -156,6 +156,9 @@ export const Timeline = () => {
             style={{
               width: `${100 * zoom}%`,
               left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
+              ...(now.getTime() - date.getTime() < 1000
+                ? { transition: "left 500ms" }
+                : {}),
             }}
           >
             {dateArray.map((date, i) => (
