@@ -84,11 +84,11 @@ export const Timeline = () => {
   };
 
   const dateArray = [
-    new Date(date.getTime() - 8.64e7 * 2),
+    ...(zoom < 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),
     new Date(date.getTime() - 8.64e7),
     date,
     new Date(date.getTime() + 8.64e7),
-    new Date(date.getTime() + 8.64e7 * 2),
+    ...(zoom < 0.5 ? [new Date(date.getTime() + 8.64e7 * 2)] : []),
   ];
 
   return (
@@ -190,7 +190,7 @@ export const Timeline = () => {
                 data-date={date.getTime()}
                 className="w-100 h-100 position-absolute d-flex flex-column"
                 style={{
-                  left: `${(i - 2) * 100}%`,
+                  left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
                 }}
               >
                 {getStreamDivsForDate(date)}
@@ -204,7 +204,7 @@ export const Timeline = () => {
                 pointerEvents: "none",
               }}
             >
-              {[...Array(6).keys()].map((i) => (
+              {[...Array(dateArray.length + 1).keys()].map((i) => (
                 <div
                   key={`day-${i}`}
                   className="bg-light position-absolute"
@@ -212,11 +212,11 @@ export const Timeline = () => {
                     width: "1px",
                     height: "1em",
                     bottom: 0,
-                    left: `${20 * i}%`,
+                    left: `${(100 / dateArray.length) * i}%`,
                   }}
                 />
               ))}
-              {[...Array(21).keys()].map((i) => (
+              {[...Array(dateArray.length * 4 + 1).keys()].map((i) => (
                 <div
                   key={`6hour-${i}`}
                   className="bg-light position-absolute"
@@ -224,12 +224,12 @@ export const Timeline = () => {
                     width: "1px",
                     height: "0.75em",
                     bottom: 0,
-                    left: `${5 * i}%`,
+                    left: `${(100 / (dateArray.length * 4)) * i}%`,
                   }}
                 />
               ))}
               {zoom >= 1 &&
-                [...Array(121).keys()].map((i) => (
+                [...Array(dateArray.length * 24 + 1).keys()].map((i) => (
                   <div
                     key={`hour-${i}`}
                     className="bg-light position-absolute"
@@ -237,12 +237,12 @@ export const Timeline = () => {
                       width: "1px",
                       height: "0.75em",
                       bottom: 0,
-                      left: `${(5 / 6) * i}%`,
+                      left: `${(100 / (dateArray.length * 24)) * i}%`,
                     }}
                   />
                 ))}
               {zoom >= 4 &&
-                [...Array(241).keys()].map((i) => (
+                [...Array(dateArray.length * 24 * 2 + 1).keys()].map((i) => (
                   <div
                     key={`30min-${i}`}
                     className="bg-light position-absolute"
@@ -250,12 +250,12 @@ export const Timeline = () => {
                       width: "1px",
                       height: "0.5em",
                       bottom: 0,
-                      left: `${(5 / 12) * i}%`,
+                      left: `${(100 / (dateArray.length * 24 * 2)) * i}%`,
                     }}
                   />
                 ))}
               {zoom >= 8 &&
-                [...Array(1441).keys()].map((i) => (
+                [...Array(dateArray.length * 24 * 12 + 1).keys()].map((i) => (
                   <div
                     key={`5min-${i}`}
                     className="bg-light position-absolute"
@@ -263,7 +263,7 @@ export const Timeline = () => {
                       width: "1px",
                       height: "0.5em",
                       bottom: 0,
-                      left: `${(5 / 72) * i}%`,
+                      left: `${(100 / (dateArray.length * 24 * 12)) * i}%`,
                     }}
                   />
                 ))}
