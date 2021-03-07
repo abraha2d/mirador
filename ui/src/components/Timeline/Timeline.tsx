@@ -52,33 +52,28 @@ export const Timeline = () => {
   const [date, setDate] = useState(now);
   const [zoom, setZoom] = useState(1);
   const [showCal, setShowCal] = useState(false);
+  const [isDragging, setDragging] = useState(false);
 
   const draggerWidth = (containerRef.current as any)?.clientWidth * zoom;
 
   useInterval(() => {
-    setDate(new Date(date.getTime() + 1000));
+    setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
   }, 1000);
 
   const getStreamDivsForDate = (date: Date) => {
-    if (withoutTime(date) < today) {
+    if (withoutTime(date) <= today) {
       return (
         <>
           {Array.from(streams.values()).map((stream) => (
             <div
               key={stream.id}
               className="flex-grow-1 bg-primary text-light small"
-            />
-          ))}
-        </>
-      );
-    } else if (withoutTime(date).getTime() === today.getTime()) {
-      return (
-        <>
-          {Array.from(streams.values()).map((stream) => (
-            <div
-              key={stream.id}
-              className="flex-grow-1 bg-primary text-light small"
-              style={{ width: `${getPercentFromDate(now) * 100}%` }}
+              style={{
+                pointerEvents: "none",
+                ...(withoutTime(date) < today
+                  ? {}
+                  : { width: `${getPercentFromDate(now) * 100}%` }),
+              }}
             />
           ))}
         </>
@@ -130,10 +125,34 @@ export const Timeline = () => {
       </OverlayTrigger>
       <div
         ref={containerRef}
-        className="flex-grow-1 overflow-hidden position-relative"
+        className="flex-grow-1 overflow-hidden position-relative mx-1"
+        style={{ pointerEvents: "none" }}
       >
         <DraggableCore
           nodeRef={draggerRef}
+          onStop={(...args) =>
+            isDragging
+              ? setDragging(false)
+              : args[0] instanceof MouseEvent &&
+                setDate(
+                  new Date(
+                    Math.min(
+                      getDateFromPosition(
+                        args[0].offsetX,
+                        draggerWidth,
+                        new Date(
+                          parseInt(
+                            (args[0].target as Element).getAttribute(
+                              "data-date"
+                            )!
+                          )
+                        )
+                      ).getTime(),
+                      now.getTime()
+                    )
+                  )
+                )
+          }
           onDrag={(event) => {
             setDate(
               new Date(
@@ -148,6 +167,7 @@ export const Timeline = () => {
                 )
               )
             );
+            isDragging || setDragging(true);
           }}
         >
           <div
@@ -156,14 +176,13 @@ export const Timeline = () => {
             style={{
               width: `${100 * zoom}%`,
               left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
-              ...(now.getTime() - date.getTime() < 1000
-                ? { transition: "left 500ms" }
-                : {}),
+              pointerEvents: "all",
             }}
           >
             {dateArray.map((date, i) => (
               <div
                 key={date.toLocaleDateString()}
+                data-date={date.getTime()}
                 className="w-100 h-100 position-absolute d-flex flex-column"
                 style={{
                   left: `${(i - 2) * 100}%`,
@@ -177,6 +196,7 @@ export const Timeline = () => {
               style={{
                 width: `${dateArray.length * 100}%`,
                 left: `${-Math.floor(dateArray.length / 2) * 100}%`,
+                pointerEvents: "none",
               }}
             >
               {[...Array(6).keys()].map((i) => (
@@ -266,36 +286,38 @@ export const Timeline = () => {
         >
           {date.toLocaleTimeString()}
         </span>
-        <div className="d-flex position-absolute mr-2" style={{ right: 0 }}>
+        <ButtonGroup
+          className="d-flex position-absolute mr-2"
+          style={{ right: 0, pointerEvents: "all" }}
+        >
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 mr-1 text-monospace border-0"
+            className="py-0 px-1 text-monospace border-0"
             disabled={zoom <= 0.25}
-            onClick={() => {
-              setZoom(zoom * 0.5);
-            }}
+            onClick={() => setZoom(zoom * 0.5)}
           >
-            <span>-</span>
+            -
           </Button>
-          <span
-            className="small text-light text-center"
-            style={{ width: "3.5em" }}
+          <Button
+            variant="outline-light"
+            size="sm"
+            className="py-0 px-1 border-0 text-center"
+            style={{ width: "4.5em" }}
+            onClick={() => setZoom(1)}
           >
             {getTextForZoomLevel(zoom)}
-          </span>
+          </Button>
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 ml-1 text-monospace border-0"
+            className="py-0 px-1 text-monospace border-0"
             disabled={zoom >= 32}
-            onClick={() => {
-              setZoom(zoom * 2);
-            }}
+            onClick={() => setZoom(zoom * 2)}
           >
-            <span>+</span>
+            +
           </Button>
-        </div>
+        </ButtonGroup>
       </div>
       <Button
         variant="light"
