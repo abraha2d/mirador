@@ -1,28 +1,39 @@
-.timeline-date-bar {
-    top: 0;
-    bottom: 0;
-    margin-top: 1.25rem;
-}
-
 .timeline-date-hover {
     bottom: 75%;
 }
 
 .timeline-date-text {
+    position: absolute;
     left: 0;
     right: 0;
     top: 0;
+    font-size: 80%;
+    text-align: center;
+    pointer-events: none;
 }
 
 .timeline-indicator {
+    position: absolute;
     left: 0;
     right: 0;
     bottom: -0.5rem;
+    margin: auto;
+    pointer-events: none;
 }
 
 .timeline-stream {
+    position: absolute;
     top: 0;
     bottom: 0;
+    pointer-events: none;
+}
+
+.timeline-stream-bar {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-top: 1.25rem;
 }
 
 .timeline-tick {
@@ -43,9 +54,15 @@
 }
 
 .timeline-zoom-button-group {
+    position: absolute !important;
     right: 0;
+    margin-right: 0.5rem;
+    pointer-events: all;
 }
 
 .timeline-zoom-current-level {
     width: 4.5rem;
+    padding: 0 0.25rem !important;
+    border: 0 !important;
+    text-align: center;
 }

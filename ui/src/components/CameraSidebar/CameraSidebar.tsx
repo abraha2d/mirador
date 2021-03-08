@@ -91,7 +91,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         <div
           ref={drop}
           className={`
-            color-overlay position-absolute ${
+            color-overlay ${
               isOver ? "bg-danger" : "bg-secondary"
             } rounded d-flex align-items-center justify-content-center
           `}
@@ -100,7 +100,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             opacity: showTrash ? (isOver ? 1 : "80%") : 0,
           }}
         >
-          <TrashFill color="white" className="trash-icon w-100 h-100" />
+          <TrashFill color="white" className="trash-icon" />
         </div>
         {isLoading && (isError || data.length === 0) && (
           <ToggleButton

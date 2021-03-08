@@ -48,7 +48,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
       </Popover.Title>
       <Popover.Content>
         <div
-          className="calendar-body position-relative overflow-hidden"
+          className="calendar-body"
           style={{
             height: `${numWeeks * 35 + 1}px`,
           }}
@@ -56,7 +56,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
           {monthArray.map((weekArray, i) => (
             <ButtonGroup
               key={`week-of-${weekArray[0].toLocaleDateString()}`}
-              className="calendar-week position-absolute d-flex"
+              className="calendar-week"
               style={{
                 top: `${(i - numWeeksPrev) * 35}px`,
               }}
@@ -76,7 +76,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                           : "outline-secondary"
                         : ""
                     }
-                    className={`calendar-day rounded-0 ${
+                    className={`calendar-day ${
                       d.getTime() === today.getTime()
                         ? "font-weight-bolder"
                         : ""

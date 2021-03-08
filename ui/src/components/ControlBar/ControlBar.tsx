@@ -16,11 +16,7 @@ export type ControlBarProps = {
 export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
   const [state, dispatch] = useContext(Context);
   return (
-    <div
-      className={`control-bar p-2 ${
-        fullscreenHandle.active ? "" : "bg-dark"
-      } rounded-bottom d-flex justify-content-between`}
-    >
+    <div className={`control-bar ${fullscreenHandle.active ? "" : "bg-dark"}`}>
       <ButtonToolbar>
         <ButtonGroup className="pr-2">
           {[1, 4, 9, 16].map((gridSize) => (

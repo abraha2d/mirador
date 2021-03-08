@@ -1,13 +1,18 @@
 .calendar-body {
+    position: relative;
     width: 246px;
+    overflow: hidden;
     transition: height 150ms;
 }
 
 .calendar-week {
+    position: absolute !important;
+    display: flex;
     transition: top 150ms;
 }
 
 .calendar-day {
-    aspect-ratio: 1;
     width: 36px;
+    aspect-ratio: 1;
+    border-radius: 0;
 }

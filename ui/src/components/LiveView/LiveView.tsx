@@ -14,7 +14,7 @@ export const LiveView = () => {
   return (
     <Container fluid className="flex-grow-1 d-flex flex-column">
       <Row className="flex-grow-1">
-        <Col className="live-view-sidebar pr-0 overflow-auto">
+        <Col className="live-view-sidebar">
           <CameraSidebar showTrash={isDragging} />
         </Col>
         <Col className="h-100">
@@ -25,7 +25,7 @@ export const LiveView = () => {
             <div
               className={`live-view-container ${
                 handle.active ? "" : "bg-dark border-top border-left"
-              } d-flex flex-column overflow-hidden`}
+              }`}
             >
               {[...Array(4).keys()].map((i) =>
                 [...Array(4).keys()].map((j) => (

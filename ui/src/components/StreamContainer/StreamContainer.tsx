@@ -110,12 +110,12 @@ export const StreamContainer = ({
   return (
     <div
       ref={drop}
-      className={`stream-container position-absolute ${
+      className={`stream-container ${
         fullscreenHandle.active ? "" : "border-right border-bottom"
       }`}
       style={{
-        left: `calc(${x} * ${100 / gridSide}%)`,
-        top: `calc(${y} * ${100 / gridSide}%)`,
+        left: `${x * (100 / gridSide)}%`,
+        top: `${y * (100 / gridSide)}%`,
         width: `${100 / gridSide}%`,
         height: `${100 / gridSide}%`,
       }}
@@ -124,7 +124,7 @@ export const StreamContainer = ({
       }
     >
       <div
-        className={`color-overlay position-absolute ${
+        className={`color-overlay ${
           isDragging
             ? "bg-secondary"
             : isOver
@@ -149,12 +149,12 @@ export const StreamContainer = ({
             {video}
             {isLoading && (
               <>
-                <div className="position-absolute p-3 bg-dark o-75 rounded-circle">
+                <div className="position-absolute p-3 bg-dark opacity-75 rounded-circle">
                   <Spinner animation="border" variant="light" className="p-3" />
                 </div>
                 {stream && (
                   <span
-                    className="position-absolute w-100 p-1 bg-dark o-75 text-center text-truncate text-light"
+                    className="position-absolute w-100 p-1 bg-dark opacity-75 text-center text-truncate text-light"
                     style={{ bottom: 0 }}
                   >
                     {stream.name}

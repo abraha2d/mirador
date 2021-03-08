@@ -53,7 +53,7 @@ export const Timeline = () => {
         Array.from(streams.values()).map((stream) => (
           <div
             key={stream.id}
-            className="timeline-stream position-absolute bg-primary pe-none"
+            className="timeline-stream bg-primary"
             style={{
               width:
                 withoutTime(date) < today
@@ -179,7 +179,7 @@ export const Timeline = () => {
               <div
                 key={date.toLocaleDateString()}
                 data-date={date.toLocaleDateString()}
-                className="timeline-date-bar position-absolute w-100"
+                className="timeline-stream-bar"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
                 }}
@@ -190,11 +190,11 @@ export const Timeline = () => {
             <TimelineTicks dateArray={dateArray} zoom={zoom} />
           </div>
         </DraggableCore>
-        <CaretUpFill className="timeline-indicator position-absolute m-auto text-light pe-none" />
-        <span className="timeline-date-text position-absolute text-center text-light small pe-none">
+        <CaretUpFill className="timeline-indicator text-light" />
+        <span className="timeline-date-text text-light">
           {date.toLocaleString()}
         </span>
-        <ButtonGroup className="timeline-zoom-button-group position-absolute mr-2 d-flex pe-all">
+        <ButtonGroup className="timeline-zoom-button-group">
           <Button
             variant="outline-light"
             size="sm"
@@ -207,7 +207,7 @@ export const Timeline = () => {
           <Button
             variant="outline-light"
             size="sm"
-            className="timeline-zoom-current-level px-1 py-0 border-0 text-center"
+            className="timeline-zoom-current-level"
             onClick={() => setZoom(1)}
           >
             {getTextForZoomLevel(zoom)}
