@@ -143,8 +143,8 @@ export const StreamContainer = ({
       {stream && (
         <FullScreen handle={handle} className="h-100">
           <div
-            className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
             ref={drag}
+            className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
           >
             {video}
             {isLoading && (

@@ -22,6 +22,8 @@ import {
   withoutTime,
 } from "./utils";
 
+import "./Timeline.css";
+
 export const Timeline = () => {
   const [{ streams }] = useContext(Context);
 
@@ -51,15 +53,12 @@ export const Timeline = () => {
         Array.from(streams.values()).map((stream) => (
           <div
             key={stream.id}
-            className="position-absolute bg-primary"
+            className="timeline-stream position-absolute bg-primary pe-none"
             style={{
               width:
                 withoutTime(date) < today
                   ? "100%"
                   : `${getPercentFromDate(now) * 100}%`,
-              top: 0,
-              bottom: 0,
-              pointerEvents: "none",
             }}
           />
         ))}
@@ -107,8 +106,7 @@ export const Timeline = () => {
       </OverlayTrigger>
       <div
         ref={containerRef}
-        className="flex-grow-1 overflow-hidden position-relative"
-        style={{ pointerEvents: "none" }}
+        className="flex-grow-1 position-relative overflow-hidden pe-none"
       >
         <DraggableCore
           nodeRef={draggerRef}
@@ -150,11 +148,10 @@ export const Timeline = () => {
         >
           <div
             ref={draggerRef}
-            className="position-absolute h-100"
+            className="position-absolute h-100 pe-all"
             style={{
               width: `${100 * zoom}%`,
               left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
-              pointerEvents: "all",
               ...(isDragging
                 ? {}
                 : {
@@ -182,12 +179,9 @@ export const Timeline = () => {
               <div
                 key={date.toLocaleDateString()}
                 data-date={date.toLocaleDateString()}
-                className="position-absolute w-100"
+                className="timeline-date-bar position-absolute w-100"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
-                  top: 0,
-                  bottom: 0,
-                  marginTop: "1.25em",
                 }}
               >
                 {getStreamDivsForDate(date)}
@@ -196,25 +190,11 @@ export const Timeline = () => {
             <TimelineTicks dateArray={dateArray} zoom={zoom} />
           </div>
         </DraggableCore>
-        <CaretUpFill
-          className="position-absolute m-auto text-light"
-          style={{
-            left: "0",
-            right: "0",
-            bottom: "-0.5em",
-            pointerEvents: "none",
-          }}
-        />
-        <span
-          className="position-absolute text-center text-light small"
-          style={{ left: 0, right: 0, top: 0, pointerEvents: "none" }}
-        >
+        <CaretUpFill className="timeline-indicator position-absolute m-auto text-light pe-none" />
+        <span className="timeline-date-text position-absolute text-center text-light small pe-none">
           {date.toLocaleString()}
         </span>
-        <ButtonGroup
-          className="position-absolute mr-2 d-flex"
-          style={{ right: 0, pointerEvents: "all" }}
-        >
+        <ButtonGroup className="timeline-zoom-button-group position-absolute mr-2 d-flex pe-all">
           <Button
             variant="outline-light"
             size="sm"
@@ -227,8 +207,7 @@ export const Timeline = () => {
           <Button
             variant="outline-light"
             size="sm"
-            className="px-1 py-0 border-0 text-center"
-            style={{ width: "4.5em" }}
+            className="timeline-zoom-current-level px-1 py-0 border-0 text-center"
             onClick={() => setZoom(1)}
           >
             {getTextForZoomLevel(zoom)}
@@ -247,10 +226,9 @@ export const Timeline = () => {
       <Tooltip
         id="date-hover"
         placement="top"
-        className={hoverLocation !== -1 ? "show" : ""}
+        className={`timeline-date-hover ${hoverLocation !== -1 ? "show" : ""}`}
         style={{
           left: `${hoverLocation}px`,
-          bottom: "75%",
         }}
         arrowProps={{ ref: () => {}, style: { left: "35px" } }}
       >
@@ -259,10 +237,6 @@ export const Timeline = () => {
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
-        style={{
-          marginLeft: "-0.25rem",
-          zIndex: 1,
-        }}
         disabled={now.getTime() - date.getTime() < 2000}
         onClick={() => setDate(now)}
         title="Go live"

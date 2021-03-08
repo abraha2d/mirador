@@ -1,0 +1,7 @@
+.live-view-sidebar {
+    max-width: 16rem !important;
+}
+
+.live-view-container {
+    aspect-ratio: 16/9;
+}

@@ -1,52 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button, ButtonGroup, Popover } from "react-bootstrap";
 import { CaretLeftFill, CaretRightFill } from "react-bootstrap-icons";
 
-const getMonthArray = (monthDate: Date) => {
-  const year = monthDate.getFullYear();
-  const month = monthDate.getMonth();
+import { getMonthArray } from "./utils";
 
-  const monthDatePrev = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth() - 1,
-    1
-  );
-  const monthDateNext = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth() + 1,
-    1
-  );
-
-  const preDaysPrev = monthDatePrev.getDay();
-  const numDaysPrev = 32 - new Date(year, month - 1, 32).getDate();
-  const numWeeksPrev = Math.floor((preDaysPrev + numDaysPrev) / 7);
-
-  const preDays = monthDate.getDay();
-  const numDays = 32 - new Date(year, month, 32).getDate();
-  const numWeeks = Math.ceil((preDays + numDays) / 7);
-
-  const firstDaysNext = monthDateNext.getDay();
-  const numDaysNext = 32 - new Date(year, month + 1, 32).getDate();
-  const numWeeksNext = Math.ceil((numDaysNext - firstDaysNext) / 7);
-
-  let date = new Date(
-    monthDatePrev.getFullYear(),
-    monthDatePrev.getMonth(),
-    1 - preDaysPrev
-  );
-
-  const monthArray = [];
-  for (const i of Array(numWeeksPrev + numWeeks + numWeeksNext).keys()) {
-    const weekArray = [];
-    for (const j of Array(7).keys()) {
-      weekArray[j] = date;
-      date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-    }
-    monthArray[i] = weekArray;
-  }
-
-  return { monthArray, numWeeksPrev, numWeeks };
-};
+import "./Calendar.css";
 
 type CalendarProps = {
   date: Date;
@@ -69,19 +27,19 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
 
   return (
     <>
-      <Popover.Title className="d-flex justify-content-between align-items-center">
-        <Button variant="light" size="sm" onClick={changeMonth(-1)}>
+      <Popover.Title className="d-flex align-items-center justify-content-between">
+        <Button size="sm" variant="light" onClick={changeMonth(-1)}>
           <CaretLeftFill />
         </Button>
-        <Button variant="light" size="sm" onClick={() => setMonth(thisMonth)}>
+        <Button size="sm" variant="light" onClick={() => setMonth(thisMonth)}>
           {month.toLocaleString("default", {
             month: "long",
             year: "numeric",
           })}
         </Button>
         <Button
-          variant="light"
           size="sm"
+          variant="light"
           disabled={month >= thisMonth}
           onClick={changeMonth(1)}
         >
@@ -90,19 +48,16 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
       </Popover.Title>
       <Popover.Content>
         <div
-          className="position-relative overflow-hidden"
+          className="calendar-body position-relative overflow-hidden"
           style={{
-            width: "246px",
             height: `${numWeeks * 35 + 1}px`,
-            transition: "height 150ms",
           }}
         >
           {monthArray.map((weekArray, i) => (
             <ButtonGroup
               key={`week-of-${weekArray[0].toLocaleDateString()}`}
-              className="position-absolute d-flex"
+              className="calendar-week position-absolute d-flex"
               style={{
-                transition: "top 150ms",
                 top: `${(i - numWeeksPrev) * 35}px`,
               }}
             >
@@ -110,6 +65,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                 return (
                   <Button
                     key={d.toLocaleDateString()}
+                    size="sm"
                     variant={
                       d.getTime() === date.getTime()
                         ? "primary"
@@ -120,20 +76,15 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                           : "outline-secondary"
                         : ""
                     }
-                    size="sm"
-                    className="rounded-0"
-                    style={{
-                      aspectRatio: "1",
-                      width: "36px",
-                    }}
+                    className={`calendar-day rounded-0 ${
+                      d.getTime() === today.getTime()
+                        ? "font-weight-bolder"
+                        : ""
+                    }`}
                     disabled={d > today}
                     onClick={() => onClickDate(d)}
                   >
-                    {d.getTime() === today.getTime() ? (
-                      <strong>{d.getDate()}</strong>
-                    ) : (
-                      d.getDate()
-                    )}
+                    {d.getDate()}
                   </Button>
                 );
               })}

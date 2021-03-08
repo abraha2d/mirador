@@ -1,13 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Spinner, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import {
   ArrowClockwise,
-  CameraVideoFill,
   ExclamationTriangleFill,
   TrashFill,
 } from "react-bootstrap-icons";
-
-import { useDrag, useDrop } from "react-dnd";
+import { useDrop } from "react-dnd";
 
 import { Context } from "components/Store";
 import {
@@ -16,49 +14,21 @@ import {
   STOP_STREAM,
 } from "components/Store/constants";
 
+import CameraRow from "./CameraRow";
 import { DragItemTypes } from "utils";
 
-type CameraRowProps = {
-  camera: any;
-  selected: boolean;
-  onChange: (idx: number) => void;
-};
-
-const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
-  const [{ isDragging }, drag] = useDrag({
-    item: { type: DragItemTypes.CAMERA, camera },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    canDrag: camera.enabled,
-  });
-
-  return (
-    <ToggleButton
-      type="checkbox"
-      value={camera.id}
-      variant={selected || isDragging ? "primary" : "light"}
-      disabled={!camera.enabled}
-      onChange={() => onChange(camera.id)}
-      className="d-flex align-items-center"
-      ref={drag}
-    >
-      <CameraVideoFill className="mr-2" />
-      <span className="text-truncate">{camera.name}</span>
-    </ToggleButton>
-  );
-};
+import "./CameraSidebar.css";
 
 type CameraSidebarProps = {
   showTrash: boolean;
 };
 
 export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
+  const [state, dispatch] = useContext(Context);
+
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
   const [data, setData] = useState([]);
-
-  const [state, dispatch] = useContext(Context);
 
   const [{ isOver }, drop] = useDrop({
     accept: [DragItemTypes.STREAM],
@@ -119,22 +89,18 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         className="w-100"
       >
         <div
+          ref={drop}
+          className={`
+            color-overlay position-absolute ${
+              isOver ? "bg-danger" : "bg-secondary"
+            } rounded d-flex align-items-center justify-content-center
+          `}
           style={{
             pointerEvents: showTrash ? "auto" : "none",
             opacity: showTrash ? (isOver ? 1 : "80%") : 0,
           }}
-          className={`
-            coloroverlay position-absolute ${
-              isOver ? "bg-danger" : "bg-secondary"
-            } rounded d-flex align-items-center justify-content-center
-          `}
-          ref={drop}
         >
-          <TrashFill
-            color="white"
-            className="w-100 h-100"
-            style={{ padding: "30%" }}
-          />
+          <TrashFill color="white" className="trash-icon w-100 h-100" />
         </div>
         {isLoading && (isError || data.length === 0) && (
           <ToggleButton

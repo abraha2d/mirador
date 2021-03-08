@@ -1,0 +1,13 @@
+.calendar-body {
+    width: 246px;
+    transition: height 150ms;
+}
+
+.calendar-week {
+    transition: top 150ms;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    width: 36px;
+}

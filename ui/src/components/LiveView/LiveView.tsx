@@ -2,10 +2,10 @@ import { useContext, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
-import { CameraSidebar } from "components/CameraSidebar";
-import { ControlBar } from "components/ControlBar";
+import { CameraSidebar, ControlBar, StreamContainer } from "components";
 import { Context } from "components/Store";
-import { StreamContainer } from "components/StreamContainer";
+
+import "./LiveView.css";
 
 export const LiveView = () => {
   const [{ gridSize, streams }, dispatch] = useContext(Context);
@@ -14,39 +14,37 @@ export const LiveView = () => {
   return (
     <Container fluid className="flex-grow-1 d-flex flex-column">
       <Row className="flex-grow-1">
-        <Col style={{ maxWidth: "16rem" }} className="pr-0 overflow-auto">
+        <Col className="live-view-sidebar pr-0 overflow-auto">
           <CameraSidebar showTrash={isDragging} />
         </Col>
         <Col className="h-100">
           <FullScreen
             handle={handle}
-            className={`d-flex flex-column justify-content-center`}
+            className="d-flex flex-column justify-content-center"
           >
             <div
-              className={`aspect-ratio--16x9${
-                handle.active ? "" : " border-top border-left bg-dark"
-              }`}
+              className={`live-view-container ${
+                handle.active ? "" : "bg-dark border-top border-left"
+              } d-flex flex-column overflow-hidden`}
             >
-              <div className="aspect-ratio__inner-wrapper d-flex flex-column overflow-hidden">
-                {[...Array(4).keys()].map((i) =>
-                  [...Array(4).keys()].map((j) => (
-                    <StreamContainer
-                      key={`${j}${i}`}
-                      gridSide={Math.sqrt(gridSize)}
-                      x={j}
-                      y={i}
-                      stream={
-                        i < gridSize && j < gridSize
-                          ? streams.get(Math.sqrt(gridSize) * i + j)
-                          : undefined
-                      }
-                      dispatch={dispatch}
-                      onDrag={setDragging}
-                      fullscreenHandle={handle}
-                    />
-                  ))
-                )}
-              </div>
+              {[...Array(4).keys()].map((i) =>
+                [...Array(4).keys()].map((j) => (
+                  <StreamContainer
+                    key={`${j}${i}`}
+                    gridSide={Math.sqrt(gridSize)}
+                    x={j}
+                    y={i}
+                    stream={
+                      i < gridSize && j < gridSize
+                        ? streams.get(Math.sqrt(gridSize) * i + j)
+                        : undefined
+                    }
+                    dispatch={dispatch}
+                    onDrag={setDragging}
+                    fullscreenHandle={handle}
+                  />
+                ))
+              )}
             </div>
             <ControlBar fullscreenHandle={handle} />
           </FullScreen>
