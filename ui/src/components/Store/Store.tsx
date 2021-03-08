@@ -1,15 +1,15 @@
 import React, { createContext, useReducer } from "react";
-import Reducer from "components/Store/reducer";
-import { ContextType, StateType } from "components/Store/types";
-
-type StoreProps = {
-  children: React.ReactNode;
-};
+import Reducer from "./reducer";
+import { ContextType, StateType } from "./types";
 
 const initialState: StateType = {
   cameras: [],
   gridSize: 1,
   streams: new Map(),
+};
+
+type StoreProps = {
+  children: React.ReactNode;
 };
 
 export const Store = ({ children }: StoreProps) => {
@@ -21,4 +21,5 @@ export const Store = ({ children }: StoreProps) => {
 
 const context: ContextType = [initialState];
 export const Context = createContext(context);
+
 export default Store;

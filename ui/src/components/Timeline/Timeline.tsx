@@ -1,8 +1,7 @@
-import { useContext, useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
-  Overlay,
   OverlayTrigger,
   Popover,
   Tooltip,
@@ -10,40 +9,18 @@ import {
 import { Calendar3, CaretUpFill, SkipEndFill } from "react-bootstrap-icons";
 import { DraggableCore } from "react-draggable";
 
-import { Calendar } from "components/Calendar";
+import { Calendar } from "components";
 import { Context } from "components/Store";
 import { useInterval } from "hooks";
 
-const withoutTime = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const getPercentFromDate = (date: Date) => {
-  const msOnly = date.getTime() - withoutTime(date).getTime();
-  return msOnly / 8.64e7;
-};
-
-const getPositionFromDate = (date: Date, maxPosition: number) => {
-  return getPercentFromDate(date) * maxPosition;
-};
-
-const getDateFromPosition = (
-  position: number,
-  maxPosition: number,
-  date: Date
-) => {
-  const msOnly = (position / maxPosition) * 8.64e7;
-  return new Date(withoutTime(date).getTime() + msOnly);
-};
-
-const getTextForZoomLevel = (zoom: number) => {
-  if (zoom < 1) {
-    return `${1 / zoom} days`;
-  } else if (zoom < 16) {
-    return `${24 / zoom} hrs`;
-  } else {
-    return `${1440 / zoom} mins`;
-  }
-};
+import TimelineTicks from "./TimelineTicks";
+import {
+  getDateFromPosition,
+  getPercentFromDate,
+  getPositionFromDate,
+  getTextForZoomLevel,
+  withoutTime,
+} from "./utils";
 
 export const Timeline = () => {
   const [{ streams }] = useContext(Context);
@@ -68,28 +45,26 @@ export const Timeline = () => {
     setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
   }, 1000);
 
-  const getStreamDivsForDate = (date: Date) => {
-    if (withoutTime(date) <= today) {
-      return (
-        <>
-          {Array.from(streams.values()).map((stream) => (
-            <div
-              key={stream.id}
-              className="flex-grow-1 bg-primary text-light small"
-              style={{
-                pointerEvents: "none",
-                ...(withoutTime(date) < today
-                  ? {}
-                  : { width: `${getPercentFromDate(now) * 100}%` }),
-              }}
-            />
-          ))}
-        </>
-      );
-    } else {
-      return <></>;
-    }
-  };
+  const getStreamDivsForDate = (date: Date) => (
+    <>
+      {withoutTime(date) <= today &&
+        Array.from(streams.values()).map((stream) => (
+          <div
+            key={stream.id}
+            className="position-absolute bg-primary"
+            style={{
+              width:
+                withoutTime(date) < today
+                  ? "100%"
+                  : `${getPercentFromDate(now) * 100}%`,
+              top: 0,
+              bottom: 0,
+              pointerEvents: "none",
+            }}
+          />
+        ))}
+    </>
+  );
 
   const dateArray = [
     ...(zoom <= 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),
@@ -100,7 +75,7 @@ export const Timeline = () => {
   ];
 
   return (
-    <ButtonGroup className="bg-secondary flex-grow-1 rounded d-flex">
+    <ButtonGroup className="flex-grow-1 bg-secondary rounded d-flex">
       <OverlayTrigger
         placement="top"
         trigger="click"
@@ -125,7 +100,6 @@ export const Timeline = () => {
             variant="light"
             className="flex-grow-0 d-flex align-items-center"
             {...triggerHandler}
-            style={{ marginRight: "-0.25rem", zIndex: 1 }}
           >
             <Calendar3 />
           </Button>
@@ -133,11 +107,27 @@ export const Timeline = () => {
       </OverlayTrigger>
       <div
         ref={containerRef}
-        className="flex-grow-1 overflow-hidden position-relative mx-1"
+        className="flex-grow-1 overflow-hidden position-relative"
         style={{ pointerEvents: "none" }}
       >
         <DraggableCore
           nodeRef={draggerRef}
+          onDrag={(e) => {
+            e instanceof MouseEvent &&
+              setDate(
+                new Date(
+                  Math.min(
+                    getDateFromPosition(
+                      getPositionFromDate(date, draggerWidth) - e.movementX,
+                      draggerWidth,
+                      date
+                    ).getTime(),
+                    now.getTime()
+                  )
+                )
+              );
+            isDragging || setDragging(true);
+          }}
           onStop={(e) =>
             isDragging
               ? setDragging(false)
@@ -157,22 +147,6 @@ export const Timeline = () => {
                   )
                 )
           }
-          onDrag={(e) => {
-            e instanceof MouseEvent &&
-              setDate(
-                new Date(
-                  Math.min(
-                    getDateFromPosition(
-                      getPositionFromDate(date, draggerWidth) - e.movementX,
-                      draggerWidth,
-                      date
-                    ).getTime(),
-                    now.getTime()
-                  )
-                )
-              );
-            isDragging || setDragging(true);
-          }}
         >
           <div
             ref={draggerRef}
@@ -188,21 +162,17 @@ export const Timeline = () => {
                   }),
             }}
             onMouseMove={(e) => {
+              const nativeE = e.nativeEvent;
+              const target = nativeE.target as HTMLElement;
+              const parent = target.offsetParent as HTMLElement;
               setHoverLocation(
-                ((e.nativeEvent.target as HTMLElement)
-                  .offsetParent as HTMLElement).offsetLeft +
-                  (e.nativeEvent.target as HTMLElement).offsetLeft +
-                  e.nativeEvent.offsetX
+                parent.offsetLeft + target.offsetLeft + nativeE.offsetX
               );
               setHoverDate(
                 getDateFromPosition(
-                  e.nativeEvent.offsetX,
+                  nativeE.offsetX,
                   draggerWidth,
-                  new Date(
-                    (e.nativeEvent.target as HTMLElement).getAttribute(
-                      "data-date"
-                    )!
-                  )
+                  new Date(target.getAttribute("data-date")!)
                 )
               );
             }}
@@ -212,111 +182,43 @@ export const Timeline = () => {
               <div
                 key={date.toLocaleDateString()}
                 data-date={date.toLocaleDateString()}
-                className="w-100 h-100 position-absolute d-flex flex-column"
+                className="position-absolute w-100"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
+                  top: 0,
+                  bottom: 0,
+                  marginTop: "1.25em",
                 }}
               >
                 {getStreamDivsForDate(date)}
               </div>
             ))}
-            <div
-              className="h-100 position-absolute"
-              style={{
-                width: `${dateArray.length * 100}%`,
-                left: `${-Math.floor(dateArray.length / 2) * 100}%`,
-                pointerEvents: "none",
-              }}
-            >
-              {[...Array(dateArray.length + 1).keys()].map((i) => (
-                <div
-                  key={`day-${i}`}
-                  className="bg-light position-absolute"
-                  style={{
-                    width: "1px",
-                    height: "1em",
-                    bottom: 0,
-                    left: `${(100 / dateArray.length) * i}%`,
-                  }}
-                />
-              ))}
-              {[...Array(dateArray.length * 4 + 1).keys()].map((i) => (
-                <div
-                  key={`6hour-${i}`}
-                  className="bg-light position-absolute"
-                  style={{
-                    width: "1px",
-                    height: "0.75em",
-                    bottom: 0,
-                    left: `${(100 / (dateArray.length * 4)) * i}%`,
-                  }}
-                />
-              ))}
-              {zoom >= 1 &&
-                [...Array(dateArray.length * 24 + 1).keys()].map((i) => (
-                  <div
-                    key={`hour-${i}`}
-                    className="bg-light position-absolute"
-                    style={{
-                      width: "1px",
-                      height: "0.75em",
-                      bottom: 0,
-                      left: `${(100 / (dateArray.length * 24)) * i}%`,
-                    }}
-                  />
-                ))}
-              {zoom >= 4 &&
-                [...Array(dateArray.length * 24 * 2 + 1).keys()].map((i) => (
-                  <div
-                    key={`30min-${i}`}
-                    className="bg-light position-absolute"
-                    style={{
-                      width: "1px",
-                      height: "0.5em",
-                      bottom: 0,
-                      left: `${(100 / (dateArray.length * 24 * 2)) * i}%`,
-                    }}
-                  />
-                ))}
-              {zoom >= 8 &&
-                [...Array(dateArray.length * 24 * 6 + 1).keys()].map((i) => (
-                  <div
-                    key={`10min-${i}`}
-                    className="bg-light position-absolute"
-                    style={{
-                      width: "1px",
-                      height: "0.5em",
-                      bottom: 0,
-                      left: `${(100 / (dateArray.length * 24 * 6)) * i}%`,
-                    }}
-                  />
-                ))}
-            </div>
+            <TimelineTicks dateArray={dateArray} zoom={zoom} />
           </div>
         </DraggableCore>
         <CaretUpFill
-          className="text-light position-absolute m-auto"
+          className="position-absolute m-auto text-light"
           style={{
-            bottom: "-0.5em",
             left: "0",
             right: "0",
+            bottom: "-0.5em",
             pointerEvents: "none",
           }}
         />
         <span
-          className="text-light position-absolute text-center small"
-          style={{ top: 0, left: "0", right: "0", pointerEvents: "none" }}
+          className="position-absolute text-center text-light small"
+          style={{ left: 0, right: 0, top: 0, pointerEvents: "none" }}
         >
           {date.toLocaleString()}
         </span>
         <ButtonGroup
-          className="d-flex position-absolute mr-2"
+          className="position-absolute mr-2 d-flex"
           style={{ right: 0, pointerEvents: "all" }}
         >
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 text-monospace border-0"
+            className="px-1 py-0 border-0 text-monospace"
             disabled={zoom <= 0.25}
             onClick={() => setZoom(zoom * 0.5)}
           >
@@ -325,7 +227,7 @@ export const Timeline = () => {
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 border-0 text-center"
+            className="px-1 py-0 border-0 text-center"
             style={{ width: "4.5em" }}
             onClick={() => setZoom(1)}
           >
@@ -334,7 +236,7 @@ export const Timeline = () => {
           <Button
             variant="outline-light"
             size="sm"
-            className="py-0 px-1 text-monospace border-0"
+            className="px-1 py-0 border-0 text-monospace"
             disabled={zoom >= 32}
             onClick={() => setZoom(zoom * 2)}
           >
@@ -343,12 +245,12 @@ export const Timeline = () => {
         </ButtonGroup>
       </div>
       <Tooltip
-        id="date-hover-bad"
+        id="date-hover"
         placement="top"
         className={hoverLocation !== -1 ? "show" : ""}
         style={{
-          bottom: "75%",
           left: `${hoverLocation}px`,
+          bottom: "75%",
         }}
         arrowProps={{ ref: () => {}, style: { left: "35px" } }}
       >
@@ -357,13 +259,13 @@ export const Timeline = () => {
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
-        disabled={now.getTime() - date.getTime() < 2000}
-        onClick={() => setDate(now)}
-        title="Go live"
         style={{
           marginLeft: "-0.25rem",
           zIndex: 1,
         }}
+        disabled={now.getTime() - date.getTime() < 2000}
+        onClick={() => setDate(now)}
+        title="Go live"
       >
         <SkipEndFill />
       </Button>

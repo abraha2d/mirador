@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
+import { Spinner } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
 import {
   FullScreen,
@@ -6,13 +7,14 @@ import {
   useFullScreenHandle,
 } from "react-full-screen";
 import ReactHlsPlayer from "react-hls-player";
-import HlsJs from "hls.js";
 
-import { Spinner } from "react-bootstrap";
+import HlsJs from "hls.js";
 
 import { START_STREAM } from "components/Store/constants";
 import { Stream } from "components/Store/types";
 import { DragItemTypes } from "utils";
+
+import "./StreamContainer.css";
 
 type StreamContainerProps = {
   gridSide: number;
@@ -35,6 +37,10 @@ export const StreamContainer = ({
 }: StreamContainerProps) => {
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      itemType: monitor.getItemType(),
+    }),
     drop: (item) => {
       let stream = {};
       let replace = false;
@@ -59,25 +65,21 @@ export const StreamContainer = ({
           },
         });
     },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      itemType: monitor.getItemType(),
-    }),
   });
 
   const [{ isDragging }, drag] = useDrag({
+    canDrag: !!stream,
     item: { type: DragItemTypes.STREAM, stream },
+    begin: () => onDrag(true),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: !!stream,
-    begin: () => onDrag(true),
     end: () => onDrag(false),
   });
 
   const handle = useFullScreenHandle();
 
-  const videoRefContainer = useRef(null);
+  const videoRef = useRef(null);
   const [isLoading, setLoading] = useState(true);
 
   const video = useMemo(
@@ -87,7 +89,7 @@ export const StreamContainer = ({
         <ReactHlsPlayer
           url={stream.url}
           autoPlay
-          playerRef={videoRefContainer}
+          playerRef={videoRef}
           onLoadStart={() => setLoading(true)}
           onPlaying={() => setLoading(false)}
           onPause={() => setLoading(true)}
@@ -96,7 +98,7 @@ export const StreamContainer = ({
         <video
           src={stream.url}
           autoPlay
-          ref={videoRefContainer}
+          ref={videoRef}
           onLoadStart={() => setLoading(true)}
           onPlaying={() => setLoading(false)}
           onPause={() => setLoading(true)}
@@ -107,37 +109,36 @@ export const StreamContainer = ({
 
   return (
     <div
-      className={`position-absolute${
-        fullscreenHandle.active ? "" : " border-bottom border-right"
+      ref={drop}
+      className={`stream-container position-absolute ${
+        fullscreenHandle.active ? "" : "border-right border-bottom"
       }`}
       style={{
-        width: `${100 / gridSide}%`,
-        height: `${100 / gridSide}%`,
         left: `calc(${x} * ${100 / gridSide}%)`,
         top: `calc(${y} * ${100 / gridSide}%)`,
-        transition: "width 150ms, height 150ms, left 150ms, top 150ms",
+        width: `${100 / gridSide}%`,
+        height: `${100 / gridSide}%`,
       }}
-      ref={drop}
       onDoubleClick={
         stream ? (handle.active ? handle.exit : handle.enter) : () => {}
       }
     >
       <div
-        style={{
-          pointerEvents: isOver ? "auto" : "none",
-          opacity: isDragging || isOver ? "80%" : 0,
-        }}
-        className={`coloroverlay position-absolute${
+        className={`color-overlay position-absolute ${
           isDragging
-            ? " bg-secondary"
+            ? "bg-secondary"
             : isOver
             ? stream
               ? itemType === DragItemTypes.CAMERA
-                ? " bg-danger"
-                : " bg-info"
-              : " bg-primary"
+                ? "bg-danger"
+                : "bg-info"
+              : "bg-primary"
             : ""
         }`}
+        style={{
+          opacity: isDragging || isOver ? "80%" : 0,
+          pointerEvents: isOver ? "auto" : "none",
+        }}
       />
       {stream && (
         <FullScreen handle={handle} className="h-100">
@@ -148,16 +149,13 @@ export const StreamContainer = ({
             {video}
             {isLoading && (
               <>
-                <div
-                  className="position-absolute p-3 rounded-circle bg-dark"
-                  style={{ opacity: 0.75 }}
-                >
+                <div className="position-absolute p-3 bg-dark o-75 rounded-circle">
                   <Spinner animation="border" variant="light" className="p-3" />
                 </div>
                 {stream && (
                   <span
-                    className="position-absolute p-1 w-100 text-center text-truncate text-light bg-dark"
-                    style={{ bottom: 0, opacity: 0.75 }}
+                    className="position-absolute w-100 p-1 bg-dark o-75 text-center text-truncate text-light"
+                    style={{ bottom: 0 }}
                   >
                     {stream.name}
                   </span>
