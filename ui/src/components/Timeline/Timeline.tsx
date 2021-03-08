@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -11,6 +11,7 @@ import { DraggableCore } from "react-draggable";
 
 import { Calendar } from "components";
 import { Context } from "components/Store";
+import { SET_VIDEOS } from "components/Store/constants";
 import { useInterval } from "hooks";
 
 import TimelineTicks from "./TimelineTicks";
@@ -25,7 +26,7 @@ import {
 import "./Timeline.css";
 
 export const Timeline = () => {
-  const [{ streams }] = useContext(Context);
+  const [{ streams }, dispatch] = useContext(Context);
 
   const containerRef = useRef(null);
   const draggerRef = useRef(null);
@@ -33,6 +34,7 @@ export const Timeline = () => {
   const now = new Date();
   const today = withoutTime(now);
 
+  const [videos, setVideos] = useState([]);
   const [date, setDate] = useState(now);
   const [zoom, setZoom] = useState(1);
   const [showCal, setShowCal] = useState(false);
@@ -43,27 +45,46 @@ export const Timeline = () => {
 
   const draggerWidth = (draggerRef.current as any)?.clientWidth;
 
+  const loadVideos = () => {
+    fetch("/api/videos/")
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error();
+        }
+      })
+      .then((response) => {
+        setVideos(response);
+        dispatch && dispatch({ type: SET_VIDEOS, payload: response });
+      });
+  };
+
   useInterval(() => {
     setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
+    loadVideos();
   }, 1000);
 
-  const getStreamDivsForDate = (date: Date) => (
-    <>
-      {withoutTime(date) <= today &&
-        Array.from(streams.values()).map((stream) => (
-          <div
-            key={stream.id}
-            className="timeline-stream bg-primary"
-            style={{
-              width:
-                withoutTime(date) < today
-                  ? "100%"
-                  : `${getPercentFromDate(now) * 100}%`,
-            }}
-          />
-        ))}
-    </>
-  );
+  const getStreamDivsForDate = (date: Date) => {
+    console.log(videos);
+    return (
+      <>
+        {withoutTime(date) <= today &&
+          Array.from(streams.values()).map((stream) => (
+            <div
+              key={stream.id}
+              className="timeline-stream bg-primary"
+              style={{
+                width:
+                  withoutTime(date) < today
+                    ? "100%"
+                    : `${getPercentFromDate(now) * 100}%`,
+              }}
+            />
+          ))}
+      </>
+    );
+  };
 
   const dateArray = [
     ...(zoom <= 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),

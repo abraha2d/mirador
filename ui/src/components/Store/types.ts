@@ -10,6 +10,7 @@ export type StateType = {
   cameras: any[];
   gridSize: number;
   streams: Map<number, Stream>;
+  videos: any[];
 };
 
 export type ContextType = [StateType, React.Dispatch<any>?];
