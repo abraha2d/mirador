@@ -70,7 +70,7 @@ export const Timeline = () => {
 
   useInterval(() => {
     setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
-    loadVideos();
+    if (streamIds.length) loadVideos();
   }, 1000);
 
   const dateArray = [
