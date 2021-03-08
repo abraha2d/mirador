@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -32,9 +32,8 @@ export const Timeline = () => {
   const draggerRef = useRef(null);
 
   const now = new Date();
-  const today = withoutTime(now);
 
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState([] as any[]);
   const [date, setDate] = useState(now);
   const [zoom, setZoom] = useState(1);
   const [showCal, setShowCal] = useState(false);
@@ -55,8 +54,16 @@ export const Timeline = () => {
         }
       })
       .then((response) => {
-        setVideos(response);
-        dispatch && dispatch({ type: SET_VIDEOS, payload: response });
+        const videos = response.map((video: any) => {
+          return {
+            camera: video.camera,
+            startDate: new Date(video.start_date),
+            endDate: new Date(video.end_date),
+            url: `/static/${video.file}`,
+          };
+        });
+        setVideos(videos);
+        dispatch && dispatch({ type: SET_VIDEOS, payload: videos });
       });
   };
 
@@ -66,22 +73,24 @@ export const Timeline = () => {
   }, 1000);
 
   const getStreamDivsForDate = (date: Date) => {
-    console.log(videos);
+    const streamIds = Array.from(streams.values()).map((stream) => stream.id);
+    const filteredVideos = videos.filter(
+      (video) =>
+        withoutTime(video.startDate).getTime() ===
+          withoutTime(date).getTime() && streamIds.includes(video.camera)
+    );
     return (
       <>
-        {withoutTime(date) <= today &&
-          Array.from(streams.values()).map((stream) => (
-            <div
-              key={stream.id}
-              className="timeline-stream bg-primary"
-              style={{
-                width:
-                  withoutTime(date) < today
-                    ? "100%"
-                    : `${getPercentFromDate(now) * 100}%`,
-              }}
-            />
-          ))}
+        {filteredVideos.map((video) => (
+          <div
+            key={`${video.camera}-${video.startDate.toLocaleString()}`}
+            className="timeline-stream bg-primary"
+            style={{
+              left: `${getPercentFromDate(video.startDate) * 100}%`,
+              right: `${getPercentFromDate(video.endDate) * 100}%`,
+            }}
+          />
+        ))}
       </>
     );
   };
