@@ -199,16 +199,21 @@ export const Timeline = () => {
                         withoutTime(date).getTime() &&
                       streamIds.includes(video.camera)
                   )
-                  .map((video) => (
-                    <div
-                      key={`${video.camera}-${video.startDate.getTime()}`}
-                      className="timeline-stream bg-primary"
-                      style={{
-                        left: `${getPercentFromDate(video.startDate) * 100}%`,
-                        right: `${getPercentFromDate(video.endDate) * 100}%`,
-                      }}
-                    />
-                  ))}
+                  .map((video) => {
+                    const startPercent =
+                      getPercentFromDate(video.startDate) * 100;
+                    const endPercent = getPercentFromDate(video.endDate) * 100;
+                    return (
+                      <div
+                        key={`${video.camera}-${video.startDate.getTime()}`}
+                        className="timeline-stream bg-primary"
+                        style={{
+                          left: `${startPercent}%`,
+                          width: `${endPercent - startPercent}%`,
+                        }}
+                      />
+                    );
+                  })}
               </div>
             ))}
             <TimelineTicks dateArray={dateArray} zoom={zoom} />
