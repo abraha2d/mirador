@@ -1,5 +1,12 @@
 import { useContext, useRef, useState } from "react";
-import { Button, ButtonGroup, OverlayTrigger, Popover } from "react-bootstrap";
+import {
+  Button,
+  ButtonGroup,
+  Overlay,
+  OverlayTrigger,
+  Popover,
+  Tooltip,
+} from "react-bootstrap";
 import { Calendar3, CaretUpFill, SkipEndFill } from "react-bootstrap-icons";
 import { DraggableCore } from "react-draggable";
 
@@ -50,9 +57,12 @@ export const Timeline = () => {
   const [date, setDate] = useState(now);
   const [zoom, setZoom] = useState(1);
   const [showCal, setShowCal] = useState(false);
-  const [isDragging, setDragging] = useState(false);
 
-  const draggerWidth = (containerRef.current as any)?.clientWidth * zoom;
+  const [isDragging, setDragging] = useState(false);
+  const [hoverLocation, setHoverLocation] = useState(-1);
+  const [hoverDate, setHoverDate] = useState(now);
+
+  const draggerWidth = (draggerRef.current as any)?.clientWidth;
 
   useInterval(() => {
     setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
@@ -128,22 +138,18 @@ export const Timeline = () => {
       >
         <DraggableCore
           nodeRef={draggerRef}
-          onStop={(...args) =>
+          onStop={(e) =>
             isDragging
               ? setDragging(false)
-              : args[0] instanceof MouseEvent &&
+              : e instanceof MouseEvent &&
                 setDate(
                   new Date(
                     Math.min(
                       getDateFromPosition(
-                        args[0].offsetX,
+                        e.offsetX,
                         draggerWidth,
                         new Date(
-                          parseInt(
-                            (args[0].target as Element).getAttribute(
-                              "data-date"
-                            )!
-                          )
+                          (e.target as HTMLElement).getAttribute("data-date")!
                         )
                       ).getTime(),
                       now.getTime()
@@ -151,20 +157,20 @@ export const Timeline = () => {
                   )
                 )
           }
-          onDrag={(event) => {
-            setDate(
-              new Date(
-                Math.min(
-                  getDateFromPosition(
-                    getPositionFromDate(date, draggerWidth) -
-                      (event as any)?.movementX,
-                    draggerWidth,
-                    date
-                  ).getTime(),
-                  now.getTime()
+          onDrag={(e) => {
+            e instanceof MouseEvent &&
+              setDate(
+                new Date(
+                  Math.min(
+                    getDateFromPosition(
+                      getPositionFromDate(date, draggerWidth) - e.movementX,
+                      draggerWidth,
+                      date
+                    ).getTime(),
+                    now.getTime()
+                  )
                 )
-              )
-            );
+              );
             isDragging || setDragging(true);
           }}
         >
@@ -181,11 +187,31 @@ export const Timeline = () => {
                     transition: "width 250ms, left 250ms",
                   }),
             }}
+            onMouseMove={(e) => {
+              setHoverLocation(
+                ((e.nativeEvent.target as HTMLElement)
+                  .offsetParent as HTMLElement).offsetLeft +
+                  (e.nativeEvent.target as HTMLElement).offsetLeft +
+                  e.nativeEvent.offsetX
+              );
+              setHoverDate(
+                getDateFromPosition(
+                  e.nativeEvent.offsetX,
+                  draggerWidth,
+                  new Date(
+                    (e.nativeEvent.target as HTMLElement).getAttribute(
+                      "data-date"
+                    )!
+                  )
+                )
+              );
+            }}
+            onMouseOut={() => setHoverLocation(-1)}
           >
             {dateArray.map((date, i) => (
               <div
                 key={date.toLocaleDateString()}
-                data-date={date.getTime()}
+                data-date={date.toLocaleDateString()}
                 className="w-100 h-100 position-absolute d-flex flex-column"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
@@ -278,16 +304,10 @@ export const Timeline = () => {
           }}
         />
         <span
-          className="text-light position-absolute ml-3 small"
-          style={{ top: 0, left: "0", pointerEvents: "none" }}
-        >
-          {date.toLocaleDateString()}
-        </span>
-        <span
           className="text-light position-absolute text-center small"
           style={{ top: 0, left: "0", right: "0", pointerEvents: "none" }}
         >
-          {date.toLocaleTimeString()}
+          {date.toLocaleString()}
         </span>
         <ButtonGroup
           className="d-flex position-absolute mr-2"
@@ -322,6 +342,18 @@ export const Timeline = () => {
           </Button>
         </ButtonGroup>
       </div>
+      <Tooltip
+        id="date-hover-bad"
+        placement="top"
+        className={hoverLocation !== -1 ? "show" : ""}
+        style={{
+          bottom: "75%",
+          left: `${hoverLocation}px`,
+        }}
+        arrowProps={{ ref: () => {}, style: { left: "35px" } }}
+      >
+        {hoverDate.toLocaleString()}
+      </Tooltip>
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
