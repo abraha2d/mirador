@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button, ButtonGroup, Popover } from "react-bootstrap";
 import { CaretLeftFill, CaretRightFill } from "react-bootstrap-icons";
+
+import { Context } from "components/Store";
+import { withoutTime } from "utils";
 
 import { getMonthArray } from "./utils";
 
@@ -12,6 +15,9 @@ type CalendarProps = {
 };
 
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
+  const [{ streams, videos }, dispatch] = useContext(Context);
+  const streamIds = Array.from(streams.values()).map((stream) => stream.id);
+
   const [month, setMonth] = useState(
     new Date(date.getFullYear(), date.getMonth(), 1)
   );
@@ -79,6 +85,17 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                     className={`calendar-day ${
                       d.getTime() === today.getTime()
                         ? "font-weight-bolder"
+                        : ""
+                    } ${
+                      videos.filter(
+                        (video) =>
+                          withoutTime(video.startDate).getTime() ===
+                            withoutTime(d).getTime() &&
+                          streamIds.includes(video.camera)
+                      ).length
+                        ? d.getTime() === date.getTime()
+                          ? "btn-info"
+                          : "text-info"
                         : ""
                     }`}
                     disabled={d > today}

@@ -13,6 +13,7 @@ import { Calendar } from "components";
 import { Context } from "components/Store";
 import { SET_VIDEOS } from "components/Store/constants";
 import { useInterval } from "hooks";
+import { withoutTime } from "utils";
 
 import TimelineTicks from "./TimelineTicks";
 import {
@@ -20,13 +21,13 @@ import {
   getPercentFromDate,
   getPositionFromDate,
   getTextForZoomLevel,
-  withoutTime,
 } from "./utils";
 
 import "./Timeline.css";
 
 export const Timeline = () => {
   const [{ streams }, dispatch] = useContext(Context);
+  const streamIds = Array.from(streams.values()).map((stream) => stream.id);
 
   const containerRef = useRef(null);
   const draggerRef = useRef(null);
@@ -71,29 +72,6 @@ export const Timeline = () => {
     setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
     loadVideos();
   }, 1000);
-
-  const getStreamDivsForDate = (date: Date) => {
-    const streamIds = Array.from(streams.values()).map((stream) => stream.id);
-    const filteredVideos = videos.filter(
-      (video) =>
-        withoutTime(video.startDate).getTime() ===
-          withoutTime(date).getTime() && streamIds.includes(video.camera)
-    );
-    return (
-      <>
-        {filteredVideos.map((video) => (
-          <div
-            key={`${video.camera}-${video.startDate.toLocaleString()}`}
-            className="timeline-stream bg-primary"
-            style={{
-              left: `${getPercentFromDate(video.startDate) * 100}%`,
-              right: `${getPercentFromDate(video.endDate) * 100}%`,
-            }}
-          />
-        ))}
-      </>
-    );
-  };
 
   const dateArray = [
     ...(zoom <= 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),
@@ -207,14 +185,30 @@ export const Timeline = () => {
           >
             {dateArray.map((date, i) => (
               <div
-                key={date.toLocaleDateString()}
+                key={date.getTime()}
                 data-date={date.toLocaleDateString()}
                 className="timeline-stream-bar"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
                 }}
               >
-                {getStreamDivsForDate(date)}
+                {videos
+                  .filter(
+                    (video) =>
+                      withoutTime(video.startDate).getTime() ===
+                        withoutTime(date).getTime() &&
+                      streamIds.includes(video.camera)
+                  )
+                  .map((video) => (
+                    <div
+                      key={`${video.camera}-${video.startDate.getTime()}`}
+                      className="timeline-stream bg-primary"
+                      style={{
+                        left: `${getPercentFromDate(video.startDate) * 100}%`,
+                        right: `${getPercentFromDate(video.endDate) * 100}%`,
+                      }}
+                    />
+                  ))}
               </div>
             ))}
             <TimelineTicks dateArray={dateArray} zoom={zoom} />

@@ -23,6 +23,7 @@
 
 .timeline-stream {
     position: absolute;
+    min-width: 1px;
     top: 0;
     bottom: 0;
     pointer-events: none;

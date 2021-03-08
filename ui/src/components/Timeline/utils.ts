@@ -1,5 +1,4 @@
-export const withoutTime = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+import { withoutTime } from "utils";
 
 export const getPercentFromDate = (date: Date) => {
   const msOnly = date.getTime() - withoutTime(date).getTime();
