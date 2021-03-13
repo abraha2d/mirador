@@ -15,7 +15,7 @@ type CalendarProps = {
 };
 
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
-  const [{ streams, videos }, dispatch] = useContext(Context);
+  const [{ streams, videos }] = useContext(Context);
   const streamIds = Array.from(streams.values()).map((stream) => stream.id);
 
   const [month, setMonth] = useState(

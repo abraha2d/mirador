@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="daa30aea-39af-467a-9b6b-e808daeb953f" name="mirador" url="http://192.168.108.21/">
+        <fileTransfer rootFolder="/opt/mirador" accessType="SFTP" host="192.168.108.21" port="22" sshConfigId="f2e29c6d-4161-44ec-93d0-aad69d9c94dd" sshConfig="root@192.168.108.21:22 agent" authAgent="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

@@ -27,8 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
-    "192.168.108.105",
-    "westhousefarm.com",
+    "192.168.108.21",
+    "mirador",
 ]
 
 
