@@ -1,10 +1,7 @@
+import { isEqual } from "lodash";
 import React, { useContext, useEffect, useState } from "react";
 import { Spinner, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
-import {
-  ArrowClockwise,
-  ExclamationTriangleFill,
-  TrashFill,
-} from "react-bootstrap-icons";
+import { ExclamationTriangleFill, TrashFill } from "react-bootstrap-icons";
 import { useDrop } from "react-dnd";
 
 import { Context } from "components/Store";
@@ -13,9 +10,10 @@ import {
   START_STREAM,
   STOP_STREAM,
 } from "components/Store/constants";
+import { useInterval } from "hooks";
+import { DragItemTypes } from "utils";
 
 import CameraRow from "./CameraRow";
-import { DragItemTypes } from "utils";
 
 import "./CameraSidebar.css";
 
@@ -24,11 +22,10 @@ type CameraSidebarProps = {
 };
 
 export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
-  const [state, dispatch] = useContext(Context);
+  const [{ cameras, streams }, dispatch] = useContext(Context);
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
-  const [data, setData] = useState([]);
 
   const [{ isOver }, drop] = useDrop({
     accept: [DragItemTypes.STREAM],
@@ -46,45 +43,42 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
   });
 
   const loadCameras = () => {
+    if (isLoading || !dispatch) return;
     setLoading(true);
-    setTimeout(
-      () =>
-        fetch("/api/cameras/")
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              throw new Error();
-            }
-          })
-          .then((response) => {
-            setData(response);
-            dispatch && dispatch({ type: SET_CAMERAS, payload: response });
-            setError(false);
-          })
-          .catch(() => {
-            setError(true);
-          })
-          .finally(() => setLoading(false)),
-      500
-    );
+    fetch("/api/cameras/")
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error();
+        }
+      })
+      .then((response) => {
+        if (!isEqual(response, cameras)) {
+          dispatch({ type: SET_CAMERAS, payload: response });
+        }
+        setError(false);
+      })
+      .catch(() => {
+        setError(true);
+      })
+      .finally(() => setLoading(false));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(loadCameras, [dispatch]);
+
+  // TODO: Websocket-ify this
+  useInterval(loadCameras, 5000);
 
   return (
     <>
       <div className="pb-2 d-flex justify-content-between">
         <span>Cameras</span>
-        {isLoading ? (
-          <Spinner animation="border" size="sm" />
-        ) : (
-          <ArrowClockwise onClick={loadCameras} />
-        )}
       </div>
       <ToggleButtonGroup
         type="checkbox"
-        value={Array.from(state.streams.keys())}
+        value={Array.from(streams.keys())}
         vertical
         className="w-100"
       >
@@ -102,14 +96,14 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         >
           <TrashFill color="white" className="trash-icon" />
         </div>
-        {isLoading && (isError || data.length === 0) && (
+        {isLoading && (isError || cameras.length === 0) && (
           <ToggleButton
             value={-1}
             variant="light"
             className="d-flex align-items-center"
             disabled
           >
-            <Spinner animation="grow" size="sm" className="mr-2" />
+            <Spinner animation="border" size="sm" className="mr-2" />
             <span>Loading...</span>
           </ToggleButton>
         )}
@@ -124,16 +118,16 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             <span>An error occurred.</span>
           </ToggleButton>
         )}
-        {data.map((camera: any) => (
+        {cameras.map((camera: any) => (
           <CameraRow
             key={camera.id}
             camera={camera}
-            selected={Array.from(state.streams)
+            selected={Array.from(streams)
               .map(([, s]) => s && s.id)
               .includes(camera.id)}
             onChange={(id) => {
               if (
-                Array.from(state.streams)
+                Array.from(streams)
                   .map(([, s]) => s && s.id)
                   .includes(id)
               ) {

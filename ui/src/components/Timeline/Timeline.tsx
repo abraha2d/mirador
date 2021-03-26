@@ -1,9 +1,10 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
   OverlayTrigger,
   Popover,
+  Spinner,
   Tooltip,
 } from "react-bootstrap";
 import { Calendar3, CaretUpFill, SkipEndFill } from "react-bootstrap-icons";
@@ -12,7 +13,7 @@ import { DraggableCore } from "react-draggable";
 import { Calendar } from "components";
 import { Context } from "components/Store";
 import { SET_VIDEOS } from "components/Store/constants";
-import { useInterval } from "hooks";
+import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
 
 import TimelineTicks from "./TimelineTicks";
@@ -25,28 +26,43 @@ import {
 
 import "./Timeline.css";
 
+let abortController = new AbortController();
+
 export const Timeline = () => {
-  const [{ streams }, dispatch] = useContext(Context);
+  const [{ cameras, videos, streams }, dispatch] = useContext(Context);
   const streamIds = Array.from(streams.values()).map((stream) => stream.id);
 
   const containerRef = useRef(null);
   const draggerRef = useRef(null);
+  const draggerWidth = (draggerRef.current as any)?.clientWidth;
 
   const now = new Date();
 
-  const [videos, setVideos] = useState([] as any[]);
+  const [isLoading, setLoading] = useState(false);
+  const [isError, setError] = useState(false);
   const [date, setDate] = useState(now);
-  const [zoom, setZoom] = useState(1);
+  const prevDate: Date | undefined = usePrevious(date);
   const [showCal, setShowCal] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   const [isDragging, setDragging] = useState(false);
   const [hoverLocation, setHoverLocation] = useState(-1);
   const [hoverDate, setHoverDate] = useState(now);
 
-  const draggerWidth = (draggerRef.current as any)?.clientWidth;
-
   const loadVideos = () => {
-    fetch("/api/videos/")
+    if (!cameras || !dispatch) return;
+    if (
+      prevDate &&
+      date.toLocaleDateString() === prevDate!.toLocaleDateString()
+    )
+      return;
+
+    setLoading(true);
+    abortController.abort();
+    abortController = new AbortController();
+    fetch(`/api/videos/?date=${date.toLocaleDateString()}`, {
+      signal: abortController.signal,
+    })
       .then((response) => {
         if (response.ok) {
           return response.json();
@@ -55,7 +71,7 @@ export const Timeline = () => {
         }
       })
       .then((response) => {
-        const videos = response.map((video: any) => {
+        const vids = response.map((video: any) => {
           return {
             camera: video.camera,
             startDate: new Date(video.start_date),
@@ -63,14 +79,33 @@ export const Timeline = () => {
             url: `/static/${video.file}`,
           };
         });
-        setVideos(videos);
-        dispatch && dispatch({ type: SET_VIDEOS, payload: videos });
+        cameras.forEach((camera) => {
+          if (
+            new Date().getTime() - new Date(camera.last_ping).getTime() <
+            15 * 60 * 1000
+          ) {
+            vids.push({
+              camera: camera.id,
+              startDate: new Date(camera.last_ping),
+            });
+          }
+        });
+        dispatch({ type: SET_VIDEOS, payload: vids });
+        setError(false);
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (e.name !== "AbortError") {
+          setError(true);
+          setLoading(false);
+        }
       });
   };
 
+  useEffect(loadVideos, [date, dispatch, cameras, prevDate]);
+
   useInterval(() => {
     setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
-    if (streamIds.length) loadVideos();
   }, 1000);
 
   const dateArray = [
@@ -104,11 +139,15 @@ export const Timeline = () => {
         {({ ref, ...triggerHandler }) => (
           <Button
             ref={ref}
-            variant="light"
+            variant={isError ? "danger" : "light"}
             className="flex-grow-0 d-flex align-items-center"
             {...triggerHandler}
           >
-            <Calendar3 />
+            {isLoading ? (
+              <Spinner animation="border" size="sm" />
+            ) : (
+              <Calendar3 />
+            )}
           </Button>
         )}
       </OverlayTrigger>
@@ -202,11 +241,14 @@ export const Timeline = () => {
                   .map((video) => {
                     const startPercent =
                       getPercentFromDate(video.startDate) * 100;
-                    const endPercent = getPercentFromDate(video.endDate) * 100;
+                    const endPercent =
+                      getPercentFromDate(video.endDate || now) * 100;
                     return (
                       <div
                         key={`${video.camera}-${video.startDate.getTime()}`}
-                        className="timeline-stream bg-primary"
+                        className={`timeline-stream ${
+                          video.url ? "bg-primary" : "bg-info"
+                        }`}
                         style={{
                           left: `${startPercent}%`,
                           width: `${endPercent - startPercent}%`,

@@ -76,6 +76,7 @@ def handle_stream(camera_id):
     except ffmpeg.Error as e:
         print(e.stderr.decode("utf-8"), file=stderr)
         exit(1)
+        return
 
     video_stream = next(
         (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
@@ -227,10 +228,17 @@ def handle_stream(camera_id):
         main_process.wait()
         record_process.join()
 
+        camera.status = None
+        camera.save()
+
     except KeyboardInterrupt:
         print(f"{camera_id}: Stopping stream...")
+
         main_process.terminate()
         record_process.join()
+
+        camera.last_ping = None
+        camera.save()
 
 
 def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
@@ -289,6 +297,9 @@ def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
                         .overwrite_output()
                     )
                     record_process = record_cmd.run_async(pipe_stdin=True)
+
+                    camera.last_ping = current_date
+                    camera.save()
 
                     next_split += timedelta(minutes=15)
 

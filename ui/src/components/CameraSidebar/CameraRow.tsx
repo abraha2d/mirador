@@ -1,6 +1,6 @@
 import React from "react";
 import { ToggleButton } from "react-bootstrap";
-import { CameraVideoFill } from "react-bootstrap-icons";
+import { CameraVideoFill, CircleFill } from "react-bootstrap-icons";
 import { useDrag } from "react-dnd";
 
 import { DragItemTypes } from "utils";
@@ -31,7 +31,18 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
       onChange={() => onChange(camera.id)}
     >
       <CameraVideoFill className="mr-2" />
-      <span className="text-truncate">{camera.name}</span>
+      <span className="flex-grow-1 text-left text-truncate">{camera.name}</span>
+      <CircleFill
+        className={
+          camera.enabled
+            ? new Date().getTime() - new Date(camera.last_ping).getTime() <
+              15 * 60 * 1000
+              ? "text-success"
+              : "text-danger"
+            : "text-secondary"
+        }
+        width="0.5em"
+      />
     </ToggleButton>
   );
 };

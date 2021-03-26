@@ -8,9 +8,8 @@
             <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
           <excludedPaths>
-            <excludedPath path="/.venv" />
-            <excludedPath path="/ui" />
-            <excludedPath path="/db.sqlite3" />
+            <excludedPath path="/build" />
+            <excludedPath path="/node_modules" />
           </excludedPaths>
         </serverdata>
       </paths>

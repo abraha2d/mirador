@@ -1,9 +1,8 @@
-import React, { useContext, useState } from "react";
-import { Button, ButtonGroup, Popover } from "react-bootstrap";
+import React, { useContext, useEffect, useState } from "react";
+import { Button, ButtonGroup, Popover, Spinner } from "react-bootstrap";
 import { CaretLeftFill, CaretRightFill } from "react-bootstrap-icons";
 
 import { Context } from "components/Store";
-import { withoutTime } from "utils";
 
 import { getMonthArray } from "./utils";
 
@@ -14,9 +13,15 @@ type CalendarProps = {
   onClickDate: (date: Date) => void;
 };
 
+let abortController = new AbortController();
+
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
-  const [{ streams, videos }] = useContext(Context);
+  const [{ streams }] = useContext(Context);
   const streamIds = Array.from(streams.values()).map((stream) => stream.id);
+
+  const [isLoading, setLoading] = useState(false);
+  const [isError, setError] = useState(false);
+  const [dates, setDates] = useState([""]);
 
   const [month, setMonth] = useState(
     new Date(date.getFullYear(), date.getMonth(), 1)
@@ -24,6 +29,39 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const loadDates = () => {
+    setLoading(true);
+    abortController.abort();
+    abortController = new AbortController();
+    const id_params = streamIds.map((id) => `&camera_id=${id}`).join("");
+    fetch(
+      `/api/videos/dates/?month=${month.toLocaleDateString()}${id_params}`,
+      {
+        signal: abortController.signal,
+      }
+    )
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error();
+        }
+      })
+      .then((response) => {
+        setDates(response);
+        setError(false);
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (e.name !== "AbortError") {
+          setError(true);
+          setLoading(false);
+        }
+      });
+  };
+
+  useEffect(loadDates, [month]);
 
   const changeMonth = (amount: number) => () => {
     setMonth(new Date(month.getFullYear(), month.getMonth() + amount, 1));
@@ -33,11 +71,26 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
 
   return (
     <>
-      <Popover.Title className="d-flex align-items-center justify-content-between">
-        <Button size="sm" variant="light" onClick={changeMonth(-1)}>
+      <Popover.Title
+        className={`d-flex align-items-center justify-content-between ${
+          isError && "bg-danger"
+        }`}
+      >
+        <Button
+          size="sm"
+          variant={isError ? "danger" : "light"}
+          onClick={changeMonth(-1)}
+        >
           <CaretLeftFill />
         </Button>
-        <Button size="sm" variant="light" onClick={() => setMonth(thisMonth)}>
+        <Button
+          size="sm"
+          variant={isError ? "danger" : "light"}
+          onClick={() => setMonth(thisMonth)}
+        >
+          {isLoading && (
+            <Spinner animation="border" size="sm" className="mr-2" />
+          )}
           {month.toLocaleString("default", {
             month: "long",
             year: "numeric",
@@ -45,7 +98,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         </Button>
         <Button
           size="sm"
-          variant="light"
+          variant={isError ? "danger" : "light"}
           disabled={month >= thisMonth}
           onClick={changeMonth(1)}
         >
@@ -56,7 +109,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         <div
           className="calendar-body"
           style={{
-            height: `${numWeeks * 35 + 1}px`,
+            height: `${(6 || numWeeks) * 35 + 1}px`,
           }}
         >
           {monthArray.map((weekArray, i) => (
@@ -87,12 +140,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                         ? "font-weight-bolder"
                         : ""
                     } ${
-                      videos.filter(
-                        (video) =>
-                          withoutTime(video.startDate).getTime() ===
-                            withoutTime(d).getTime() &&
-                          streamIds.includes(video.camera)
-                      ).length
+                      dates.includes(d.toLocaleDateString())
                         ? d.getTime() === date.getTime()
                           ? "btn-info"
                           : "text-info"
