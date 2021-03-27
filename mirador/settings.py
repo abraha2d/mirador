@@ -147,3 +147,5 @@ INTERNAL_IPS = [
 ]
 
 LOGOUT_REDIRECT_URL = "/"
+
+STORAGE_DIR = "/mnt/watchtower"

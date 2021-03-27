@@ -19,5 +19,3 @@ export const useInterval = (callback: () => void, delay: number) => {
     }
   }, [delay]);
 };
-
-export default useInterval;

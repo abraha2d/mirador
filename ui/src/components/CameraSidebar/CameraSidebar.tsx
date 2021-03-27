@@ -143,7 +143,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
                     payload: {
                       stream: {
                         id,
-                        url: `/static/stream/${id}/out.m3u8`,
+                        url: `/stream/${id}/out.m3u8`,
                         name: camera.name,
                       },
                     },

@@ -7,5 +7,3 @@ export const usePrevious = (value: any) => {
   });
   return ref.current;
 };
-
-export default usePrevious;

@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
 import {
@@ -49,7 +49,7 @@ export const StreamContainer = ({
         const camera = (item as any).camera;
         stream = {
           id: camera.id,
-          url: `/static/stream/${camera.id}/out.m3u8`,
+          url: `/stream/${camera.id}/out.m3u8`,
           name: camera.name,
         };
         replace = true;
@@ -115,8 +115,16 @@ export const StreamContainer = ({
           onPause={() => setLoading(true)}
         />
       )),
-    [videoUrl]
+    [stream, videoUrl]
   );
+
+  useEffect(() => {
+    if (!videoRef.current || !vid.startDate) return;
+    const selectedTime = (date.getTime() - vid.startDate.getTime()) / 1000;
+    if (Math.abs(selectedTime - (videoRef.current as any).currentTime) > 2) {
+      (videoRef.current as any).currentTime = selectedTime;
+    }
+  }, [date, vid]);
 
   const handle = useFullScreenHandle();
 

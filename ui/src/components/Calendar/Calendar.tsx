@@ -61,6 +61,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
       });
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(loadDates, [month]);
 
   const changeMonth = (amount: number) => () => {
@@ -86,15 +87,19 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         <Button
           size="sm"
           variant={isError ? "danger" : "light"}
+          className="d-flex"
           onClick={() => setMonth(thisMonth)}
         >
-          {isLoading && (
-            <Spinner animation="border" size="sm" className="mr-2" />
-          )}
+          <div className="mr-2" style={{ width: "1rem", height: "1rem" }} />
           {month.toLocaleString("default", {
             month: "long",
             year: "numeric",
           })}
+          {isLoading ? (
+            <Spinner animation="border" size="sm" className="ml-2" />
+          ) : (
+            <div className="ml-2" style={{ width: "1rem", height: "1rem" }} />
+          )}
         </Button>
         <Button
           size="sm"

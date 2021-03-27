@@ -75,7 +75,7 @@ export const Timeline = () => {
             camera: video.camera,
             startDate: new Date(video.start_date),
             endDate: new Date(video.end_date),
-            url: `/static/${video.file}`,
+            url: `/${video.file}`,
           };
         });
         cameras.forEach((camera) => {
