@@ -1,4 +1,5 @@
 export const SET_CAMERAS = "SET_CAMERAS";
+export const SET_DATE = "SET_DATE";
 export const SET_GRIDSIZE = "SET_GRIDSIZE";
 export const SET_VIDEOS = "SET_VIDEOS";
 export const START_STREAM = "START_STREAM";

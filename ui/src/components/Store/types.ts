@@ -8,6 +8,7 @@ export type Stream = {
 
 export type StateType = {
   cameras: any[];
+  date: Date;
   gridSize: number;
   streams: Map<number, Stream>;
   videos: any[];

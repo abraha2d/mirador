@@ -12,7 +12,7 @@ import { DraggableCore } from "react-draggable";
 
 import { Calendar } from "components";
 import { Context } from "components/Store";
-import { SET_VIDEOS } from "components/Store/constants";
+import { SET_DATE, SET_VIDEOS } from "components/Store/constants";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
 
@@ -29,7 +29,7 @@ import "./Timeline.css";
 let abortController = new AbortController();
 
 export const Timeline = () => {
-  const [{ cameras, videos, streams }, dispatch] = useContext(Context);
+  const [{ cameras, date, streams, videos }, dispatch] = useContext(Context);
   const streamIds = Array.from(streams.values()).map((stream) => stream.id);
 
   const containerRef = useRef(null);
@@ -40,7 +40,6 @@ export const Timeline = () => {
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
-  const [date, setDate] = useState(now);
   const prevDate: Date | undefined = usePrevious(date);
   const [showCal, setShowCal] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -105,7 +104,11 @@ export const Timeline = () => {
   useEffect(loadVideos, [date, dispatch, cameras, prevDate]);
 
   useInterval(() => {
-    setDate(new Date(Math.min(date.getTime() + 1000, now.getTime())));
+    dispatch &&
+      dispatch({
+        type: SET_DATE,
+        payload: new Date(Math.min(date.getTime() + 1000, now.getTime())),
+      });
   }, 1000);
 
   const dateArray = [
@@ -129,7 +132,11 @@ export const Timeline = () => {
             <Calendar
               date={withoutTime(date)}
               onClickDate={(date) => {
-                setDate(date);
+                dispatch &&
+                  dispatch({
+                    type: SET_DATE,
+                    payload: date,
+                  });
                 setShowCal(false);
               }}
             />
@@ -159,8 +166,10 @@ export const Timeline = () => {
           nodeRef={draggerRef}
           onDrag={(e) => {
             e instanceof MouseEvent &&
-              setDate(
-                new Date(
+              dispatch &&
+              dispatch({
+                type: SET_DATE,
+                payload: new Date(
                   Math.min(
                     getDateFromPosition(
                       getPositionFromDate(date, draggerWidth) - e.movementX,
@@ -169,16 +178,18 @@ export const Timeline = () => {
                     ).getTime(),
                     now.getTime()
                   )
-                )
-              );
+                ),
+              });
             isDragging || setDragging(true);
           }}
           onStop={(e) =>
             isDragging
               ? setDragging(false)
               : e instanceof MouseEvent &&
-                setDate(
-                  new Date(
+                dispatch &&
+                dispatch({
+                  type: SET_DATE,
+                  payload: new Date(
                     Math.min(
                       getDateFromPosition(
                         e.offsetX,
@@ -189,8 +200,8 @@ export const Timeline = () => {
                       ).getTime(),
                       now.getTime()
                     )
-                  )
-                )
+                  ),
+                })
           }
         >
           <div
@@ -309,7 +320,7 @@ export const Timeline = () => {
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
         disabled={now.getTime() - date.getTime() < 2000}
-        onClick={() => setDate(now)}
+        onClick={() => dispatch && dispatch({ type: SET_DATE, payload: now })}
         title="Go live"
       >
         <SkipEndFill />

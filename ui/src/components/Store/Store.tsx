@@ -4,6 +4,7 @@ import { ContextType, StateType } from "./types";
 
 const initialState: StateType = {
   cameras: [],
+  date: new Date(),
   gridSize: 1,
   streams: new Map(),
   videos: [],
