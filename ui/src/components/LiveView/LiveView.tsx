@@ -8,7 +8,7 @@ import { Context } from "components/Store";
 import "./LiveView.css";
 
 export const LiveView = () => {
-  const [{ gridSize, streams }, dispatch] = useContext(Context);
+  const [{ gridSize, streams }] = useContext(Context);
   const [isDragging, setDragging] = useState(false);
   const handle = useFullScreenHandle();
   return (
@@ -39,7 +39,6 @@ export const LiveView = () => {
                         ? streams.get(Math.sqrt(gridSize) * i + j)
                         : undefined
                     }
-                    dispatch={dispatch}
                     onDrag={setDragging}
                     fullscreenHandle={handle}
                   />

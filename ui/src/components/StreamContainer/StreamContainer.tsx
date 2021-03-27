@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
 import {
@@ -10,6 +10,7 @@ import ReactHlsPlayer from "react-hls-player";
 
 import HlsJs from "hls.js";
 
+import { Context } from "components/Store";
 import { START_STREAM } from "components/Store/constants";
 import { Stream } from "components/Store/types";
 import { DragItemTypes } from "utils";
@@ -21,7 +22,6 @@ type StreamContainerProps = {
   x: number;
   y: number;
   stream?: Stream;
-  dispatch?: React.Dispatch<any>;
   onDrag: (dragStart: boolean) => void;
   fullscreenHandle: FullScreenHandle;
 };
@@ -31,10 +31,11 @@ export const StreamContainer = ({
   x,
   y,
   stream,
-  dispatch,
   onDrag,
   fullscreenHandle,
 }: StreamContainerProps) => {
+  const [{ date, videos }, dispatch] = useContext(Context);
+
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
     collect: (monitor) => ({
@@ -77,35 +78,47 @@ export const StreamContainer = ({
     end: () => onDrag(false),
   });
 
-  const handle = useFullScreenHandle();
+  const vid =
+    new Date().getTime() - date.getTime() < 2000
+      ? stream
+      : videos.find(
+          (v) =>
+            stream &&
+            v.camera === stream.id &&
+            v.startDate?.getTime() < date.getTime() &&
+            v.endDate?.getTime() > date.getTime()
+        );
+  const videoUrl = vid ? vid.url : "";
 
   const videoRef = useRef(null);
   const [isLoading, setLoading] = useState(true);
-
   const video = useMemo(
     () =>
-      stream &&
-      (HlsJs.isSupported() ? (
+      videoUrl &&
+      (stream && videoUrl === stream.url && HlsJs.isSupported() ? (
         <ReactHlsPlayer
-          url={stream.url}
-          autoPlay
           playerRef={videoRef}
+          url={videoUrl}
+          autoPlay
           onLoadStart={() => setLoading(true)}
           onPlaying={() => setLoading(false)}
           onPause={() => setLoading(true)}
         />
       ) : (
         <video
-          src={stream.url}
-          autoPlay
           ref={videoRef}
+          src={videoUrl}
+          className="w-100 h-100"
+          autoPlay
           onLoadStart={() => setLoading(true)}
           onPlaying={() => setLoading(false)}
           onPause={() => setLoading(true)}
         />
       )),
-    [stream]
+    [videoUrl]
   );
+
+  const handle = useFullScreenHandle();
 
   return (
     <div
