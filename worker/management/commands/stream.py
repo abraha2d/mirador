@@ -148,8 +148,8 @@ def handle_stream(camera_id):
 
     print(f"{camera_id}: Preparing stream...")
 
-    stream_dir = f"{settings.STORAGE_DIR[0]}/stream/{camera.id}"
-    record_dir = f"{settings.STORAGE_DIR[0]}/record/{camera.id}"
+    stream_dir = f"{settings.STORAGE_DIR}/stream/{camera.id}"
+    record_dir = f"{settings.STORAGE_DIR}/record/{camera.id}"
     makedirs(stream_dir, exist_ok=True)
     makedirs(record_dir, exist_ok=True)
 
