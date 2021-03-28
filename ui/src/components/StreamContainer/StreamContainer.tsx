@@ -135,6 +135,7 @@ export const StreamContainer = ({
         : (date.getTime() - vid.startDate.getTime()) / 1000;
     if (Math.abs(selectedTime - (videoRef.current as any).currentTime) > 2) {
       (videoRef.current as any).currentTime = selectedTime;
+      (videoRef.current as any).play();
     }
   }, [date, stream, vid, videoUrl]);
 
