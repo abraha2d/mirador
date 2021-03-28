@@ -78,17 +78,6 @@ export const Timeline = () => {
             url: `/${video.file}`,
           };
         });
-        cameras.forEach((camera) => {
-          if (
-            new Date().getTime() - new Date(camera.last_ping).getTime() <
-            15 * 60 * 1000
-          ) {
-            vids.push({
-              camera: camera.id,
-              startDate: new Date(camera.last_ping),
-            });
-          }
-        });
         dispatch({ type: SET_VIDEOS, payload: vids });
         setError(false);
         setLoading(false);
@@ -243,10 +232,28 @@ export const Timeline = () => {
                 }}
               >
                 {videos
+                  .concat(
+                    cameras
+                      .filter(
+                        (camera) =>
+                          new Date().getTime() -
+                            new Date(camera.last_ping).getTime() <
+                          15 * 60 * 1000
+                      )
+                      .map((camera) => {
+                        return {
+                          camera: camera.id,
+                          startDate: new Date(camera.last_ping),
+                        };
+                      })
+                  )
                   .filter(
                     (video) =>
-                      withoutTime(video.startDate).getTime() ===
-                        withoutTime(date).getTime() &&
+                      (withoutTime(video.startDate).getTime() ===
+                        withoutTime(date).getTime() ||
+                        (video.endDate &&
+                          withoutTime(video.endDate).getTime() ===
+                            withoutTime(date).getTime())) &&
                       streamIds.includes(video.camera)
                   )
                   .map((video) => {

@@ -1,8 +1,8 @@
 from datetime import timedelta
 from multiprocessing import Process
-from os import mkfifo, makedirs
+from os import kill, mkfifo, makedirs
 from os.path import join
-from sys import stderr
+from signal import SIGINT
 from tempfile import mkdtemp
 
 from django.conf import settings
@@ -58,33 +58,27 @@ def mkfifotemp(extension):
 
 
 def handle_stream(camera_id):
-    print(f"{camera_id}: Fetching camera details...")
     try:
         camera = Camera.objects.get(pk=camera_id)
     except Camera.DoesNotExist:
         raise CommandError(f'Camera "{camera_id}" does not exist')
 
     if not camera.enabled:
-        print(f"'{camera.name}' is disabled, exiting...")
-        exit(1)
+        print(f"'{camera.name}' is disabled.")
+        return
 
     stream_url = camera.urls()[0]
 
     print(f"{camera_id}: Probing camera...")
-    try:
-        probe = ffmpeg.probe(stream_url)
-    except ffmpeg.Error as e:
-        print(e.stderr.decode("utf-8"), file=stderr)
-        exit(1)
-        return
+    probe = ffmpeg.probe(stream_url)
+    print(f"{camera_id}: Probe completed.")
 
     video_stream = next(
         (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
         None,
     )
     if video_stream is None:
-        print(f"{camera_id}: No video stream found", file=stderr)
-        exit(1)
+        raise CommandError(f"{camera_id}: No video stream found during probe.")
 
     codec_name = video_stream["codec_name"]
     width = int(video_stream["width"])
@@ -92,7 +86,11 @@ def handle_stream(camera_id):
     r_frame_rate_parts = video_stream["r_frame_rate"].split("/")
     r_frame_rate = int(r_frame_rate_parts[0]) / int(r_frame_rate_parts[1])
 
-    print(f"{camera_id}: Getting camera settings...")
+    print()
+    print(f"{camera_id}: Stream configuration:")
+    print(f"{camera_id}: - Codec:       {codec_name}")
+    print(f"{camera_id}: - Size:        {width}x{height}")
+    print(f"{camera_id}: - Frame rate:  {r_frame_rate}")
 
     ds = get_detection_settings(camera)
 
@@ -111,7 +109,11 @@ def handle_stream(camera_id):
         or ds["ld_enabled"]
     )
 
-    print(f"{camera_id}: Setting up pipelines...")
+    print()
+    print(f"{camera_id}: Feature configuration:")
+    print(f"{camera_id}: - Detection:       {detect_enabled}")
+    print(f"{camera_id}:   - Visualization: {drawbox_enabled}")
+    print(f"{camera_id}: - Text overlay:    {drawtext_enabled}")
 
     decode_enabled = detect_enabled
     overlay_enabled = drawtext_enabled and drawbox_enabled
@@ -119,11 +121,22 @@ def handle_stream(camera_id):
     transcode_enabled = not encode_enabled
     copy_enabled = transcode_enabled and (codec_name == "h264" or codec_name == "hevc")
 
+    print()
+    print(f"{camera_id}: Pipeline configuration:")
+    print(f"{camera_id}: - Decode:  {decode_enabled}")
+    print(f"{camera_id}: - Merge:   {overlay_enabled}")
+    print(
+        f"""{camera_id}: - Output:  {'Encode' if encode_enabled
+        else ('Copy' if copy_enabled else 'Transcode')}"""
+    )
+
     # TODO: Add appropriate hardware acceleration
     # Intel/AMD:
-    #   -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format vaapi -i <input> -c:v h264_vaapi <output>
+    #   -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format vaapi
+    #   -i <input> -c:v h264_vaapi <output>
     # Nvidia:
-    #   -hwaccel cuda -hwaccel_output_format cuda -i <input> -c:v h264_nvenc <output>
+    #   -hwaccel cuda -hwaccel_output_format cuda
+    #   -i <input> -c:v h264_nvenc <output>
 
     rawvideo_params = {
         "format": "rawvideo",
@@ -133,20 +146,15 @@ def handle_stream(camera_id):
 
     hls_params = {
         "flags": "+cgop",
-        "g": r_frame_rate * 2,
+        "g": r_frame_rate,
+        "hls_time": 1,
         "hls_flags": "delete_segments",
-    }
-
-    h264_params = {
-        # "f": "h264",
-        # "r": r_frame_rate,
+        "hls_playlist_type": "event",
     }
 
     mp4_params = {
         "movflags": "+faststart",
     }
-
-    print(f"{camera_id}: Preparing stream...")
 
     stream_dir = f"{settings.STORAGE_DIR}/stream/{camera.id}"
     record_dir = f"{settings.STORAGE_DIR}/record/{camera.id}"
@@ -164,6 +172,9 @@ def handle_stream(camera_id):
         ),
     )
     outputs = []
+
+    drawtext = None
+    drawbox = None
 
     if decode_enabled:
         outputs.append(output.output("pipe:", **rawvideo_params))
@@ -191,64 +202,83 @@ def handle_stream(camera_id):
     )
     outputs.append(
         inputs[1]
-        .output(fifo_path, vcodec="copy" if copy_enabled else "h264", **h264_params)
+        .output(fifo_path, vcodec="copy" if copy_enabled else "h264")
         .overwrite_output()
     )
 
     main_cmd = ffmpeg.merge_outputs(*outputs)
     main_cmd = main_cmd.global_args("-hide_banner", "-loglevel", "error")
 
+    print()
     print(f"{camera_id}: Starting stream...")
     main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
+    print(f"{camera_id}: Started stream.")
 
+    print()
     print(f"{camera_id}: Starting segmented recorder...")
     record_process = Process(
         target=segment_h264,
         args=(
             camera,
             fifo_path,
-            h264_params,
             f"{record_dir}/VID_%Y%m%d_%H%M%S.mp4",
             mp4_params,
         ),
         name=f"'{camera.name}'-record",
     )
     record_process.start()
+    print(f"{camera_id}: Started segmented recorder.")
+
+    manual_exit = False
 
     try:
-        while decode_enabled:
-            in_bytes = main_process.stdout.read(width * height * 3)
-            if not in_bytes:
-                break
-            frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
+        if decode_enabled:
+            print()
+            print(f"{camera_id}: Starting overlay loop...")
 
-            if detect_enabled:
-                # TODO: Do detection on frame
-                pass
+            while main_process.poll() is None:
+                in_bytes = main_process.stdout.read(width * height * 3)
+                if not in_bytes:
+                    break
+                frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
 
-            if drawbox_enabled:
-                # TODO: Do drawbox on frame
-                pass
+                if detect_enabled:
+                    # TODO: Do detection on frame
+                    pass
 
-                main_process.stdin.write(frame.astype(np.uint8).tobytes())
+                if drawbox_enabled:
+                    # TODO: Do drawbox on frame
+                    pass
 
-        main_process.wait()
-        record_process.join()
+                    main_process.stdin.write(frame.astype(np.uint8).tobytes())
 
-        camera.status = None
-        camera.save()
+        else:
+            print()
+            print(f"{camera_id}: Waiting for end of stream...")
+            main_process.wait()
+
+        print(f"{camera_id}: Stream ended. Status: {main_process.returncode})")
 
     except KeyboardInterrupt:
-        print(f"{camera_id}: Stopping stream...")
+        manual_exit = True
 
-        main_process.terminate()
-        record_process.join()
+    print()
+    print(f"{camera_id}: Stopping stream and segmented recorder...")
 
-        camera.last_ping = None
-        camera.save()
+    main_process.terminate()
+    kill(record_process.pid, SIGINT)
+    record_process.join()
+
+    camera.last_ping = None
+    camera.save()
+
+    print(f"{camera_id}: All done.")
+
+    if not manual_exit:
+        exit(2)
 
 
-def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
+def segment_h264(camera, input_fifo_path, record_path, mp4_params):
     buffer = []
     next_split = timezone.now().replace(minute=int(timezone.now().minute / 15) * 15)
     record_process = None
@@ -289,7 +319,6 @@ def segment_h264(camera, input_fifo_path, h264_params, record_path, mp4_params):
                     record_cmd = (
                         ffmpeg.input(
                             "pipe:",
-                            **h264_params,
                         )
                         .output(
                             file_path,

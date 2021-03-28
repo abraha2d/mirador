@@ -21,7 +21,7 @@ from .models import (
 class CameraAdminForm(ModelForm):
     class Meta:
         model = Camera
-        exclude = []
+        exclude = ["last_ping"]
         widgets = {
             "password": PasswordInput(render_value=True),
             "overlays": FilteredSelectMultiple(

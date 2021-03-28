@@ -61,7 +61,7 @@ class PTZSettings(models.Model):
 
 class Camera(models.Model):
     enabled = models.BooleanField(default=True)
-    last_ping = models.DateTimeField(null=True)
+    last_ping = models.DateTimeField(null=True, blank=True)
     name = models.CharField(max_length=255)
     camera_type = models.ForeignKey(CameraType, on_delete=models.RESTRICT)
     host = models.CharField(max_length=255)

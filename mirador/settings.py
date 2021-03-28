@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "channels",
     "colorfield",
     "rest_framework",
-    "debug_toolbar",
+    # "debug_toolbar",
 ]
 
 MIDDLEWARE = [
