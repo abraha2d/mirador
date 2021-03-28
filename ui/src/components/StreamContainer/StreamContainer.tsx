@@ -34,7 +34,7 @@ export const StreamContainer = ({
   onDrag,
   fullscreenHandle,
 }: StreamContainerProps) => {
-  const [{ date, videos }, dispatch] = useContext(Context);
+  const [{ cameras, date, videos }, dispatch] = useContext(Context);
 
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
@@ -79,7 +79,11 @@ export const StreamContainer = ({
   });
 
   const vid =
-    new Date().getTime() - date.getTime() < 2000
+    stream &&
+    date.getTime() >
+      new Date(
+        cameras.find((camera) => camera.id === stream.id).last_ping
+      ).getTime()
       ? stream
       : videos.find(
           (v) =>
@@ -119,12 +123,20 @@ export const StreamContainer = ({
   );
 
   useEffect(() => {
-    if (!videoRef.current || !vid.startDate) return;
-    const selectedTime = (date.getTime() - vid.startDate.getTime()) / 1000;
+    if (
+      !videoRef.current ||
+      !(vid.startDate || (stream && videoUrl === stream.url))
+    )
+      return;
+    const selectedTime =
+      stream && videoUrl === stream.url
+        ? (videoRef.current as any).duration -
+          (new Date().getTime() - date.getTime()) / 1000
+        : (date.getTime() - vid.startDate.getTime()) / 1000;
     if (Math.abs(selectedTime - (videoRef.current as any).currentTime) > 2) {
       (videoRef.current as any).currentTime = selectedTime;
     }
-  }, [date, vid]);
+  }, [date, stream, vid, videoUrl]);
 
   const handle = useFullScreenHandle();
 

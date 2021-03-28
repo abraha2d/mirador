@@ -1,3 +1,4 @@
+import { isEqual } from "lodash";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Button,
@@ -32,6 +33,9 @@ export const Timeline = () => {
   const [{ cameras, date, streams, videos }, dispatch] = useContext(Context);
   const streamIds = Array.from(streams.values()).map((stream) => stream.id);
 
+  const prevCameras = usePrevious(cameras);
+  const prevDate: Date | undefined = usePrevious(date);
+
   const containerRef = useRef(null);
   const draggerRef = useRef(null);
   const draggerWidth = (draggerRef.current as any)?.clientWidth;
@@ -40,7 +44,6 @@ export const Timeline = () => {
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
-  const prevDate: Date | undefined = usePrevious(date);
   const [showCal, setShowCal] = useState(false);
   const [zoom, setZoom] = useState(1);
 
@@ -51,6 +54,8 @@ export const Timeline = () => {
   const loadVideos = () => {
     if (!cameras || !dispatch) return;
     if (
+      prevCameras &&
+      isEqual(prevCameras, cameras) &&
       prevDate &&
       date.toLocaleDateString() === prevDate!.toLocaleDateString()
     )
@@ -90,7 +95,7 @@ export const Timeline = () => {
       });
   };
 
-  useEffect(loadVideos, [date, dispatch, cameras, prevDate]);
+  useEffect(loadVideos, [date, dispatch, cameras, prevCameras, prevDate]);
 
   useInterval(() => {
     dispatch &&
