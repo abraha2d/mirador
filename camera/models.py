@@ -24,6 +24,7 @@ class Stream(models.Model):
     )
     port = models.PositiveSmallIntegerField(default=554)
     url = models.CharField(max_length=255)
+    force_tcp = models.BooleanField(default=True)
 
     camera_type = models.ForeignKey(
         CameraType, on_delete=models.CASCADE, related_name="streams"

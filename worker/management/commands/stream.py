@@ -155,7 +155,14 @@ def handle_stream(camera_id):
 
     fifo_path = mkfifotemp("h264")
 
-    output = ffmpeg.input(stream_url, rtsp_transport="tcp")
+    output = ffmpeg.input(
+        stream_url,
+        **(
+            {"rtsp_transport": "tcp"}
+            if camera.camera_type.streams.all()[0].force_tcp
+            else {}
+        ),
+    )
     outputs = []
 
     if decode_enabled:
