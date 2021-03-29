@@ -1,7 +1,7 @@
 import { withoutTime } from "utils";
 
 export const getPercentFromDate = (date: Date) => {
-  const msOnly = date.getTime() - withoutTime(date).getTime();
+  const msOnly = +date - +withoutTime(date);
   return msOnly / 8.64e7;
 };
 
@@ -15,7 +15,7 @@ export const getDateFromPosition = (
   date: Date
 ) => {
   const msOnly = (position / maxPosition) * 8.64e7;
-  return new Date(withoutTime(date).getTime() + msOnly);
+  return new Date(+withoutTime(date) + msOnly);
 };
 
 export const getTextForZoomLevel = (zoom: number) => {
@@ -23,7 +23,9 @@ export const getTextForZoomLevel = (zoom: number) => {
     return `${1 / zoom} days`;
   } else if (zoom < 16) {
     return `${24 / zoom} hrs`;
-  } else {
+  } else if (zoom < 64) {
     return `${1440 / zoom} mins`;
+  } else {
+    return `${Math.round(1440 / zoom / 10) * 10} mins`;
   }
 };

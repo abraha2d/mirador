@@ -1,5 +1,5 @@
 import { isEqual } from "lodash";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -14,7 +14,7 @@ import { DraggableCore } from "react-draggable";
 import { Calendar } from "components";
 import { Context } from "components/Store";
 import { SET_DATE, SET_VIDEOS } from "components/Store/constants";
-import { Camera, Video } from "components/Store/types";
+import { Video } from "components/Store/types";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
 
@@ -32,18 +32,18 @@ let abortController = new AbortController();
 
 export const Timeline = () => {
   const [{ cameras, date, streamIds, videos }, dispatch] = useContext(Context);
-
-  const prevCameras: Camera[] | undefined = usePrevious(cameras);
   const prevDate: Date | undefined = usePrevious(date);
+  const dateWithoutTime = +withoutTime(date);
 
-  const containerRef = useRef(null);
-  const draggerRef = useRef(null);
-  const draggerWidth = (draggerRef.current as any)?.clientWidth;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const draggerRef = useRef<HTMLDivElement>(null);
+  const draggerWidth = draggerRef.current?.clientWidth;
 
   const now = new Date();
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
+
   const [showCal, setShowCal] = useState(false);
   const [zoom, setZoom] = useState(1);
 
@@ -52,19 +52,15 @@ export const Timeline = () => {
   const [hoverDate, setHoverDate] = useState(now);
 
   const loadVideos = () => {
-    if (!cameras || !dispatch) return;
-    if (
-      prevCameras &&
-      isEqual(prevCameras, cameras) &&
-      prevDate &&
-      date.toLocaleDateString() === prevDate!.toLocaleDateString()
-    )
+    const dateStr = date.toLocaleDateString();
+    if (dateStr === prevDate?.toLocaleDateString() || !cameras || !dispatch)
       return;
 
     setLoading(true);
     abortController.abort();
     abortController = new AbortController();
-    fetch(`/api/videos/?date=${date.toLocaleDateString()}`, {
+
+    fetch(`/api/videos/?date=${dateStr}`, {
       signal: abortController.signal,
     })
       .then((response) => {
@@ -75,15 +71,19 @@ export const Timeline = () => {
         }
       })
       .then((response) => {
-        const vids = response.map((video: any) => {
-          return {
-            camera: video.camera,
-            startDate: new Date(video.start_date),
-            endDate: new Date(video.end_date),
-            url: `/${video.file}`,
-          };
-        });
-        dispatch({ type: SET_VIDEOS, payload: vids });
+        const newVideos: Video[] = response.map(
+          (video: any): Video => {
+            return {
+              camera: video.camera,
+              startDate: new Date(video.start_date),
+              endDate: new Date(video.end_date),
+              file: `/${video.file}`,
+            };
+          }
+        );
+        if (!isEqual(newVideos, videos)) {
+          dispatch({ type: SET_VIDEOS, payload: newVideos });
+        }
         setError(false);
         setLoading(false);
       })
@@ -95,23 +95,66 @@ export const Timeline = () => {
       });
   };
 
-  useEffect(loadVideos, [date, dispatch, cameras, prevCameras, prevDate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(loadVideos, [dispatch, cameras, date, prevDate]);
 
   useInterval(() => {
-    dispatch &&
-      dispatch({
-        type: SET_DATE,
-        payload: new Date(Math.min(date.getTime() + 1000, now.getTime())),
-      });
+    dispatch?.({
+      type: SET_DATE,
+      payload: new Date(Math.min(+date + 1000, +now)),
+    });
   }, 1000);
 
-  const dateArray = [
-    ...(zoom <= 0.5 ? [new Date(date.getTime() - 8.64e7 * 2)] : []),
-    new Date(date.getTime() - 8.64e7),
-    date,
-    new Date(date.getTime() + 8.64e7),
-    ...(zoom <= 0.5 ? [new Date(date.getTime() + 8.64e7 * 2)] : []),
-  ];
+  const filteredVideos = videos
+    .concat(
+      cameras
+        .filter((camera) => camera.lastPing)
+        .map(
+          (camera): Video => {
+            return {
+              camera: camera.id,
+              // @ts-ignore camera.lastPing is guaranteed to be
+              // non-null due to the .filter() before this .map()
+              startDate: new Date(camera.lastPing),
+              endDate: now,
+              file: "",
+            };
+          }
+        )
+    )
+    .filter((video) => video.camera && streamIds.includes(video.camera));
+
+  const calendar = useMemo(
+    () => (
+      <Calendar
+        date={new Date(dateWithoutTime)}
+        onClickDate={(d) => {
+          dispatch?.({
+            type: SET_DATE,
+            payload: d,
+          });
+          setShowCal(false);
+        }}
+      />
+    ),
+    [dateWithoutTime, dispatch]
+  );
+
+  const dateArray = useMemo(
+    () => [
+      ...(zoom <= 0.5 ? [new Date(dateWithoutTime - 8.64e7 * 2)] : []),
+      new Date(dateWithoutTime - 8.64e7),
+      new Date(dateWithoutTime),
+      new Date(dateWithoutTime + 8.64e7),
+      ...(zoom <= 0.5 ? [new Date(dateWithoutTime + 8.64e7 * 2)] : []),
+    ],
+    [dateWithoutTime, zoom]
+  );
+
+  const ticks = useMemo(
+    () => <TimelineTicks dateArray={dateArray} zoom={zoom} />,
+    [dateArray, zoom]
+  );
 
   return (
     <ButtonGroup className="flex-grow-1 bg-secondary rounded d-flex">
@@ -121,21 +164,7 @@ export const Timeline = () => {
         show={showCal}
         onToggle={setShowCal}
         rootClose
-        overlay={
-          <Popover id="calendar">
-            <Calendar
-              date={withoutTime(date)}
-              onClickDate={(date) => {
-                dispatch &&
-                  dispatch({
-                    type: SET_DATE,
-                    payload: date,
-                  });
-                setShowCal(false);
-              }}
-            />
-          </Popover>
-        }
+        overlay={<Popover id="calendar">{calendar}</Popover>}
       >
         {({ ref, ...triggerHandler }) => (
           <Button
@@ -160,43 +189,45 @@ export const Timeline = () => {
           nodeRef={draggerRef}
           onDrag={(e) => {
             e instanceof MouseEvent &&
-              dispatch &&
-              dispatch({
+              draggerWidth &&
+              dispatch?.({
                 type: SET_DATE,
                 payload: new Date(
                   Math.min(
-                    getDateFromPosition(
+                    +getDateFromPosition(
                       getPositionFromDate(date, draggerWidth) - e.movementX,
                       draggerWidth,
                       date
-                    ).getTime(),
-                    now.getTime()
+                    ),
+                    +now
                   )
                 ),
               });
             isDragging || setDragging(true);
           }}
-          onStop={(e) =>
+          onStop={(e) => {
             isDragging
               ? setDragging(false)
               : e instanceof MouseEvent &&
-                dispatch &&
-                dispatch({
+                draggerWidth &&
+                dispatch?.({
                   type: SET_DATE,
                   payload: new Date(
                     Math.min(
-                      getDateFromPosition(
+                      +getDateFromPosition(
                         e.offsetX,
                         draggerWidth,
                         new Date(
-                          (e.target as HTMLElement).getAttribute("data-date")!
+                          parseInt(
+                            (e.target as HTMLElement).getAttribute("data-date")!
+                          )
                         )
-                      ).getTime(),
-                      now.getTime()
+                      ),
+                      +now
                     )
                   ),
-                })
-          }
+                });
+          }}
         >
           <div
             ref={draggerRef}
@@ -211,6 +242,7 @@ export const Timeline = () => {
                   }),
             }}
             onMouseMove={(e) => {
+              if (!draggerWidth) return;
               const nativeE = e.nativeEvent;
               const target = nativeE.target as HTMLElement;
               const parent = target.offsetParent as HTMLElement;
@@ -221,62 +253,36 @@ export const Timeline = () => {
                 getDateFromPosition(
                   nativeE.offsetX,
                   draggerWidth,
-                  new Date(target.getAttribute("data-date")!)
+                  new Date(parseInt(target.getAttribute("data-date")!))
                 )
               );
             }}
             onMouseOut={() => setHoverLocation(-1)}
           >
-            {dateArray.map((date, i) => (
+            {dateArray.map((dt, i) => (
               <div
-                key={date.getTime()}
-                data-date={date.toLocaleDateString()}
+                key={+dt}
+                data-date={+dt}
                 className="timeline-stream-date"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
                 }}
               >
-                {videos
-                  .concat(
-                    cameras
-                      .filter(
-                        (camera) =>
-                          camera.lastPing &&
-                          new Date().getTime() -
-                            new Date(camera.lastPing).getTime() <
-                            15 * 60 * 1000
-                      )
-                      .map(
-                        (camera): Video => {
-                          return {
-                            camera: camera.id,
-                            // @ts-ignore camera.last_ping is guaranteed to
-                            // exist due to the .filter() before this .map()
-                            startDate: new Date(camera.last_ping),
-                            endDate: now,
-                            file: "",
-                          };
-                        }
-                      )
-                  )
+                {filteredVideos
                   .filter(
                     (video) =>
-                      (withoutTime(video.startDate).getTime() ===
-                        withoutTime(date).getTime() ||
-                        (video.endDate &&
-                          withoutTime(video.endDate).getTime() ===
-                            withoutTime(date).getTime())) &&
                       video.camera &&
-                      streamIds.includes(video.camera)
+                      streamIds.includes(video.camera) &&
+                      (+withoutTime(video.startDate) === +dt ||
+                        +withoutTime(video.endDate) === +dt)
                   )
                   .map((video) => {
                     const startPercent =
                       getPercentFromDate(video.startDate) * 100;
-                    const endPercent =
-                      getPercentFromDate(video.endDate || now) * 100;
+                    const endPercent = getPercentFromDate(video.endDate) * 100;
                     return (
                       <div
-                        key={`${video.camera}-${video.startDate.getTime()}`}
+                        key={`${video.camera}-${+video.startDate}`}
                         className={`timeline-stream ${
                           video.file === "" ? "bg-info" : "bg-primary"
                         }`}
@@ -289,7 +295,7 @@ export const Timeline = () => {
                   })}
               </div>
             ))}
-            <TimelineTicks dateArray={dateArray} zoom={zoom} />
+            {ticks}
           </div>
         </DraggableCore>
         <CaretUpFill className="timeline-indicator text-light" />
@@ -318,7 +324,7 @@ export const Timeline = () => {
             variant="outline-light"
             size="sm"
             className="px-1 py-0 border-0 text-monospace"
-            disabled={zoom >= 32}
+            disabled={zoom >= 128}
             onClick={() => setZoom(zoom * 2)}
           >
             +
@@ -339,8 +345,8 @@ export const Timeline = () => {
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"
-        disabled={now.getTime() - date.getTime() < 2000}
-        onClick={() => dispatch && dispatch({ type: SET_DATE, payload: now })}
+        disabled={+now - +date < 2000}
+        onClick={() => dispatch?.({ type: SET_DATE, payload: now })}
         title="Go live"
       >
         <SkipEndFill />

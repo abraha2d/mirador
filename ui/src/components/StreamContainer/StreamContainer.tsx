@@ -1,12 +1,5 @@
 import HlsJs from "hls.js";
-import React, {
-  MutableRefObject,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
 import {
@@ -41,10 +34,10 @@ export const StreamContainer = ({
   fullscreenHandle,
 }: StreamContainerProps) => {
   const [{ cameras, date, videos }, dispatch] = useContext(Context);
-  const camera = stream && cameras.find((camera) => camera.id === stream.id);
+  const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const handle = useFullScreenHandle();
-  const videoRef: MutableRefObject<HTMLVideoElement | null> = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setLoading] = useState(true);
 
   const [{ isOver, itemType }, drop] = useDrop({
@@ -93,15 +86,14 @@ export const StreamContainer = ({
   });
 
   const source =
-    camera &&
-    (camera.lastPing && date > camera.lastPing
+    camera?.lastPing && date > camera?.lastPing
       ? stream
       : videos.find(
           (video) =>
-            video.camera === camera.id &&
+            video.camera === camera?.id &&
             video.startDate < date &&
             video.endDate > date
-        ));
+        );
 
   const sourceUrl =
     source &&
@@ -177,7 +169,7 @@ export const StreamContainer = ({
           pointerEvents: isOver ? "auto" : "none",
         }}
       />
-      {source && (
+      {sourceUrl && (
         <FullScreen handle={handle} className="h-100">
           <div
             ref={drag}

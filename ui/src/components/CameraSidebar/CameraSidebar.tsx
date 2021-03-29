@@ -32,11 +32,10 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
     accept: [DragItemTypes.STREAM],
     drop: (item) => {
       const stream: Stream = (item as any).stream;
-      dispatch &&
-        dispatch({
-          type: STOP_STREAM,
-          payload: stream.id,
-        });
+      dispatch?.({
+        type: STOP_STREAM,
+        payload: stream.id,
+      });
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
@@ -124,32 +123,31 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             <span>An error occurred.</span>
           </ToggleButton>
         )}
-        {dispatch &&
-          cameras.map((camera) => (
-            <CameraRow
-              key={camera.id}
-              camera={camera}
-              selected={streamIds.includes(camera.id)}
-              onChange={(id) => {
-                if (streamIds.includes(id)) {
-                  dispatch({
-                    type: STOP_STREAM,
-                    payload: id,
-                  });
-                } else {
-                  dispatch({
-                    type: START_STREAM,
-                    payload: {
-                      idx: -1,
-                      stream: {
-                        id,
-                      },
+        {cameras.map((camera) => (
+          <CameraRow
+            key={camera.id}
+            camera={camera}
+            selected={streamIds.includes(camera.id)}
+            onChange={(id) => {
+              if (streamIds.includes(id)) {
+                dispatch?.({
+                  type: STOP_STREAM,
+                  payload: id,
+                });
+              } else {
+                dispatch?.({
+                  type: START_STREAM,
+                  payload: {
+                    idx: -1,
+                    stream: {
+                      id,
                     },
-                  });
-                }
-              }}
-            />
-          ))}
+                  },
+                });
+              }
+            }}
+          />
+        ))}
       </ToggleButtonGroup>
     </>
   );

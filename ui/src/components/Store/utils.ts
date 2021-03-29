@@ -21,7 +21,7 @@ export const findOpenIdx = (state: StateType): number => {
 
 export const findStreamIdx = (state: StateType, streamId: number): number => {
   for (let i = 0; i < state.gridSize; i++) {
-    if (state.streams.get(i) && state.streams.get(i)!.id === streamId) {
+    if (state.streams.get(i)?.id === streamId) {
       return i;
     }
   }

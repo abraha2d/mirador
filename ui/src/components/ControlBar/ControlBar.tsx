@@ -23,9 +23,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
             <Button
               key={gs}
               variant={gs === gridSize ? "light" : "secondary"}
-              onClick={() =>
-                dispatch && dispatch({ type: SET_GRIDSIZE, payload: gs })
-              }
+              onClick={() => dispatch?.({ type: SET_GRIDSIZE, payload: gs })}
             >
               {gs}
             </Button>
