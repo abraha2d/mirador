@@ -61,7 +61,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
           return {
             id: camera.id,
             enabled: camera.enabled,
-            lastPing: lastPing && +now - +lastPing < 900000 ? lastPing : null,
+            lastPing: lastPing && +now - +lastPing < 960000 ? lastPing : null,
             name: camera.name,
           };
         });
