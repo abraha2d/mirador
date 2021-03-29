@@ -6,4 +6,4 @@ from .. import models
 class CameraSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Camera
-        fields = ("id", "enabled", "last_ping", "name", "urls")
+        fields = ("id", "enabled", "last_ping", "name")

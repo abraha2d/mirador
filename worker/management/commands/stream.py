@@ -148,8 +148,8 @@ def handle_stream(camera_id):
         "flags": "+cgop",
         "g": r_frame_rate,
         "hls_time": 1,
+        "hls_list_size": 900,
         "hls_flags": "delete_segments",
-        "hls_playlist_type": "event",
     }
 
     mp4_params = {

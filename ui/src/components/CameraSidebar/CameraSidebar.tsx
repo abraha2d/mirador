@@ -69,7 +69,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
   useEffect(loadCameras, [dispatch]);
 
   // TODO: Websocket-ify this
-  useInterval(loadCameras, 5000);
+  useInterval(loadCameras, 1000);
 
   return (
     <>
@@ -112,7 +112,6 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             value={-1}
             variant="danger"
             className="d-flex align-items-center"
-            disabled
           >
             <ExclamationTriangleFill className="mr-2" />
             <span>An error occurred.</span>

@@ -12,7 +12,7 @@ import HlsJs from "hls.js";
 
 import { Context } from "components/Store";
 import { START_STREAM } from "components/Store/constants";
-import { Stream } from "components/Store/types";
+import { Stream, Video } from "components/Store/types";
 import { DragItemTypes } from "utils";
 
 import "./StreamContainer.css";
@@ -35,6 +35,7 @@ export const StreamContainer = ({
   fullscreenHandle,
 }: StreamContainerProps) => {
   const [{ cameras, date, videos }, dispatch] = useContext(Context);
+  const camera = stream && cameras.find((camera) => camera.id === stream.id);
 
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
@@ -80,10 +81,8 @@ export const StreamContainer = ({
 
   const vid =
     stream &&
-    date.getTime() >
-      new Date(
-        cameras.find((camera) => camera.id === stream.id).last_ping
-      ).getTime()
+    camera?.last_ping &&
+    date.getTime() > new Date(camera.last_ping).getTime()
       ? stream
       : videos.find(
           (v) =>
@@ -92,7 +91,7 @@ export const StreamContainer = ({
             v.startDate?.getTime() < date.getTime() &&
             v.endDate?.getTime() > date.getTime()
         );
-  const videoUrl = vid ? vid.url : "";
+  const videoUrl = vid ? ("url" in vid ? vid.url : vid.file) : "";
 
   const videoRef = useRef(null);
   const [isLoading, setLoading] = useState(true);
@@ -123,16 +122,12 @@ export const StreamContainer = ({
   );
 
   useEffect(() => {
-    if (
-      !videoRef.current ||
-      !(vid.startDate || (stream && videoUrl === stream.url))
-    )
-      return;
+    if (!videoRef.current || !("startDate" in vid! || "url" in vid!)) return;
     const selectedTime =
       stream && videoUrl === stream.url
         ? (videoRef.current as any).duration -
           (new Date().getTime() - date.getTime()) / 1000
-        : (date.getTime() - vid.startDate.getTime()) / 1000;
+        : (date.getTime() - (vid as Video).startDate.getTime()) / 1000;
     if (Math.abs(selectedTime - (videoRef.current as any).currentTime) > 2) {
       (videoRef.current as any).currentTime = selectedTime;
       (videoRef.current as any).play();

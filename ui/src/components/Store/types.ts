@@ -1,5 +1,21 @@
 import React from "react";
 
+// TODO: Generate from DRF
+export type Camera = {
+  id: number;
+  enabled: boolean;
+  last_ping?: Date;
+  name: string;
+};
+
+// TODO: Generate from DRF
+export type Video = {
+  camera?: number;
+  startDate: Date;
+  endDate: Date;
+  file: string;
+};
+
 export type Stream = {
   id: number;
   url: string;
@@ -7,11 +23,11 @@ export type Stream = {
 };
 
 export type StateType = {
-  cameras: any[];
+  cameras: Camera[];
   date: Date;
   gridSize: number;
   streams: Map<number, Stream>;
-  videos: any[];
+  videos: Video[];
 };
 
 export type ContextType = [StateType, React.Dispatch<any>?];

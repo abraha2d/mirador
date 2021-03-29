@@ -14,6 +14,7 @@ import { DraggableCore } from "react-draggable";
 import { Calendar } from "components";
 import { Context } from "components/Store";
 import { SET_DATE, SET_VIDEOS } from "components/Store/constants";
+import { Video } from "components/Store/types";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
 
@@ -200,7 +201,7 @@ export const Timeline = () => {
         >
           <div
             ref={draggerRef}
-            className="position-absolute h-100 pe-all"
+            className="timeline-stream-bar position-absolute pe-all"
             style={{
               width: `${100 * zoom}%`,
               left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
@@ -231,7 +232,7 @@ export const Timeline = () => {
               <div
                 key={date.getTime()}
                 data-date={date.toLocaleDateString()}
-                className="timeline-stream-bar"
+                className="timeline-stream-date"
                 style={{
                   left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
                 }}
@@ -241,16 +242,23 @@ export const Timeline = () => {
                     cameras
                       .filter(
                         (camera) =>
+                          camera.last_ping &&
                           new Date().getTime() -
                             new Date(camera.last_ping).getTime() <
-                          15 * 60 * 1000
+                            15 * 60 * 1000
                       )
-                      .map((camera) => {
-                        return {
-                          camera: camera.id,
-                          startDate: new Date(camera.last_ping),
-                        };
-                      })
+                      .map(
+                        (camera): Video => {
+                          return {
+                            camera: camera.id,
+                            // @ts-ignore camera.last_ping is guaranteed to
+                            // exist due to the .filter() before this .map()
+                            startDate: new Date(camera.last_ping),
+                            endDate: now,
+                            file: "",
+                          };
+                        }
+                      )
                   )
                   .filter(
                     (video) =>
@@ -259,6 +267,7 @@ export const Timeline = () => {
                         (video.endDate &&
                           withoutTime(video.endDate).getTime() ===
                             withoutTime(date).getTime())) &&
+                      video.camera &&
                       streamIds.includes(video.camera)
                   )
                   .map((video) => {
@@ -270,7 +279,7 @@ export const Timeline = () => {
                       <div
                         key={`${video.camera}-${video.startDate.getTime()}`}
                         className={`timeline-stream ${
-                          video.url ? "bg-primary" : "bg-info"
+                          video.file === "" ? "bg-info" : "bg-primary"
                         }`}
                         style={{
                           left: `${startPercent}%`,
