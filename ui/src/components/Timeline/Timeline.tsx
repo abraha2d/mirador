@@ -14,7 +14,7 @@ import { DraggableCore } from "react-draggable";
 import { Calendar } from "components";
 import { Context } from "components/Store";
 import { SET_DATE, SET_VIDEOS } from "components/Store/constants";
-import { Video } from "components/Store/types";
+import { Camera, Video } from "components/Store/types";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
 
@@ -31,10 +31,9 @@ import "./Timeline.css";
 let abortController = new AbortController();
 
 export const Timeline = () => {
-  const [{ cameras, date, streams, videos }, dispatch] = useContext(Context);
-  const streamIds = Array.from(streams.values()).map((stream) => stream.id);
+  const [{ cameras, date, streamIds, videos }, dispatch] = useContext(Context);
 
-  const prevCameras = usePrevious(cameras);
+  const prevCameras: Camera[] | undefined = usePrevious(cameras);
   const prevDate: Date | undefined = usePrevious(date);
 
   const containerRef = useRef(null);
@@ -242,9 +241,9 @@ export const Timeline = () => {
                     cameras
                       .filter(
                         (camera) =>
-                          camera.last_ping &&
+                          camera.lastPing &&
                           new Date().getTime() -
-                            new Date(camera.last_ping).getTime() <
+                            new Date(camera.lastPing).getTime() <
                             15 * 60 * 1000
                       )
                       .map(

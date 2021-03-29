@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
-import { ArrowsFullscreen, VolumeUpFill } from "react-bootstrap-icons";
+import { ArrowsFullscreen } from "react-bootstrap-icons";
 import { FullScreenHandle } from "react-full-screen";
 
 import { Timeline } from "components";
@@ -14,31 +14,31 @@ export type ControlBarProps = {
 };
 
 export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
-  const [state, dispatch] = useContext(Context);
+  const [{ gridSize }, dispatch] = useContext(Context);
   return (
     <div className={`control-bar ${fullscreenHandle.active ? "" : "bg-dark"}`}>
       <ButtonToolbar>
         <ButtonGroup className="pr-2">
-          {[1, 4, 9, 16].map((gridSize) => (
+          {[1, 4, 9, 16].map((gs) => (
             <Button
-              key={gridSize}
-              variant={state.gridSize === gridSize ? "light" : "secondary"}
+              key={gs}
+              variant={gs === gridSize ? "light" : "secondary"}
               onClick={() =>
-                dispatch && dispatch({ type: SET_GRIDSIZE, payload: gridSize })
+                dispatch && dispatch({ type: SET_GRIDSIZE, payload: gs })
               }
             >
-              {gridSize}
+              {gs}
             </Button>
           ))}
         </ButtonGroup>
       </ButtonToolbar>
       <Timeline />
       <ButtonToolbar>
-        <ButtonGroup className="pl-2">
-          <Button variant="light" className="d-flex align-items-center">
-            <VolumeUpFill />
-          </Button>
-        </ButtonGroup>
+        {/*<ButtonGroup className="pl-2">*/}
+        {/*  <Button variant="light" className="d-flex align-items-center">*/}
+        {/*    <VolumeUpFill />*/}
+        {/*  </Button>*/}
+        {/*</ButtonGroup>*/}
         <ButtonGroup className="pl-2">
           <Button
             variant={fullscreenHandle.active ? "primary" : "light"}

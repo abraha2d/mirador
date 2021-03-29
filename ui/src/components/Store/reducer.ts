@@ -8,10 +8,10 @@ import {
   STOP_STREAM,
   STOP_STREAM_ALL,
 } from "./constants";
-import { StateType } from "./types";
+import { ActionType, StateType } from "./types";
 import { findOpenIdx, findStreamIdx, resizeGrid } from "./utils";
 
-export const Reducer = (state: StateType, action: any): StateType => {
+export const Reducer = (state: StateType, action: ActionType): StateType => {
   switch (action.type) {
     case SET_CAMERAS:
       return {
@@ -49,6 +49,7 @@ export const Reducer = (state: StateType, action: any): StateType => {
         }
         state.streams.set(idx, action.payload.stream);
       }
+      state.streamIds = Array.from(state.streams).map(([, s]) => s.id);
       return {
         ...state,
       };
@@ -61,11 +62,10 @@ export const Reducer = (state: StateType, action: any): StateType => {
         if (openIdx > -1) {
           state.streams.set(openIdx, {
             id: camera.id,
-            url: `/stream/${camera.id}/out.m3u8`,
-            name: camera.name,
           });
         }
       }
+      state.streamIds = Array.from(state.streams).map(([, s]) => s.id);
       return {
         ...state,
       };
@@ -74,6 +74,7 @@ export const Reducer = (state: StateType, action: any): StateType => {
       if (streamIdx > -1) {
         state.streams.delete(streamIdx);
       }
+      state.streamIds = Array.from(state.streams).map(([, s]) => s.id);
       return {
         ...state,
       };
@@ -81,6 +82,7 @@ export const Reducer = (state: StateType, action: any): StateType => {
       return {
         ...state,
         streams: new Map(),
+        streamIds: [],
       };
     default:
       return state;

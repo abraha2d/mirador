@@ -10,6 +10,7 @@ import {
   START_STREAM,
   STOP_STREAM,
 } from "components/Store/constants";
+import { Camera, Stream } from "components/Store/types";
 import { useInterval } from "hooks";
 import { DragItemTypes } from "utils";
 
@@ -22,7 +23,7 @@ type CameraSidebarProps = {
 };
 
 export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
-  const [{ cameras, streams }, dispatch] = useContext(Context);
+  const [{ cameras, streamIds }, dispatch] = useContext(Context);
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
@@ -30,7 +31,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
   const [{ isOver }, drop] = useDrop({
     accept: [DragItemTypes.STREAM],
     drop: (item) => {
-      const stream = (item as any).stream;
+      const stream: Stream = (item as any).stream;
       dispatch &&
         dispatch({
           type: STOP_STREAM,
@@ -41,6 +42,8 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       isOver: monitor.isOver(),
     }),
   });
+
+  const now = new Date();
 
   const loadCameras = () => {
     if (isLoading || !dispatch) return;
@@ -54,8 +57,17 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         }
       })
       .then((response) => {
-        if (!isEqual(response, cameras)) {
-          dispatch({ type: SET_CAMERAS, payload: response });
+        const newCameras: Camera[] = response.map((camera: any) => {
+          const lastPing = camera.last_ping && new Date(camera.last_ping);
+          return {
+            id: camera.id,
+            enabled: camera.enabled,
+            lastPing: lastPing && +now - +lastPing < 900000 ? lastPing : null,
+            name: camera.name,
+          };
+        });
+        if (!isEqual(newCameras, cameras)) {
+          dispatch({ type: SET_CAMERAS, payload: newCameras });
         }
         setError(false);
       })
@@ -76,12 +88,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       <div className="pb-2 d-flex justify-content-between">
         <span>Cameras</span>
       </div>
-      <ToggleButtonGroup
-        type="checkbox"
-        value={Array.from(streams.keys())}
-        vertical
-        className="w-100"
-      >
+      <ToggleButtonGroup type="checkbox" vertical className="w-100">
         <div
           ref={drop}
           className={`
@@ -117,40 +124,32 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             <span>An error occurred.</span>
           </ToggleButton>
         )}
-        {cameras.map((camera: any) => (
-          <CameraRow
-            key={camera.id}
-            camera={camera}
-            selected={Array.from(streams)
-              .map(([, s]) => s && s.id)
-              .includes(camera.id)}
-            onChange={(id) => {
-              if (
-                Array.from(streams)
-                  .map(([, s]) => s && s.id)
-                  .includes(id)
-              ) {
-                dispatch &&
+        {dispatch &&
+          cameras.map((camera) => (
+            <CameraRow
+              key={camera.id}
+              camera={camera}
+              selected={streamIds.includes(camera.id)}
+              onChange={(id) => {
+                if (streamIds.includes(id)) {
                   dispatch({
                     type: STOP_STREAM,
                     payload: id,
                   });
-              } else {
-                dispatch &&
+                } else {
                   dispatch({
                     type: START_STREAM,
                     payload: {
+                      idx: -1,
                       stream: {
                         id,
-                        url: `/stream/${id}/out.m3u8`,
-                        name: camera.name,
                       },
                     },
                   });
-              }
-            }}
-          />
-        ))}
+                }
+              }}
+            />
+          ))}
       </ToggleButtonGroup>
     </>
   );

@@ -1,4 +1,12 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import HlsJs from "hls.js";
+import React, {
+  MutableRefObject,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Spinner } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
 import {
@@ -8,12 +16,10 @@ import {
 } from "react-full-screen";
 import ReactHlsPlayer from "react-hls-player";
 
-import HlsJs from "hls.js";
-
 import { Context } from "components/Store";
 import { START_STREAM } from "components/Store/constants";
-import { Stream, Video } from "components/Store/types";
-import { DragItemTypes } from "utils";
+import { Stream } from "components/Store/types";
+import { DragItemTypes, DragObjectWithPayload } from "utils";
 
 import "./StreamContainer.css";
 
@@ -37,35 +43,42 @@ export const StreamContainer = ({
   const [{ cameras, date, videos }, dispatch] = useContext(Context);
   const camera = stream && cameras.find((camera) => camera.id === stream.id);
 
+  const handle = useFullScreenHandle();
+  const videoRef: MutableRefObject<HTMLVideoElement | null> = useRef(null);
+  const [isLoading, setLoading] = useState(true);
+
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
     collect: (monitor) => ({
       isOver: monitor.isOver(),
       itemType: monitor.getItemType(),
     }),
-    drop: (item) => {
-      let stream = {};
+    drop: (item: DragObjectWithPayload) => {
+      if (!dispatch) return;
+
+      let stream: Stream;
       let replace = false;
-      if (item.type === DragItemTypes.CAMERA) {
-        const camera = (item as any).camera;
-        stream = {
-          id: camera.id,
-          url: `/stream/${camera.id}/out.m3u8`,
-          name: camera.name,
-        };
-        replace = true;
-      } else if (item.type === DragItemTypes.STREAM) {
-        stream = (item as any).stream;
+
+      switch (item.type) {
+        case DragItemTypes.CAMERA:
+          stream = {
+            id: item.camera.id,
+          };
+          replace = true;
+          break;
+        case DragItemTypes.STREAM:
+          stream = item.stream;
+          break;
       }
-      dispatch &&
-        dispatch({
-          type: START_STREAM,
-          payload: {
-            idx: y * gridSide + x,
-            stream,
-            replace,
-          },
-        });
+
+      dispatch({
+        type: START_STREAM,
+        payload: {
+          idx: y * gridSide + x,
+          stream,
+          replace,
+        },
+      });
     },
   });
 
@@ -79,29 +92,28 @@ export const StreamContainer = ({
     end: () => onDrag(false),
   });
 
-  const vid =
-    stream &&
-    camera?.last_ping &&
-    date.getTime() > new Date(camera.last_ping).getTime()
+  const source =
+    camera &&
+    (camera.lastPing && date > camera.lastPing
       ? stream
       : videos.find(
-          (v) =>
-            stream &&
-            v.camera === stream.id &&
-            v.startDate?.getTime() < date.getTime() &&
-            v.endDate?.getTime() > date.getTime()
-        );
-  const videoUrl = vid ? ("url" in vid ? vid.url : vid.file) : "";
+          (video) =>
+            video.camera === camera.id &&
+            video.startDate < date &&
+            video.endDate > date
+        ));
 
-  const videoRef = useRef(null);
-  const [isLoading, setLoading] = useState(true);
+  const sourceUrl =
+    source &&
+    ("file" in source ? source.file : `/stream/${source.id}/out.m3u8`);
+
   const video = useMemo(
     () =>
-      videoUrl &&
-      (stream && videoUrl === stream.url && HlsJs.isSupported() ? (
+      sourceUrl &&
+      (sourceUrl.slice(-4) === "m3u8" && HlsJs.isSupported() ? (
         <ReactHlsPlayer
           playerRef={videoRef}
-          url={videoUrl}
+          url={sourceUrl}
           autoPlay
           onLoadStart={() => setLoading(true)}
           onPlaying={() => setLoading(false)}
@@ -110,7 +122,7 @@ export const StreamContainer = ({
       ) : (
         <video
           ref={videoRef}
-          src={videoUrl}
+          src={sourceUrl}
           className="w-100 h-100"
           autoPlay
           onLoadStart={() => setLoading(true)}
@@ -118,23 +130,19 @@ export const StreamContainer = ({
           onPause={() => setLoading(true)}
         />
       )),
-    [stream, videoUrl]
+    [sourceUrl]
   );
 
   useEffect(() => {
-    if (!videoRef.current || !("startDate" in vid! || "url" in vid!)) return;
+    if (!videoRef.current || !source) return;
     const selectedTime =
-      stream && videoUrl === stream.url
-        ? (videoRef.current as any).duration -
-          (new Date().getTime() - date.getTime()) / 1000
-        : (date.getTime() - (vid as Video).startDate.getTime()) / 1000;
-    if (Math.abs(selectedTime - (videoRef.current as any).currentTime) > 2) {
-      (videoRef.current as any).currentTime = selectedTime;
-      (videoRef.current as any).play();
+      "file" in source
+        ? (+date - +source.startDate) / 1000
+        : videoRef.current.duration - (+new Date() - +date) / 1000;
+    if (Math.abs(selectedTime - videoRef.current.currentTime) > 1) {
+      videoRef.current.currentTime = selectedTime;
     }
-  }, [date, stream, vid, videoUrl]);
-
-  const handle = useFullScreenHandle();
+  }, [date, source]);
 
   return (
     <div
@@ -149,7 +157,7 @@ export const StreamContainer = ({
         height: `${100 / gridSide}%`,
       }}
       onDoubleClick={
-        stream ? (handle.active ? handle.exit : handle.enter) : () => {}
+        source ? (handle.active ? handle.exit : handle.enter) : () => {}
       }
     >
       <div
@@ -157,7 +165,7 @@ export const StreamContainer = ({
           isDragging
             ? "bg-secondary"
             : isOver
-            ? stream
+            ? source
               ? itemType === DragItemTypes.CAMERA
                 ? "bg-danger"
                 : "bg-info"
@@ -169,7 +177,7 @@ export const StreamContainer = ({
           pointerEvents: isOver ? "auto" : "none",
         }}
       />
-      {stream && (
+      {source && (
         <FullScreen handle={handle} className="h-100">
           <div
             ref={drag}
@@ -181,12 +189,12 @@ export const StreamContainer = ({
                 <div className="position-absolute p-3 bg-dark opacity-75 rounded-circle">
                   <Spinner animation="border" variant="light" className="p-3" />
                 </div>
-                {stream && (
+                {camera && (
                   <span
                     className="position-absolute w-100 p-1 bg-dark opacity-75 text-center text-truncate text-light"
                     style={{ bottom: 0 }}
                   >
-                    {stream.name}
+                    {camera.name}
                   </span>
                 )}
               </>

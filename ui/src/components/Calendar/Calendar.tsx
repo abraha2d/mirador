@@ -16,8 +16,7 @@ type CalendarProps = {
 let abortController = new AbortController();
 
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
-  const [{ streams }] = useContext(Context);
-  const streamIds = Array.from(streams.values()).map((stream) => stream.id);
+  const [{ streamIds }] = useContext(Context);
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
@@ -26,6 +25,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
   const [month, setMonth] = useState(
     new Date(date.getFullYear(), date.getMonth(), 1)
   );
+
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -61,8 +61,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
       });
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(loadDates, [month]);
+  useEffect(loadDates, [month, streamIds]);
 
   const changeMonth = (amount: number) => () => {
     setMonth(new Date(month.getFullYear(), month.getMonth() + amount, 1));
@@ -131,7 +130,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                     key={d.toLocaleDateString()}
                     size="sm"
                     variant={
-                      d.getTime() === date.getTime()
+                      +d === +date
                         ? "primary"
                         : d.getFullYear() === month.getFullYear() &&
                           d.getMonth() === month.getMonth()
@@ -141,12 +140,10 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                         : ""
                     }
                     className={`calendar-day ${
-                      d.getTime() === today.getTime()
-                        ? "font-weight-bolder"
-                        : ""
+                      +d === +today ? "font-weight-bolder" : ""
                     } ${
                       dates.includes(d.toLocaleDateString())
-                        ? d.getTime() === date.getTime()
+                        ? +d === +date
                           ? "btn-info"
                           : "text-info"
                         : ""

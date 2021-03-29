@@ -4,7 +4,7 @@ import React from "react";
 export type Camera = {
   id: number;
   enabled: boolean;
-  last_ping?: Date;
+  lastPing?: Date;
   name: string;
 };
 
@@ -18,8 +18,6 @@ export type Video = {
 
 export type Stream = {
   id: number;
-  url: string;
-  name: string;
 };
 
 export type StateType = {
@@ -27,7 +25,37 @@ export type StateType = {
   date: Date;
   gridSize: number;
   streams: Map<number, Stream>;
+  streamIds: number[];
   videos: Video[];
 };
+
+export type ActionType =
+  | {
+      type: "SET_CAMERAS";
+      payload: Camera[];
+    }
+  | {
+      type: "SET_DATE";
+      payload: Date;
+    }
+  | {
+      type: "SET_GRIDSIZE";
+      payload: number;
+    }
+  | {
+      type: "SET_VIDEOS";
+      payload: Video[];
+    }
+  | {
+      type: "START_STREAM";
+      payload: {
+        idx: number;
+        stream: Stream;
+        replace?: boolean;
+      };
+    }
+  | { type: "START_STREAM_ALL" }
+  | { type: "STOP_STREAM"; payload: number }
+  | { type: "STOP_STREAM_ALL" };
 
 export type ContextType = [StateType, React.Dispatch<any>?];

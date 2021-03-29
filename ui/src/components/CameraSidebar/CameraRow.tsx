@@ -3,10 +3,11 @@ import { ToggleButton } from "react-bootstrap";
 import { CameraVideoFill, CircleFill } from "react-bootstrap-icons";
 import { useDrag } from "react-dnd";
 
+import { Camera } from "components/Store/types";
 import { DragItemTypes } from "utils";
 
 type CameraRowProps = {
-  camera: any;
+  camera: Camera;
   selected: boolean;
   onChange: (idx: number) => void;
 };
@@ -35,8 +36,7 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
       <CircleFill
         className={
           camera.enabled
-            ? new Date().getTime() - new Date(camera.last_ping).getTime() <
-              15 * 60 * 1000
+            ? camera.lastPing
               ? "text-success"
               : "text-danger"
             : "text-secondary"

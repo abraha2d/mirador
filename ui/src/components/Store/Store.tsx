@@ -7,6 +7,7 @@ const initialState: StateType = {
   date: new Date(),
   gridSize: 1,
   streams: new Map(),
+  streamIds: [],
   videos: [],
 };
 
@@ -14,12 +15,11 @@ type StoreProps = {
   children: React.ReactNode;
 };
 
-export const Store = ({ children }: StoreProps) => {
-  const [state, dispatch] = useReducer(Reducer, initialState);
-  return (
-    <Context.Provider value={[state, dispatch]}>{children}</Context.Provider>
-  );
-};
+export const Store = ({ children }: StoreProps) => (
+  <Context.Provider value={useReducer(Reducer, initialState)}>
+    {children}
+  </Context.Provider>
+);
 
 const context: ContextType = [initialState];
 export const Context = createContext(context);
