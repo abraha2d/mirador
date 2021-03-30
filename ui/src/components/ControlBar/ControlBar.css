@@ -6,3 +6,8 @@
     display: flex;
     justify-content: space-between;
 }
+
+.gridsize-dropup-icon {
+    vertical-align: -9%;
+    margin-right: 0.25em;
+}

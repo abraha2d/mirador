@@ -24,6 +24,7 @@ export type StateType = {
   cameras: Camera[];
   date: Date;
   gridSize: number;
+  isMuted: boolean;
   isPlaying: boolean;
   streams: Map<number, Stream>;
   streamIds: number[];
@@ -42,6 +43,10 @@ export type ActionType =
   | {
       type: "SET_GRIDSIZE";
       payload: number;
+    }
+  | {
+      type: "SET_MUTED";
+      payload: boolean;
     }
   | {
       type: "SET_PLAYING";

@@ -344,8 +344,9 @@ export const Timeline = () => {
       <Tooltip
         id="date-hover"
         placement="top"
-        className={`timeline-date-hover ${hoverLocation !== -1 ? "show" : ""}`}
+        className={`timeline-date-hover ${hoverLocation === -1 ? "" : "show"}`}
         style={{
+          display: hoverLocation === -1 ? "none" : "block",
           left: `${hoverLocation}px`,
         }}
         arrowProps={{ ref: () => {}, style: { left: "35px" } }}
