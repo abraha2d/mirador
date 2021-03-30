@@ -2,6 +2,7 @@ import {
   SET_CAMERAS,
   SET_DATE,
   SET_GRIDSIZE,
+  SET_PLAYING,
   SET_VIDEOS,
   START_STREAM,
   START_STREAM_ALL,
@@ -25,6 +26,11 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       };
     case SET_GRIDSIZE:
       return resizeGrid(state, action.payload);
+    case SET_PLAYING:
+      return {
+        ...state,
+        isPlaying: action.payload,
+      };
     case SET_VIDEOS:
       return {
         ...state,

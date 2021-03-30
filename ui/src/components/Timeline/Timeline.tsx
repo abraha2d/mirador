@@ -8,12 +8,18 @@ import {
   Spinner,
   Tooltip,
 } from "react-bootstrap";
-import { Calendar3, CaretUpFill, SkipEndFill } from "react-bootstrap-icons";
+import {
+  Calendar3,
+  CaretUpFill,
+  PauseFill,
+  PlayFill,
+  SkipEndFill,
+} from "react-bootstrap-icons";
 import { DraggableCore } from "react-draggable";
 
 import { Calendar } from "components";
 import { Context } from "components/Store";
-import { SET_DATE, SET_VIDEOS } from "components/Store/constants";
+import { SET_DATE, SET_PLAYING, SET_VIDEOS } from "components/Store/constants";
 import { Video } from "components/Store/types";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
@@ -31,7 +37,10 @@ import "./Timeline.css";
 let abortController = new AbortController();
 
 export const Timeline = () => {
-  const [{ cameras, date, streamIds, videos }, dispatch] = useContext(Context);
+  const [
+    { cameras, date, isPlaying, streamIds, videos },
+    dispatch,
+  ] = useContext(Context);
   const prevDate: Date | undefined = usePrevious(date);
   const dateWithoutTime = +withoutTime(date);
 
@@ -99,10 +108,11 @@ export const Timeline = () => {
   useEffect(loadVideos, [dispatch, cameras, date, prevDate]);
 
   useInterval(() => {
-    dispatch?.({
-      type: SET_DATE,
-      payload: new Date(Math.min(+date + 1000, +now)),
-    });
+    isPlaying &&
+      dispatch?.({
+        type: SET_DATE,
+        payload: new Date(Math.min(+date + 1000, +now)),
+      });
   }, 1000);
 
   const filteredVideos = videos
@@ -342,6 +352,13 @@ export const Timeline = () => {
       >
         {hoverDate.toLocaleString()}
       </Tooltip>
+      <Button
+        variant="light"
+        className="flex-grow-0 d-flex align-items-center"
+        onClick={() => dispatch?.({ type: SET_PLAYING, payload: !isPlaying })}
+      >
+        {isPlaying ? <PauseFill /> : <PlayFill />}
+      </Button>
       <Button
         variant="light"
         className="flex-grow-0 d-flex align-items-center"

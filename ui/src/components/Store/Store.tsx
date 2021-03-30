@@ -6,6 +6,7 @@ const initialState: StateType = {
   cameras: [],
   date: new Date(),
   gridSize: 1,
+  isPlaying: true,
   streams: new Map(),
   streamIds: [],
   videos: [],
