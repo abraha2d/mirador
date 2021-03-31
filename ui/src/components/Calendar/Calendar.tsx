@@ -32,7 +32,6 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
 
   const loadDates = () => {
     setLoading(true);
-    abortController.abort();
     abortController = new AbortController();
     const id_params = streamIds.map((id) => `&camera_id=${id}`).join("");
     fetch(
@@ -59,6 +58,9 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
           setLoading(false);
         }
       });
+    return () => {
+      abortController.abort();
+    };
   };
 
   useEffect(loadDates, [month, streamIds]);
