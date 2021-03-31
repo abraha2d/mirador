@@ -3,6 +3,7 @@ import {
   SET_DATE,
   SET_GRIDSIZE,
   SET_MUTED,
+  SET_PLAYBACK_SPEED,
   SET_PLAYING,
   SET_VIDEOS,
   START_STREAM,
@@ -31,6 +32,11 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       return {
         ...state,
         isMuted: action.payload,
+      };
+    case SET_PLAYBACK_SPEED:
+      return {
+        ...state,
+        playbackSpeed: action.payload,
       };
     case SET_PLAYING:
       return {

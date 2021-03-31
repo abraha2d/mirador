@@ -12,6 +12,11 @@ label.disabled {
   transition: background-color 150ms, opacity 250ms;
 }
 
+.gridsize-dropup-icon {
+  vertical-align: -9%;
+  margin-right: 0.25em;
+}
+
 .left-0 {
   left: 0;
 }

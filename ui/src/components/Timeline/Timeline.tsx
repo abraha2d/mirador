@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
+  Dropdown,
   OverlayTrigger,
   Popover,
   Spinner,
@@ -11,6 +12,11 @@ import {
 import {
   Calendar3,
   CaretUpFill,
+  ChevronDoubleLeft,
+  ChevronDoubleRight,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
   PauseFill,
   PlayFill,
   SkipEndFill,
@@ -19,7 +25,12 @@ import { DraggableCore } from "react-draggable";
 
 import { Calendar } from "components";
 import { Context } from "components/Store";
-import { SET_DATE, SET_PLAYING, SET_VIDEOS } from "components/Store/constants";
+import {
+  SET_DATE,
+  SET_PLAYBACK_SPEED,
+  SET_PLAYING,
+  SET_VIDEOS,
+} from "components/Store/constants";
 import { Video } from "components/Store/types";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
@@ -38,7 +49,7 @@ let abortController = new AbortController();
 
 export const Timeline = () => {
   const [
-    { cameras, date, isPlaying, streamIds, videos },
+    { cameras, date, isPlaying, playbackSpeed, streamIds, videos },
     dispatch,
   ] = useContext(Context);
   const prevDate: Date | undefined = usePrevious(date);
@@ -113,7 +124,7 @@ export const Timeline = () => {
         type: SET_DATE,
         payload: new Date(Math.min(+date + 1000, +now)),
       });
-  }, 1000);
+  }, 1000 / playbackSpeed);
 
   const filteredVideos = videos
     .concat(
@@ -167,208 +178,267 @@ export const Timeline = () => {
   );
 
   return (
-    <ButtonGroup className="flex-grow-1 bg-secondary rounded d-flex">
-      <OverlayTrigger
-        placement="top"
-        trigger="click"
-        show={showCal}
-        onToggle={setShowCal}
-        rootClose
-        overlay={<Popover id="calendar">{calendar}</Popover>}
-      >
-        {({ ref, ...triggerHandler }) => (
-          <Button
-            ref={ref}
-            variant={isError ? "danger" : "light"}
-            className="flex-grow-0 d-flex align-items-center"
-            {...triggerHandler}
-          >
-            {isLoading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <Calendar3 />
-            )}
-          </Button>
-        )}
-      </OverlayTrigger>
-      <div
-        ref={containerRef}
-        className="flex-grow-1 position-relative overflow-hidden pe-none"
-      >
-        <DraggableCore
-          nodeRef={draggerRef}
-          onDrag={(e) => {
-            e instanceof MouseEvent &&
-              draggerWidth &&
-              dispatch?.({
-                type: SET_DATE,
-                payload: new Date(
-                  Math.min(
-                    +getDateFromPosition(
-                      getPositionFromDate(date, draggerWidth) - e.movementX,
-                      draggerWidth,
-                      date
-                    ),
-                    +now
-                  )
-                ),
-              });
-            isDragging || setDragging(true);
-          }}
-          onStop={(e) => {
-            isDragging
-              ? setDragging(false)
-              : e instanceof MouseEvent &&
+    <>
+      <ButtonGroup className="flex-grow-1 bg-secondary rounded d-flex">
+        <OverlayTrigger
+          placement="top"
+          trigger="click"
+          show={showCal}
+          onToggle={setShowCal}
+          rootClose
+          overlay={<Popover id="calendar">{calendar}</Popover>}
+        >
+          {({ ref, ...triggerHandler }) => (
+            <Button
+              ref={ref}
+              variant={isError ? "danger" : "light"}
+              className="flex-grow-0 d-flex align-items-center"
+              {...triggerHandler}
+            >
+              {isLoading ? (
+                <Spinner animation="border" size="sm" />
+              ) : (
+                <Calendar3 />
+              )}
+            </Button>
+          )}
+        </OverlayTrigger>
+        <div
+          ref={containerRef}
+          className="flex-grow-1 position-relative overflow-hidden pe-none"
+        >
+          <DraggableCore
+            nodeRef={draggerRef}
+            onDrag={(e) => {
+              e instanceof MouseEvent &&
                 draggerWidth &&
                 dispatch?.({
                   type: SET_DATE,
                   payload: new Date(
                     Math.min(
                       +getDateFromPosition(
-                        e.offsetX,
+                        getPositionFromDate(date, draggerWidth) - e.movementX,
                         draggerWidth,
-                        new Date(
-                          parseInt(
-                            (e.target as HTMLElement).getAttribute("data-date")!
-                          )
-                        )
+                        date
                       ),
                       +now
                     )
                   ),
                 });
-          }}
-        >
-          <div
-            ref={draggerRef}
-            className="timeline-stream-bar position-absolute pe-all"
-            style={{
-              width: `${100 * zoom}%`,
-              left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
-              ...(isDragging
-                ? {}
-                : {
-                    transition: "width 250ms, left 250ms",
-                  }),
+              isDragging || setDragging(true);
             }}
-            onMouseMove={(e) => {
-              if (!draggerWidth) return;
-              const nativeE = e.nativeEvent;
-              const target = nativeE.target as HTMLElement;
-              const parent = target.offsetParent as HTMLElement;
-              setHoverLocation(
-                parent.offsetLeft + target.offsetLeft + nativeE.offsetX
-              );
-              setHoverDate(
-                getDateFromPosition(
-                  nativeE.offsetX,
-                  draggerWidth,
-                  new Date(parseInt(target.getAttribute("data-date")!))
-                )
-              );
+            onStop={(e) => {
+              isDragging
+                ? setDragging(false)
+                : e instanceof MouseEvent &&
+                  draggerWidth &&
+                  dispatch?.({
+                    type: SET_DATE,
+                    payload: new Date(
+                      Math.min(
+                        +getDateFromPosition(
+                          e.offsetX,
+                          draggerWidth,
+                          new Date(
+                            parseInt(
+                              (e.target as HTMLElement).getAttribute(
+                                "data-date"
+                              )!
+                            )
+                          )
+                        ),
+                        +now
+                      )
+                    ),
+                  });
             }}
-            onMouseOut={() => setHoverLocation(-1)}
           >
-            {dateArray.map((dt, i) => (
-              <div
-                key={+dt}
-                data-date={+dt}
-                className="timeline-stream-date"
-                style={{
-                  left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
-                }}
-              >
-                {filteredVideos
-                  .filter(
-                    (video) =>
-                      video.camera &&
-                      streamIds.includes(video.camera) &&
-                      (+withoutTime(video.startDate) === +dt ||
-                        +withoutTime(video.endDate) === +dt)
+            <div
+              ref={draggerRef}
+              className="timeline-stream-bar position-absolute pe-all"
+              style={{
+                width: `${100 * zoom}%`,
+                left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
+                ...(isDragging
+                  ? {}
+                  : {
+                      transition: "width 250ms, left 250ms",
+                    }),
+              }}
+              onMouseMove={(e) => {
+                if (!draggerWidth) return;
+                const nativeE = e.nativeEvent;
+                const target = nativeE.target as HTMLElement;
+                const parent = target.offsetParent as HTMLElement;
+                setHoverLocation(
+                  parent.offsetLeft + target.offsetLeft + nativeE.offsetX
+                );
+                setHoverDate(
+                  getDateFromPosition(
+                    nativeE.offsetX,
+                    draggerWidth,
+                    new Date(parseInt(target.getAttribute("data-date")!))
                   )
-                  .map((video) => {
-                    const startPercent =
-                      getPercentFromDate(video.startDate) * 100;
-                    const endPercent = getPercentFromDate(video.endDate) * 100;
-                    return (
-                      <div
-                        key={`${video.camera}-${+video.startDate}`}
-                        className={`timeline-stream ${
-                          video.file === "" ? "bg-info" : "bg-primary"
-                        }`}
-                        style={{
-                          left: `${startPercent}%`,
-                          width: `${endPercent - startPercent}%`,
-                        }}
-                      />
-                    );
-                  })}
-              </div>
-            ))}
-            {ticks}
-          </div>
-        </DraggableCore>
-        <CaretUpFill className="timeline-indicator text-light" />
-        <span className="timeline-date-text text-light">
-          {date.toLocaleString()}
-        </span>
-        <ButtonGroup className="timeline-zoom-button-group">
+                );
+              }}
+              onMouseOut={() => setHoverLocation(-1)}
+            >
+              {dateArray.map((dt, i) => (
+                <div
+                  key={+dt}
+                  data-date={+dt}
+                  className="timeline-stream-date"
+                  style={{
+                    left: `${(i - Math.floor(dateArray.length / 2)) * 100}%`,
+                  }}
+                >
+                  {filteredVideos
+                    .filter(
+                      (video) =>
+                        video.camera &&
+                        streamIds.includes(video.camera) &&
+                        (+withoutTime(video.startDate) === +dt ||
+                          +withoutTime(video.endDate) === +dt)
+                    )
+                    .map((video) => {
+                      const startPercent =
+                        getPercentFromDate(video.startDate) * 100;
+                      const endPercent =
+                        getPercentFromDate(video.endDate) * 100;
+                      return (
+                        <div
+                          key={`${video.camera}-${+video.startDate}`}
+                          className={`timeline-stream ${
+                            video.file === "" ? "bg-info" : "bg-primary"
+                          }`}
+                          style={{
+                            left: `${startPercent}%`,
+                            width: `${endPercent - startPercent}%`,
+                          }}
+                        />
+                      );
+                    })}
+                </div>
+              ))}
+              {ticks}
+            </div>
+          </DraggableCore>
+          <CaretUpFill className="timeline-indicator text-light" />
+          <span className="timeline-date-text text-light">
+            {date.toLocaleString()}
+          </span>
+          <ButtonGroup className="timeline-zoom-button-group">
+            <Button
+              variant="outline-light"
+              size="sm"
+              className="px-1 py-0 border-0 text-monospace"
+              disabled={zoom <= 0.25}
+              onClick={() => setZoom(zoom * 0.5)}
+            >
+              -
+            </Button>
+            <Button
+              variant="outline-light"
+              size="sm"
+              className="timeline-zoom-current-level"
+              onClick={() => setZoom(1)}
+            >
+              {getTextForZoomLevel(zoom)}
+            </Button>
+            <Button
+              variant="outline-light"
+              size="sm"
+              className="px-1 py-0 border-0 text-monospace"
+              disabled={zoom >= 128}
+              onClick={() => setZoom(zoom * 2)}
+            >
+              +
+            </Button>
+          </ButtonGroup>
+        </div>
+        <Tooltip
+          id="date-hover"
+          placement="top"
+          className={`timeline-date-hover ${
+            hoverLocation === -1 ? "" : "show"
+          }`}
+          style={{
+            display: hoverLocation === -1 ? "none" : "block",
+            left: `${hoverLocation}px`,
+          }}
+          arrowProps={{ ref: () => {}, style: { left: "35px" } }}
+        >
+          {hoverDate.toLocaleString()}
+        </Tooltip>
+        <Dropdown as={ButtonGroup} drop="up">
           <Button
-            variant="outline-light"
-            size="sm"
-            className="px-1 py-0 border-0 text-monospace"
-            disabled={zoom <= 0.25}
-            onClick={() => setZoom(zoom * 0.5)}
+            variant="light"
+            className="flex-grow-0 d-flex align-items-center"
+            onClick={() =>
+              dispatch?.({ type: SET_PLAYING, payload: !isPlaying })
+            }
           >
-            -
+            {isPlaying ? <PauseFill /> : <PlayFill />}
           </Button>
-          <Button
-            variant="outline-light"
-            size="sm"
-            className="timeline-zoom-current-level"
-            onClick={() => setZoom(1)}
-          >
-            {getTextForZoomLevel(zoom)}
-          </Button>
-          <Button
-            variant="outline-light"
-            size="sm"
-            className="px-1 py-0 border-0 text-monospace"
-            disabled={zoom >= 128}
-            onClick={() => setZoom(zoom * 2)}
-          >
-            +
-          </Button>
-        </ButtonGroup>
-      </div>
-      <Tooltip
-        id="date-hover"
-        placement="top"
-        className={`timeline-date-hover ${hoverLocation === -1 ? "" : "show"}`}
-        style={{
-          display: hoverLocation === -1 ? "none" : "block",
-          left: `${hoverLocation}px`,
+          <Dropdown.Toggle split variant="light" />
+          <Dropdown.Menu align="right" className="text-nowrap">
+            <ButtonGroup className="px-2">
+              <Button
+                variant={playbackSpeed === 0.25 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.25 })
+                }
+              >
+                <ChevronDoubleLeft />
+              </Button>
+              <Button
+                variant={playbackSpeed === 0.5 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.5 })
+                }
+              >
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant={playbackSpeed === 1 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 1 })
+                }
+              >
+                <Circle />
+              </Button>
+              <Button
+                variant={playbackSpeed === 2 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 2 })
+                }
+              >
+                <ChevronRight />
+              </Button>
+              <Button
+                variant={playbackSpeed === 4 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 4 })
+                }
+              >
+                <ChevronDoubleRight />
+              </Button>
+            </ButtonGroup>
+          </Dropdown.Menu>
+        </Dropdown>
+      </ButtonGroup>
+      <Button
+        variant="light"
+        className="flex-grow-0 ml-2 d-flex align-items-center"
+        disabled={+now - +date < 2000 && isPlaying}
+        onClick={() => {
+          dispatch?.({ type: SET_DATE, payload: new Date() });
+          dispatch?.({ type: SET_PLAYING, payload: true });
         }}
-        arrowProps={{ ref: () => {}, style: { left: "35px" } }}
-      >
-        {hoverDate.toLocaleString()}
-      </Tooltip>
-      <Button
-        variant="light"
-        className="flex-grow-0 d-flex align-items-center"
-        onClick={() => dispatch?.({ type: SET_PLAYING, payload: !isPlaying })}
-      >
-        {isPlaying ? <PauseFill /> : <PlayFill />}
-      </Button>
-      <Button
-        variant="light"
-        className="flex-grow-0 d-flex align-items-center"
-        disabled={+now - +date < 2000}
-        onClick={() => dispatch?.({ type: SET_DATE, payload: now })}
         title="Go live"
       >
         <SkipEndFill />
       </Button>
-    </ButtonGroup>
+    </>
   );
 };

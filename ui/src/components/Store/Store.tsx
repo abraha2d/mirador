@@ -8,6 +8,7 @@ const initialState: StateType = {
   gridSize: 1,
   isMuted: false,
   isPlaying: true,
+  playbackSpeed: 1,
   streams: new Map(),
   streamIds: [],
   videos: [],

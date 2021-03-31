@@ -26,6 +26,7 @@ export type StateType = {
   gridSize: number;
   isMuted: boolean;
   isPlaying: boolean;
+  playbackSpeed: number;
   streams: Map<number, Stream>;
   streamIds: number[];
   videos: Video[];
@@ -47,6 +48,10 @@ export type ActionType =
   | {
       type: "SET_MUTED";
       payload: boolean;
+    }
+  | {
+      type: "SET_PLAYBACK_SPEED";
+      payload: number;
     }
   | {
       type: "SET_PLAYING";
