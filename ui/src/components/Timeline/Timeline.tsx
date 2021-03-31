@@ -71,6 +71,9 @@ export const Timeline = () => {
   const [hoverLocation, setHoverLocation] = useState(-1);
   const [hoverDate, setHoverDate] = useState(now);
 
+  const [showTimeEdit, setShowTimeEdit] = useState(false);
+  const [timeEdit, setTimeEdit] = useState("");
+
   const loadVideos = () => {
     const dateStr = date.toLocaleDateString();
     if (dateStr === prevDate?.toLocaleDateString() || !cameras || !dispatch)
@@ -325,7 +328,46 @@ export const Timeline = () => {
           </DraggableCore>
           <CaretUpFill className="timeline-indicator text-light" />
           <span className="timeline-date-text text-light">
-            {date.toLocaleString()}
+            <span>{date.toLocaleDateString()}</span>&emsp;
+            {showTimeEdit ? (
+              <input
+                type="time"
+                step={1}
+                className="pe-all"
+                value={timeEdit}
+                autoFocus
+                onChange={(e) => setTimeEdit(e.target.value)}
+                onBlur={() => {
+                  dispatch?.({
+                    type: SET_DATE,
+                    payload: new Date(
+                      `${date.toLocaleDateString()} ${timeEdit}`
+                    ),
+                  });
+                  setShowTimeEdit(false);
+                }}
+              />
+            ) : (
+              <span
+                className="pe-all"
+                tabIndex={-1}
+                onFocus={() => {
+                  setShowTimeEdit(true);
+                  setTimeEdit(
+                    date
+                      .toLocaleString("en-US", {
+                        hour12: false,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })
+                      .replace("24", "00")
+                  );
+                }}
+              >
+                {date.toLocaleTimeString()}
+              </span>
+            )}
           </span>
           <ButtonGroup className="timeline-zoom-button-group">
             <Button
