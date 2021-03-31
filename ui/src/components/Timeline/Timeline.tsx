@@ -123,6 +123,7 @@ export const Timeline = () => {
 
   useInterval(() => {
     isPlaying &&
+      !showTimeEdit &&
       dispatch?.({
         type: SET_DATE,
         payload: new Date(Math.min(+date + 1000, +now)),
