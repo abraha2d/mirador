@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "channels",
     "colorfield",
     "rest_framework",
+    "drf_spectacular",
     # "debug_toolbar",
 ]
 
@@ -143,10 +144,11 @@ STATICFILES_DIRS = [
     BASE_DIR / "ui/build/static",
 ]
 
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
 
 LOGOUT_REDIRECT_URL = "/"
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
 
 STORAGE_DIR = "/mnt/watchtower"
