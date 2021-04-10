@@ -1,6 +1,7 @@
 import HlsJs from "hls.js";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "react-bootstrap";
+import { ExclamationCircle } from "react-bootstrap-icons";
 import { useDrag, useDrop } from "react-dnd";
 import {
   FullScreen,
@@ -33,12 +34,15 @@ export const StreamContainer = ({
   onDrag,
   fullscreenHandle,
 }: StreamContainerProps) => {
-  const [{ cameras, date, videos }, dispatch] = useContext(Context);
+  const [{ cameras, date, isPlaying, isMuted, videos }, dispatch] = useContext(
+    Context
+  );
   const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const handle = useFullScreenHandle();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(false);
+  const [isError, setError] = useState(true);
 
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
@@ -108,8 +112,14 @@ export const StreamContainer = ({
           url={sourceUrl}
           autoPlay
           onLoadStart={() => setLoading(true)}
-          onPlaying={() => setLoading(false)}
-          onPause={() => setLoading(true)}
+          onError={() => {
+            setLoading(false);
+            setError(true);
+          }}
+          onCanPlay={() => {
+            setLoading(false);
+            setError(false);
+          }}
         />
       ) : (
         <video
@@ -118,8 +128,14 @@ export const StreamContainer = ({
           className="w-100 h-100"
           autoPlay
           onLoadStart={() => setLoading(true)}
-          onPlaying={() => setLoading(false)}
-          onPause={() => setLoading(true)}
+          onError={() => {
+            setLoading(false);
+            setError(true);
+          }}
+          onCanPlay={() => {
+            setLoading(false);
+            setError(false);
+          }}
         />
       )),
     [sourceUrl]
@@ -135,6 +151,16 @@ export const StreamContainer = ({
       videoRef.current.currentTime = selectedTime;
     }
   }, [date, source]);
+
+  useEffect(() => {
+    if (!videoRef.current || !source) return;
+    videoRef.current.muted = isMuted;
+  }, [isMuted, source]);
+
+  useEffect(() => {
+    if (!videoRef.current || !source) return;
+    isPlaying ? videoRef.current.play() : videoRef.current.pause();
+  }, [isPlaying, source]);
 
   return (
     <div
@@ -176,10 +202,22 @@ export const StreamContainer = ({
             className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
           >
             {video}
-            {isLoading && (
+            {(isLoading || isError) && (
               <>
-                <div className="position-absolute p-3 bg-dark opacity-75 rounded-circle">
-                  <Spinner animation="border" variant="light" className="p-3" />
+                <div
+                  className={`position-absolute p-3 ${
+                    isError ? "bg-danger" : "bg-dark"
+                  } opacity-75 rounded-circle`}
+                >
+                  {isLoading ? (
+                    <Spinner
+                      animation="border"
+                      variant="light"
+                      className="p-3"
+                    />
+                  ) : (
+                    isError && <ExclamationCircle color="white" size="2.5em" />
+                  )}
                 </div>
                 {camera && (
                   <span
