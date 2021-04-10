@@ -87,7 +87,12 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       <div className="pb-2 d-flex justify-content-between">
         <span>Cameras</span>
       </div>
-      <ToggleButtonGroup type="checkbox" vertical className="w-100">
+      <ToggleButtonGroup
+        type="checkbox"
+        value={streamIds}
+        vertical
+        className="w-100"
+      >
         <div
           ref={drop}
           className={`

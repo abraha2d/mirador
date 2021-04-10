@@ -54,5 +54,6 @@ export const resizeGrid = (
       newState.streams.set(openIdx, stream);
     }
   }
+  newState.streamIds = Array.from(newState.streams).map(([, s]) => s.id);
   return newState;
 };

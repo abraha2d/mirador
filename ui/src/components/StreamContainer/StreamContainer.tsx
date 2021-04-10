@@ -42,7 +42,7 @@ export const StreamContainer = ({
   const handle = useFullScreenHandle();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setLoading] = useState(false);
-  const [isError, setError] = useState(true);
+  const [isError, setError] = useState(false);
 
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
