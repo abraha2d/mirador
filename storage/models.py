@@ -10,6 +10,7 @@ class Video(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     file = models.CharField(max_length=255)
+    # TODO: add "locked" status (to prevent automatic deletion)
 
     def __str__(self):
         return f"{self.camera} from {self.start_date} to {self.end_date}"

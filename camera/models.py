@@ -76,6 +76,8 @@ class Camera(models.Model):
     # face_detection_settings is one-to-one to detection.FaceDetectionSettings
     # alpr_settings is one-to-one to detection.ALPRSettings
 
+    # TODO: add "storage_priority" (number, arbitrary scale)
+
     def urls(self):
         return [
             f"{stream.protocol.lower()}://{self.username}:{self.password}@{self.host}:{stream.port}{stream.url}"
