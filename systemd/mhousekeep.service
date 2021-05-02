@@ -1,0 +1,5 @@
+[Service]
+ExecStart=/opt/mirador/.venv/bin/python /opt/mirador/manage.py housekeep
+
+[Install]
+WantedBy=multi-user.target

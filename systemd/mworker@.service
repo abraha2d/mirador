@@ -1,0 +1,13 @@
+[Unit]
+Description=Mirador worker for camera %i
+#StartLimitIntervalSec=10
+#StartLimitBurst=5
+
+[Service]
+ExecStart=/opt/mirador/.venv/bin/python /opt/mirador/manage.py stream --camera %i
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=1s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+[Service]
+WorkingDirectory=/opt/mirador/ui
+ExecStart=/usr/bin/yarn start
+
+[Install]
+WantedBy=multi-user.target
