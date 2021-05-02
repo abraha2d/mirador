@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from glob import glob
 from os import chdir, remove
 from os.path import join, getsize, exists
 from shutil import disk_usage
@@ -7,8 +8,10 @@ from time import sleep
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+import ffmpeg
 from humanize import naturalsize
 import pandas as pd
+from pytz import UTC
 
 from camera.models import Camera
 from storage.models import Video
@@ -86,6 +89,55 @@ def delete_old_videos(bytes_to_free):
     print(f"deleted {len(videos_to_delete)} videos ({naturalsize(bytes_freed)})")
 
 
+def add_missing_db_records():
+    print(
+        f"{datetime.now()}: Checking for missing video database entries ...",
+        end="",
+        flush=True,
+    )
+
+    records_to_create = []
+    skipped = []
+
+    chdir(settings.STORAGE_DIR)
+    for video_path in glob("record/**/*.mp4", recursive=True):
+        if not Video.objects.filter(file=video_path).exists():
+            path_parts = video_path.split("/")
+            camera_id = path_parts[-2]
+            start_date = datetime.strptime(
+                "_".join(path_parts[-1].split(".")[0].split("_")[-2:]),
+                "%Y%m%d_%H%M%S",
+            ).replace(tzinfo=UTC)
+
+            try:
+                duration = float(ffmpeg.probe(video_path)["format"]["duration"])
+            except ffmpeg.Error:
+                skipped.append(video_path)
+                continue
+            end_date = start_date + timedelta(seconds=duration)
+
+            records_to_create.append(
+                Video(
+                    camera_id=camera_id,
+                    start_date=start_date,
+                    end_date=end_date,
+                    file=video_path,
+                )
+            )
+
+    Video.objects.bulk_create(records_to_create)
+
+    if len(records_to_create):
+        print(f"created {len(records_to_create)} entries.")
+    else:
+        print("none.")
+
+    if len(skipped):
+        print(f"WARN: Skipped {len(skipped)} broken videos:")
+        for video_path in skipped:
+            print(f"- {video_path}")
+
+
 def delete_stale_db_records():
     print(
         f"{datetime.now()}: Checking for stale video database entries ...",
@@ -104,8 +156,10 @@ def delete_stale_db_records():
         print("none.")
 
 
-def handle_housekeep():
-    delete_stale_db_records()
+def handle_housekeep(first_run=True):
+    if first_run:
+        add_missing_db_records()
+        delete_stale_db_records()
 
     record_dir = f"{settings.STORAGE_DIR}/record/"
     bytes_to_free = check_storage(
@@ -123,8 +177,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         first_run = True
-        while first_run or options.get("oneshot", False):
+        while first_run or not options.get("oneshot", False):
             if not first_run:
+                print(
+                    f"{datetime.now()}: Sleeping for 60 secs ...",
+                    end="",
+                    flush=True,
+                )
                 sleep(60)
-            handle_housekeep()
+                print("done.")
+            handle_housekeep(first_run)
             first_run = False
