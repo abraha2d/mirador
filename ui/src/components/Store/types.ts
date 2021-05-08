@@ -26,6 +26,7 @@ export type StateType = {
   gridSize: number;
   isMuted: boolean;
   isPlaying: boolean;
+  isScrubbing: boolean;
   playbackSpeed: number;
   streams: Map<number, Stream>;
   streamIds: number[];
@@ -58,6 +59,10 @@ export type ActionType =
       payload: boolean;
     }
   | {
+      type: "SET_SCRUBBING";
+      payload: boolean;
+    }
+  | {
       type: "SET_VIDEOS";
       payload: Video[];
     }
@@ -69,8 +74,15 @@ export type ActionType =
         replace?: boolean;
       };
     }
-  | { type: "START_STREAM_ALL" }
-  | { type: "STOP_STREAM"; payload: number }
-  | { type: "STOP_STREAM_ALL" };
+  | {
+      type: "START_STREAM_ALL";
+    }
+  | {
+      type: "STOP_STREAM";
+      payload: number;
+    }
+  | {
+      type: "STOP_STREAM_ALL";
+    };
 
 export type ContextType = [StateType, React.Dispatch<any>?];

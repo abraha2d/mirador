@@ -5,6 +5,7 @@ import {
   SET_MUTED,
   SET_PLAYBACK_SPEED,
   SET_PLAYING,
+  SET_SCRUBBING,
   SET_VIDEOS,
   START_STREAM,
   START_STREAM_ALL,
@@ -42,6 +43,11 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       return {
         ...state,
         isPlaying: action.payload,
+      };
+    case SET_SCRUBBING:
+      return {
+        ...state,
+        isScrubbing: action.payload,
       };
     case SET_VIDEOS:
       return {

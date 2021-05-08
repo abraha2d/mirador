@@ -172,11 +172,13 @@ export const StreamContainer = ({
   }, [isHLS, sourceUrl]);
 
   useEffect(() => {
-    if (!videoRef.current || !source) return;
+    if (!videoRef.current || isNaN(videoRef.current.duration) || !source)
+      return;
     const selectedTime = isVideo(source)
       ? (+date - +source.startDate) / 1000
       : videoRef.current.duration - (+new Date() - +date) / 1000;
-    if (Math.abs(selectedTime - videoRef.current.currentTime) > 1) {
+    if (Math.abs(selectedTime - videoRef.current.currentTime) > 2) {
+      console.log("ADJUSTING");
       videoRef.current.currentTime = selectedTime;
     }
   }, [date, source]);

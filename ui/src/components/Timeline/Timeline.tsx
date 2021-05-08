@@ -29,6 +29,7 @@ import {
   SET_DATE,
   SET_PLAYBACK_SPEED,
   SET_PLAYING,
+  SET_SCRUBBING,
   SET_VIDEOS,
 } from "components/Store/constants";
 import { Video } from "components/Store/types";
@@ -49,7 +50,7 @@ let abortController = new AbortController();
 
 export const Timeline = () => {
   const [
-    { cameras, date, isPlaying, playbackSpeed, streamIds, videos },
+    { cameras, date, isPlaying, isScrubbing, playbackSpeed, streamIds, videos },
     dispatch,
   ] = useContext(Context);
   const prevDate: Date | undefined = usePrevious(date);
@@ -67,7 +68,6 @@ export const Timeline = () => {
   const [showCal, setShowCal] = useState(false);
   const [zoom, setZoom] = useState(1);
 
-  const [isDragging, setDragging] = useState(false);
   const [hoverLocation, setHoverLocation] = useState(-1);
   const [hoverDate, setHoverDate] = useState(now);
 
@@ -136,7 +136,7 @@ export const Timeline = () => {
 
   useInterval(() => {
     isPlaying &&
-      !isDragging &&
+      !isScrubbing &&
       !showTimeEdit &&
       dispatch?.({
         type: SET_DATE,
@@ -228,6 +228,7 @@ export const Timeline = () => {
           <DraggableCore
             nodeRef={draggerRef}
             onDrag={(e) => {
+              isScrubbing || dispatch?.({ type: SET_SCRUBBING, payload: true });
               e instanceof MouseEvent &&
                 draggerWidth &&
                 dispatch?.({
@@ -243,11 +244,10 @@ export const Timeline = () => {
                     )
                   ),
                 });
-              isDragging || setDragging(true);
             }}
             onStop={(e) => {
-              isDragging
-                ? setDragging(false)
+              isScrubbing
+                ? dispatch?.({ type: SET_SCRUBBING, payload: false })
                 : e instanceof MouseEvent &&
                   draggerWidth &&
                   dispatch?.({
@@ -277,7 +277,7 @@ export const Timeline = () => {
               style={{
                 width: `${100 * zoom}%`,
                 left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
-                ...(isDragging
+                ...(isScrubbing
                   ? {}
                   : {
                       transition: "width 250ms, left 250ms",

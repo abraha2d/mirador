@@ -4,6 +4,7 @@ export const SET_GRIDSIZE = "SET_GRIDSIZE";
 export const SET_MUTED = "SET_MUTED";
 export const SET_PLAYBACK_SPEED = "SET_PLAYBACK_SPEED";
 export const SET_PLAYING = "SET_PLAYING";
+export const SET_SCRUBBING = "SET_SCRUBBING";
 export const SET_VIDEOS = "SET_VIDEOS";
 export const START_STREAM = "START_STREAM";
 export const START_STREAM_ALL = "START_STREAM_ALL";
