@@ -52,7 +52,10 @@ def delete_old_videos(bytes_to_free):
     video_df = video_df.set_index("id")
 
     chdir(settings.STORAGE_DIR)
-    video_df["size"] = video_df["file"].apply(getsize)
+    video_df["size"] = video_df["file"].apply(
+        lambda vf: getsize(vf) if exists(vf) else 0
+    )
+    video_df = video_df[video_df["size"] != 0]
 
     # TODO: Update to pull actual priorities once added to model
     camera_fields = ["camera_id", "priority"]
@@ -156,8 +159,8 @@ def delete_stale_db_records():
         print("none.")
 
 
-def handle_housekeep(first_run=True):
-    if first_run:
+def handle_housekeep(do_db_cleanup=True):
+    if do_db_cleanup:
         add_missing_db_records()
         delete_stale_db_records()
 
@@ -176,9 +179,9 @@ class Command(BaseCommand):
         parser.add_argument("--oneshot", action="store_true")
 
     def handle(self, *args, **options):
-        first_run = True
-        while first_run or not options.get("oneshot", False):
-            if not first_run:
+        run_counter = 0
+        while run_counter == 0 or not options.get("oneshot", False):
+            if run_counter > 0:
                 print(
                     f"{datetime.now()}: Sleeping for 60 secs ...",
                     end="",
@@ -186,5 +189,7 @@ class Command(BaseCommand):
                 )
                 sleep(60)
                 print("done.")
-            handle_housekeep(first_run)
-            first_run = False
+            handle_housekeep(run_counter <= 1)
+            run_counter += 1
+            if run_counter > 60:
+                run_counter = 1
