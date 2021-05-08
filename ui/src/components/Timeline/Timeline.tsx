@@ -74,9 +74,22 @@ export const Timeline = () => {
   const [showTimeEdit, setShowTimeEdit] = useState(false);
   const [timeEdit, setTimeEdit] = useState("");
 
+  const latestPing = Math.max(
+    ...cameras
+      .filter((camera) => camera.lastPing && streamIds.includes(camera.id))
+      // @ts-ignore camera.lastPing is guaranteed to be
+      // non-null due to the .filter() before this .map()
+      .map((camera) => +camera.lastPing)
+  );
+  const prevPing = usePrevious(latestPing);
+
   const loadVideos = () => {
     const dateStr = date.toLocaleDateString();
-    if (dateStr === prevDate?.toLocaleDateString() || !cameras || !dispatch)
+    if (
+      (dateStr === prevDate?.toLocaleDateString() && latestPing === prevPing) ||
+      !cameras ||
+      !dispatch
+    )
       return;
 
     setLoading(true);
@@ -119,7 +132,7 @@ export const Timeline = () => {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(loadVideos, [dispatch, cameras, date, prevDate]);
+  useEffect(loadVideos, [dispatch, cameras, date, latestPing]);
 
   useInterval(() => {
     isPlaying &&
