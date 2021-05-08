@@ -12,7 +12,7 @@ import ReactHlsPlayer from "react-hls-player";
 
 import { Context } from "components/Store";
 import { START_STREAM } from "components/Store/constants";
-import { Stream } from "components/Store/types";
+import { Stream, Video } from "components/Store/types";
 import { DragItemTypes, DragObjectWithPayload } from "utils";
 
 import "./StreamContainer.css";
@@ -34,9 +34,10 @@ export const StreamContainer = ({
   onDrag,
   fullscreenHandle,
 }: StreamContainerProps) => {
-  const [{ cameras, date, isPlaying, isMuted, videos }, dispatch] = useContext(
-    Context
-  );
+  const [
+    { cameras, date, isPlaying, isMuted, playbackSpeed, videos },
+    dispatch,
+  ] = useContext(Context);
   const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const handle = useFullScreenHandle();
@@ -90,7 +91,7 @@ export const StreamContainer = ({
   });
 
   const source =
-    camera?.lastPing && date > camera?.lastPing
+    camera && camera.lastPing && date > camera.lastPing
       ? stream
       : videos.find(
           (video) =>
@@ -99,14 +100,22 @@ export const StreamContainer = ({
             video.endDate > date
         );
 
-  const sourceUrl =
-    source &&
-    ("file" in source ? source.file : `/stream/${source.id}/out.m3u8`);
+  const isVideo = (source: Stream | Video | undefined): source is Video =>
+    !!source && "file" in source;
+  const isStream = (source: Stream | Video | undefined): source is Stream =>
+    !!source && !isVideo(source);
+
+  const sourceUrl = isVideo(source)
+    ? source.file
+    : isStream(source)
+    ? `/stream/${source.id}/out.m3u8`
+    : "";
+
+  const isHLS = isStream(source) && HlsJs.isSupported();
 
   const video = useMemo(
     () =>
-      sourceUrl &&
-      (sourceUrl.slice(-4) === "m3u8" && HlsJs.isSupported() ? (
+      isHLS ? (
         <ReactHlsPlayer
           playerRef={videoRef}
           url={sourceUrl}
@@ -137,30 +146,40 @@ export const StreamContainer = ({
             setError(false);
           }}
         />
-      )),
-    [sourceUrl]
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stream, isHLS]
   );
 
   useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = isMuted;
+  }, [isLoading, isMuted]);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    isPlaying ? videoRef.current.play() : videoRef.current.pause();
+  }, [isLoading, isPlaying]);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.playbackRate = playbackSpeed;
+  }, [isLoading, playbackSpeed]);
+
+  useEffect(() => {
+    if (!videoRef.current || isHLS) return;
+    videoRef.current.src = sourceUrl;
+  }, [isHLS, sourceUrl]);
+
+  useEffect(() => {
     if (!videoRef.current || !source) return;
-    const selectedTime =
-      "file" in source
-        ? (+date - +source.startDate) / 1000
-        : videoRef.current.duration - (+new Date() - +date) / 1000;
+    const selectedTime = isVideo(source)
+      ? (+date - +source.startDate) / 1000
+      : videoRef.current.duration - (+new Date() - +date) / 1000;
     if (Math.abs(selectedTime - videoRef.current.currentTime) > 1) {
       videoRef.current.currentTime = selectedTime;
     }
   }, [date, source]);
-
-  useEffect(() => {
-    if (!videoRef.current || !source) return;
-    videoRef.current.muted = isMuted;
-  }, [isMuted, source]);
-
-  useEffect(() => {
-    if (!videoRef.current || !source) return;
-    isPlaying ? videoRef.current.play() : videoRef.current.pause();
-  }, [isPlaying, source]);
 
   return (
     <div

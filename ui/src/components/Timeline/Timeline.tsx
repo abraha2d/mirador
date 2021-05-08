@@ -318,6 +318,9 @@ export const Timeline = () => {
                           style={{
                             left: `${startPercent}%`,
                             width: `${endPercent - startPercent}%`,
+                            ...(video.file === ""
+                              ? { transition: "width 250ms" }
+                              : {}),
                           }}
                         />
                       );
