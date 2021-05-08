@@ -112,6 +112,11 @@ def add_missing_db_records():
                 "%Y%m%d_%H%M%S",
             ).replace(tzinfo=UTC)
 
+            if datetime.utcnow().replace(tzinfo=UTC) - start_date < timedelta(
+                minutes=15
+            ):
+                continue
+
             try:
                 duration = float(ffmpeg.probe(video_path)["format"]["duration"])
             except ffmpeg.Error:
@@ -159,6 +164,50 @@ def delete_stale_db_records():
         print("none.")
 
 
+def handle_cmr():
+    print(
+        f"{datetime.now()}: Checking for concurrent multi recordings ...",
+        end="",
+        flush=True,
+    )
+
+    videos_to_delete = set()
+    files_to_delete = []
+
+    for camera in Camera.objects.all():
+        tracks = []
+        for video in camera.video_set.order_by("-start_date"):
+            added = False
+            i = 0
+            while not added and i < len(tracks):
+                if video.end_date <= tracks[i][-1].start_date:
+                    tracks[i].append(video)
+                    added = True
+                i += 1
+            if not added:
+                tracks.append([video])
+
+        if len(tracks) == 0:
+            continue
+
+        max_i, _ = max(enumerate(tracks), key=lambda it: len(it[1]))
+        for i, track in enumerate(tracks):
+            if i != max_i:
+                for video in track:
+                    videos_to_delete.add(video.id)
+                    files_to_delete.append(video.file)
+
+    chdir(settings.STORAGE_DIR)
+    for f in files_to_delete:
+        remove(f)
+    Video.objects.filter(id__in=videos_to_delete).delete()
+
+    if len(videos_to_delete):
+        print(f"deleted {len(videos_to_delete)} videos.")
+    else:
+        print("none.")
+
+
 def handle_housekeep(do_db_cleanup=True):
     if do_db_cleanup:
         add_missing_db_records()
@@ -177,8 +226,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--oneshot", action="store_true")
+        parser.add_argument("--cmr", action="store_true")
 
     def handle(self, *args, **options):
+        if options.get("cmr", False):
+            return handle_cmr()
+
         run_counter = 0
         while run_counter == 0 or not options.get("oneshot", False):
             if run_counter > 0:
