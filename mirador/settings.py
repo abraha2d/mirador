@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
-    "192.168.108.21",
     "mirador",
     "mirador.westhousefarm.com",
 ]
@@ -52,11 +51,11 @@ INSTALLED_APPS = [
     "colorfield",
     "rest_framework",
     "drf_spectacular",
-    "debug_toolbar",
+    # "debug_toolbar",
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -147,7 +146,7 @@ STATICFILES_DIRS = [
 
 INTERNAL_IPS = [
     "127.0.0.1",
-    "192.168.108.21",
+    # "192.168.108.21",
 ]
 
 LOGOUT_REDIRECT_URL = "/"
