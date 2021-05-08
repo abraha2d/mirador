@@ -19,4 +19,6 @@ class PictureAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("camera", "start_date", "end_date", "file")
+    list_filter = ("camera",)
+    ordering = ("-start_date",)
