@@ -136,6 +136,7 @@ export const Timeline = () => {
 
   useInterval(() => {
     isPlaying &&
+      !isDragging &&
       !showTimeEdit &&
       dispatch?.({
         type: SET_DATE,
