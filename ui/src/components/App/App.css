@@ -33,6 +33,10 @@ label.disabled {
   bottom: 0;
 }
 
+.opacity-50 {
+  opacity: 0.50;
+}
+
 .opacity-75 {
   opacity: 0.75;
 }

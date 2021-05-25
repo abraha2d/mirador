@@ -1,7 +1,7 @@
 import HlsJs from "hls.js";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Spinner } from "react-bootstrap";
-import { ExclamationCircle } from "react-bootstrap-icons";
+import { Button, Spinner } from "react-bootstrap";
+import { Download, ExclamationCircle } from "react-bootstrap-icons";
 import { useDrag, useDrop } from "react-dnd";
 import {
   FullScreen,
@@ -249,6 +249,16 @@ export const StreamContainer = ({
                   </span>
                 )}
               </>
+            )}
+            {isVideo(source) && (
+              <Button
+                variant="dark"
+                className="position-absolute top-0 right-0 m-3 opacity-50"
+                href={source.file}
+                target="_blank"
+              >
+                <Download />
+              </Button>
             )}
           </div>
         </FullScreen>
