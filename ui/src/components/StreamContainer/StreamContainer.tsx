@@ -255,7 +255,9 @@ export const StreamContainer = ({
                 variant="dark"
                 className="position-absolute top-0 right-0 m-3 opacity-50"
                 href={source.file}
-                target="_blank"
+                // @ts-ignore `download` will be passed down through Button to
+                // the underlying HTML <a> tag (guaranteed by the `href` prop).
+                download
               >
                 <Download />
               </Button>
