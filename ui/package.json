@@ -23,7 +23,7 @@
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "appver": "find src -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | cut -c1-7",
+    "appver": "find src -type f -print0 | LC_COLLATE=C sort -z | xargs -0 sha1sum | sha1sum | cut -c1-7",
     "start": "REACT_APP_VERSION=$(yarn --silent appver) react-scripts start",
     "build": "REACT_APP_VERSION=$(yarn --silent appver) react-scripts build",
     "test": "react-scripts test",
