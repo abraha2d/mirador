@@ -163,8 +163,14 @@ export const StreamContainer = ({
 
   useEffect(() => {
     if (!videoRef.current) return;
-    videoRef.current.playbackRate = playbackSpeed;
-  }, [isLoading, playbackSpeed]);
+    if (isNaN(videoRef.current.duration)) return;
+    const speedComp =
+      isVideo(source) && !isNaN(videoRef.current.duration)
+        ? videoRef.current.duration /
+          ((+source.endDate - +source.startDate) / 1000)
+        : 1;
+    videoRef.current.playbackRate = speedComp * playbackSpeed;
+  }, [isLoading, source, playbackSpeed]);
 
   useEffect(() => {
     if (!videoRef.current || isHLS) return;
@@ -175,7 +181,9 @@ export const StreamContainer = ({
     if (!videoRef.current || isNaN(videoRef.current.duration) || !source)
       return;
     const selectedTime = isVideo(source)
-      ? (+date - +source.startDate) / 1000
+      ? ((+date - +source.startDate) / 1000) *
+        (videoRef.current.duration /
+          ((+source.endDate - +source.startDate) / 1000))
       : videoRef.current.duration - (+new Date() - +date) / 1000;
     if (Math.abs(selectedTime - videoRef.current.currentTime) > 2) {
       console.log("ADJUSTING");
