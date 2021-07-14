@@ -7,7 +7,7 @@ import {
   NavItem,
   NavLink,
 } from "react-bootstrap";
-import { PersonFill } from "react-bootstrap-icons";
+import { ClockHistory, PersonFill } from "react-bootstrap-icons";
 import { NavLink as Link } from "react-router-dom";
 
 export const TopNav = () => {
@@ -24,11 +24,15 @@ export const TopNav = () => {
           <NavLink href="/admin/">Settings</NavLink>
         </NavItem>
         <div className="flex-grow-1" />
+        <Navbar.Text className="mr-2 d-inline-flex align-items-center">
+          <ClockHistory className="mr-2" />
+          {process.env.REACT_APP_VERSION}
+        </Navbar.Text>
         <NavDropdown
           id="user"
           title={
             <div className="d-inline-flex align-items-center">
-              <PersonFill />
+              <PersonFill className="mr-1" />
               admin
             </div>
           }
