@@ -12,6 +12,8 @@ import {
 import {
   Calendar3,
   CaretUpFill,
+  ChevronCompactLeft,
+  ChevronCompactRight,
   ChevronDoubleLeft,
   ChevronDoubleRight,
   ChevronLeft,
@@ -444,12 +446,20 @@ export const Timeline = () => {
           <Dropdown.Menu align="right" className="text-nowrap">
             <ButtonGroup className="px-2">
               <Button
+                variant={playbackSpeed === 0.125 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.125 })
+                }
+              >
+                <ChevronDoubleLeft />
+              </Button>
+              <Button
                 variant={playbackSpeed === 0.25 ? "secondary" : "light"}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.25 })
                 }
               >
-                <ChevronDoubleLeft />
+                <ChevronLeft />
               </Button>
               <Button
                 variant={playbackSpeed === 0.5 ? "secondary" : "light"}
@@ -457,7 +467,7 @@ export const Timeline = () => {
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.5 })
                 }
               >
-                <ChevronLeft />
+                <ChevronCompactLeft />
               </Button>
               <Button
                 variant={playbackSpeed === 1 ? "secondary" : "light"}
@@ -468,17 +478,25 @@ export const Timeline = () => {
                 <Circle />
               </Button>
               <Button
-                variant={playbackSpeed === 2 ? "secondary" : "light"}
+                variant={playbackSpeed === 2.5 ? "secondary" : "light"}
                 onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 2 })
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 2.5 })
+                }
+              >
+                <ChevronCompactRight />
+              </Button>
+              <Button
+                variant={playbackSpeed === 6.25 ? "secondary" : "light"}
+                onClick={() =>
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 6.25 })
                 }
               >
                 <ChevronRight />
               </Button>
               <Button
-                variant={playbackSpeed === 4 ? "secondary" : "light"}
+                variant={playbackSpeed === 15.625 ? "secondary" : "light"}
                 onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 4 })
+                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 15.625 })
                 }
               >
                 <ChevronDoubleRight />
