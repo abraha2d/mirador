@@ -48,3 +48,7 @@ label.disabled {
 .pe-none {
   pointer-events: none;
 }
+
+.abled.btn-light {
+  color: #212529A6 !important;
+}

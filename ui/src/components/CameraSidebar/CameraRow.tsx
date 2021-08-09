@@ -27,8 +27,8 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
       type="checkbox"
       value={camera.id}
       variant={selected || isDragging ? "primary" : "light"}
-      className="d-flex align-items-center"
-      disabled={!camera.enabled}
+      className={`d-flex align-items-center ${camera.enabled || "abled"}`}
+      // disabled={!camera.enabled}
       onChange={() => onChange(camera.id)}
     >
       <CameraVideoFill className="mr-2" />
