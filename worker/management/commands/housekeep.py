@@ -107,10 +107,16 @@ def add_missing_db_records():
         if not Video.objects.filter(file=video_path).exists():
             path_parts = video_path.split("/")
             camera_id = path_parts[-2]
-            start_date = datetime.strptime(
-                "_".join(path_parts[-1].split(".")[0].split("_")[-2:]),
-                "%Y%m%d_%H%M%S",
-            ).replace(tzinfo=UTC)
+            try:
+                start_date = datetime.strptime(
+                    "_".join(path_parts[-1].split(".")[0].split("_")[-2:]),
+                    "%Y%m%d_%H%M%S",
+                ).replace(tzinfo=UTC)
+            except ValueError:
+                print(
+                    f"{datetime.now()}: WARNING: unrecognized video file {video_path}"
+                )
+                continue
 
             if datetime.utcnow().replace(tzinfo=UTC) - start_date < timedelta(
                 minutes=15
