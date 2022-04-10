@@ -169,7 +169,11 @@ export const StreamContainer = ({
         ? videoRef.current.duration /
           ((+source.endDate - +source.startDate) / 1000)
         : 1;
-    videoRef.current.playbackRate = speedComp * playbackSpeed;
+    try {
+      videoRef.current.playbackRate = speedComp * playbackSpeed;
+    } catch (error) {
+      console.log(error);
+    }
   }, [isLoading, source, playbackSpeed]);
 
   useEffect(() => {
