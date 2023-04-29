@@ -1,4 +1,4 @@
 .stream-container {
-    position: absolute;
-    transition: width 150ms, height 150ms, left 150ms, top 150ms;
+  position: absolute;
+  transition: width 150ms, height 150ms, left 150ms, top 150ms;
 }

@@ -35,7 +35,7 @@ export const useKeyboardShortcut = (
   const [keyState, dispatch] = useReducer(keyReducer, initialState);
 
   const keydownListener = useCallback(
-    (assignedKey) => (keydownEvent: KeyboardEvent) => {
+    (assignedKey: string) => (keydownEvent: KeyboardEvent) => {
       if (blacklistedTargets.includes((keydownEvent.target as Element).tagName))
         return;
       if (assignedKey === keydownEvent.key)
@@ -45,7 +45,7 @@ export const useKeyboardShortcut = (
   );
 
   const keyupListener = useCallback(
-    (assignedKey) => (keyupEvent: KeyboardEvent) => {
+    (assignedKey: string) => (keyupEvent: KeyboardEvent) => {
       if (blacklistedTargets.includes((keyupEvent.target as Element).tagName))
         return;
       if (assignedKey === keyupEvent.key)

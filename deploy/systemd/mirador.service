@@ -1,0 +1,10 @@
+[Unit]
+Description=Mirador
+#StartLimitIntervalSec=10
+#StartLimitBurst=5
+
+[Service]
+ExecStart=/opt/mirador/deploy/envs/_base/bin/python /opt/mirador/manage.py runserver
+
+[Install]
+WantedBy=multi-user.target

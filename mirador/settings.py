@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "colorfield",
     "rest_framework",
     "drf_spectacular",
+    "oauth2_provider",
     # "debug_toolbar",
 ]
 
@@ -146,7 +147,6 @@ STATICFILES_DIRS = [
 
 INTERNAL_IPS = [
     "127.0.0.1",
-    # "192.168.108.21",
 ]
 
 LOGOUT_REDIRECT_URL = "/"
@@ -158,3 +158,7 @@ REST_FRAMEWORK = {
 STORAGE_DIR = "/mnt/watchtower"
 MIN_FREE_PERCENT = 10
 MIN_FREE_BYTES = 524288000
+
+OAUTH2_PROVIDER = {
+    "PKCE_REQUIRED": False,
+}

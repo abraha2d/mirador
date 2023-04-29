@@ -1,0 +1,16 @@
+[Unit]
+Description=Mirador reverse proxy
+#StartLimitIntervalSec=10
+#StartLimitBurst=5
+
+[Service]
+Type=forking
+PIDFile=/run/mproxy.pid
+ExecStartPre=/opt/mirador/deploy/envs/_base/bin/nginx -c ../../nginx/proxy.conf -t
+ExecStart=/opt/mirador/deploy/envs/_base/bin/nginx -c ../../nginx/proxy.conf
+ExecReload=/opt/mirador/deploy/envs/_base/bin/nginx -c ../../nginx/proxy.conf -s reload
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

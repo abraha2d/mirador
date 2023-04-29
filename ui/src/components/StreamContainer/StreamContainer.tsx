@@ -82,8 +82,11 @@ export const StreamContainer = ({
 
   const [{ isDragging }, drag] = useDrag({
     canDrag: !!stream,
-    item: { type: DragItemTypes.STREAM, stream },
-    begin: () => onDrag(true),
+    type: DragItemTypes.STREAM,
+    item: () => {
+      onDrag(true);
+      return { stream };
+    },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -118,7 +121,8 @@ export const StreamContainer = ({
       isHLS ? (
         <ReactHlsPlayer
           playerRef={videoRef}
-          url={sourceUrl}
+          src={sourceUrl}
+          className="w-100 h-100"
           autoPlay
           onLoadStart={() => setLoading(true)}
           onError={() => {

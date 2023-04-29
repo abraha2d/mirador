@@ -1,0 +1,19 @@
+dependencies:
+  - django
+  - django-colorfield
+  - django-debug-toolbar
+  - djangorestframework
+  - drf-spectacular
+  - ffmpeg-python
+  - nginx
+  - nodejs
+  - pip
+  - python-dateutil
+  - pytorch
+  - pytorch-cuda =11.8
+  - torchaudio
+  - torchvision
+  - yarn =1
+  - pip:
+      - channels
+      - django-oauth-toolkit

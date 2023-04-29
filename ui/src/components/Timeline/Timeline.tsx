@@ -109,16 +109,14 @@ export const Timeline = () => {
         }
       })
       .then((response) => {
-        const newVideos: Video[] = response.map(
-          (video: any): Video => {
-            return {
-              camera: video.camera,
-              startDate: new Date(video.start_date),
-              endDate: new Date(video.end_date),
-              file: `/${video.file}`,
-            };
-          }
-        );
+        const newVideos: Video[] = response.map((video: any): Video => {
+          return {
+            camera: video.camera,
+            startDate: new Date(video.start_date),
+            endDate: new Date(video.end_date),
+            file: `/${video.file}`,
+          };
+        });
         if (!isEqual(newVideos, videos)) {
           dispatch({ type: SET_VIDEOS, payload: newVideos });
         }
@@ -150,18 +148,16 @@ export const Timeline = () => {
     .concat(
       cameras
         .filter((camera) => camera.lastPing)
-        .map(
-          (camera): Video => {
-            return {
-              camera: camera.id,
-              // @ts-ignore camera.lastPing is guaranteed to be
-              // non-null due to the .filter() before this .map()
-              startDate: new Date(camera.lastPing),
-              endDate: now,
-              file: "",
-            };
-          }
-        )
+        .map((camera): Video => {
+          return {
+            camera: camera.id,
+            // @ts-ignore camera.lastPing is guaranteed to be
+            // non-null due to the .filter() before this .map()
+            startDate: new Date(camera.lastPing),
+            endDate: now,
+            file: "",
+          };
+        })
     )
     .filter((video) => video.camera && streamIds.includes(video.camera));
 

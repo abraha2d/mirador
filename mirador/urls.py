@@ -18,6 +18,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
 from rest_framework import routers
@@ -29,6 +30,7 @@ from drf_spectacular.views import (
 import debug_toolbar
 
 from camera.api import views as camera_api
+from mirador import views as mirador_views
 from storage.api import views as storage_api
 
 admin.site.site_title = "Mirador"
@@ -55,6 +57,8 @@ urlpatterns = [
     ),
     path("accounts/", include("django.contrib.auth.urls")),
     path("admin/", admin.site.urls),
+    path("fulfillment/", csrf_exempt(mirador_views.Fulfillment.as_view())),
+    path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
     path("__debug__/", include(debug_toolbar.urls)),
     path(
         "",

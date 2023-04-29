@@ -1,7 +1,9 @@
+import sys
 from datetime import timedelta
 from multiprocessing import Process
 from os import kill, mkfifo, makedirs
 from os.path import join
+from shutil import rmtree
 from signal import SIGINT
 from tempfile import mkdtemp
 
@@ -61,7 +63,7 @@ def handle_stream(camera_id):
     try:
         camera = Camera.objects.get(pk=camera_id)
     except Camera.DoesNotExist:
-        raise CommandError(f'Camera "{camera_id}" does not exist')
+        raise CommandError(f"Camera {camera_id} does not exist")
 
     if not camera.enabled:
         print(f"'{camera.name}' is disabled.")
@@ -69,8 +71,17 @@ def handle_stream(camera_id):
 
     stream_url = camera.urls()[0]
 
-    print(f"{camera_id}: Probing camera...")
-    probe = ffmpeg.probe(stream_url)
+    print(f"{camera_id}: Probing camera...", flush=True)
+    try:
+        probe = ffmpeg.probe(
+            stream_url,
+            stimeout=5000000,
+            hide_banner=None,
+            loglevel="error",
+        )
+    except ffmpeg.Error as e:
+        print(e.stderr.decode(), file=sys.stderr)
+        raise CommandError(f"Could not probe camera {camera_id}")
     print(f"{camera_id}: Probe completed.")
 
     video_stream = next(
@@ -80,17 +91,22 @@ def handle_stream(camera_id):
     if video_stream is None:
         raise CommandError(f"{camera_id}: No video stream found during probe.")
 
+    print(video_stream)
     codec_name = video_stream["codec_name"]
     width = int(video_stream["width"])
     height = int(video_stream["height"])
-    r_frame_rate_parts = video_stream["r_frame_rate"].split("/")
-    r_frame_rate = int(r_frame_rate_parts[0]) / int(r_frame_rate_parts[1])
+    try:
+        frame_rate_parts = video_stream["avg_frame_rate"].split("/")
+        frame_rate = int(frame_rate_parts[0]) / int(frame_rate_parts[1])
+    except ZeroDivisionError:
+        frame_rate_parts = video_stream["r_frame_rate"].split("/")
+        frame_rate = int(frame_rate_parts[0]) / int(frame_rate_parts[1])
 
     print()
     print(f"{camera_id}: Stream configuration:")
     print(f"{camera_id}: - Codec:       {codec_name}")
     print(f"{camera_id}: - Size:        {width}x{height}")
-    print(f"{camera_id}: - Frame rate:  {r_frame_rate}")
+    print(f"{camera_id}: - Frame rate:  {frame_rate}", flush=True)
 
     ds = get_detection_settings(camera)
 
@@ -113,7 +129,7 @@ def handle_stream(camera_id):
     print(f"{camera_id}: Feature configuration:")
     print(f"{camera_id}: - Detection:       {detect_enabled}")
     print(f"{camera_id}:   - Visualization: {drawbox_enabled}")
-    print(f"{camera_id}: - Text overlay:    {drawtext_enabled}")
+    print(f"{camera_id}: - Text overlay:    {drawtext_enabled}", flush=True)
 
     decode_enabled = detect_enabled
     overlay_enabled = drawtext_enabled and drawbox_enabled
@@ -127,7 +143,8 @@ def handle_stream(camera_id):
     print(f"{camera_id}: - Merge:   {overlay_enabled}")
     print(
         f"""{camera_id}: - Output:  {'Encode' if encode_enabled
-        else ('Copy' if copy_enabled else 'Transcode')}"""
+        else ('Copy' if copy_enabled else 'Transcode')}""",
+        flush=True,
     )
 
     # TODO: Add appropriate hardware acceleration
@@ -146,7 +163,7 @@ def handle_stream(camera_id):
 
     hls_params = {
         "flags": "+cgop",
-        "g": r_frame_rate,
+        "g": frame_rate,
         "hls_time": 1,
         "hls_list_size": 900,
         "hls_flags": "delete_segments",
@@ -158,7 +175,11 @@ def handle_stream(camera_id):
 
     stream_dir = f"{settings.STORAGE_DIR}/stream/{camera.id}"
     record_dir = f"{settings.STORAGE_DIR}/record/{camera.id}"
+
     makedirs(stream_dir, exist_ok=True)
+    rmtree(stream_dir)
+    makedirs(stream_dir, exist_ok=True)
+
     makedirs(record_dir, exist_ok=True)
 
     fifo_path = mkfifotemp("h264")
@@ -170,6 +191,7 @@ def handle_stream(camera_id):
             if camera.camera_type.streams.all()[0].force_tcp
             else {}
         ),
+        stimeout=5000000,
     )
     outputs = []
 
@@ -210,12 +232,12 @@ def handle_stream(camera_id):
     main_cmd = main_cmd.global_args("-hide_banner", "-loglevel", "error")
 
     print()
-    print(f"{camera_id}: Starting stream...")
+    print(f"{camera_id}: Starting stream...", flush=True)
     main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
     print(f"{camera_id}: Started stream.")
 
     print()
-    print(f"{camera_id}: Starting segmented recorder...")
+    print(f"{camera_id}: Starting segmented recorder...", flush=True)
     record_process = Process(
         target=segment_h264,
         args=(
@@ -234,7 +256,7 @@ def handle_stream(camera_id):
     try:
         if decode_enabled:
             print()
-            print(f"{camera_id}: Starting overlay loop...")
+            print(f"{camera_id}: Starting overlay loop...", flush=True)
 
             while main_process.poll() is None:
                 in_bytes = main_process.stdout.read(width * height * 3)
@@ -254,7 +276,7 @@ def handle_stream(camera_id):
 
         else:
             print()
-            print(f"{camera_id}: Waiting for end of stream...")
+            print(f"{camera_id}: Waiting for end of stream...", flush=True)
             main_process.wait()
 
         print(f"{camera_id}: Stream ended. Status: {main_process.returncode})")
@@ -263,7 +285,7 @@ def handle_stream(camera_id):
         manual_exit = True
 
     print()
-    print(f"{camera_id}: Stopping stream and segmented recorder...")
+    print(f"{camera_id}: Stopping stream and segmented recorder...", flush=True)
 
     main_process.terminate()
     kill(record_process.pid, SIGINT)
