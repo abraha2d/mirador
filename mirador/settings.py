@@ -162,3 +162,9 @@ MIN_FREE_BYTES = 524288000
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": False,
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost",
+    "http://mirador",
+    "https://mirador.westhousefarm.com",
+]

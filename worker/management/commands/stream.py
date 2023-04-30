@@ -132,28 +132,39 @@ def handle_stream(camera_id):
     print(f"{camera_id}: - Text overlay:    {drawtext_enabled}", flush=True)
 
     decode_enabled = detect_enabled
-    overlay_enabled = drawtext_enabled and drawbox_enabled
     encode_enabled = drawtext_enabled or drawbox_enabled
-    transcode_enabled = not encode_enabled
-    copy_enabled = transcode_enabled and (codec_name == "h264" or codec_name == "hevc")
+    copy_enabled = not encode_enabled and (codec_name == "h264")
 
     print()
     print(f"{camera_id}: Pipeline configuration:")
     print(f"{camera_id}: - Decode:  {decode_enabled}")
-    print(f"{camera_id}: - Merge:   {overlay_enabled}")
-    print(
-        f"""{camera_id}: - Output:  {'Encode' if encode_enabled
-        else ('Copy' if copy_enabled else 'Transcode')}""",
-        flush=True,
-    )
+    print(f"{camera_id}: - Encode:  {encode_enabled}")
+    print(f"""{camera_id}: - Copy:    {copy_enabled}""", flush=True)
 
-    # TODO: Add appropriate hardware acceleration
-    # Intel/AMD:
-    #   -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format vaapi
-    #   -i <input> -c:v h264_vaapi <output>
-    # Nvidia:
-    #   -hwaccel cuda -hwaccel_output_format cuda
-    #   -i <input> -c:v h264_nvenc <output>
+    # TODO: Detect hwaccel availability
+    nvdec_available = True
+    nvenc_available = True
+    vaapi_available = False
+
+    # TODO: Hardware-accelerate decode
+
+    if copy_enabled:
+        vcodec_encode = "copy"
+    elif nvenc_available:
+        vcodec_encode = "h264_nvenc"
+    elif vaapi_available:
+        vcodec_encode = "h264_vaapi"
+    else:
+        vcodec_encode = "libx264"
+
+    global_params = {
+        "hide_banner": None,
+        "loglevel": "error",
+    }
+
+    rtsp_params = {"stimeout": 5000000}
+    if camera.camera_type.streams.all()[0].force_tcp:
+        rtsp_params["rtsp_transport"] = "tcp"
 
     rawvideo_params = {
         "format": "rawvideo",
@@ -184,56 +195,52 @@ def handle_stream(camera_id):
 
     fifo_path = mkfifotemp("h264")
 
-    output = ffmpeg.input(
-        stream_url,
-        **(
-            {"rtsp_transport": "tcp"}
-            if camera.camera_type.streams.all()[0].force_tcp
-            else {}
-        ),
-        stimeout=5000000,
-    )
-    outputs = []
-
-    drawtext = None
-    drawbox = None
+    inputs = [
+        ffmpeg.input(
+            stream_url,
+            **global_params,
+            **rtsp_params,
+        )
+    ]
+    outputs = [[]]
 
     if decode_enabled:
-        outputs.append(output.output("pipe:", **rawvideo_params))
-    if drawtext_enabled:
-        drawtext = output.drawtext("Hello, world!")
-        output = drawtext
+        outputs[0].append(inputs[0].output("pipe:", **rawvideo_params))
+
     if drawbox_enabled:
-        drawbox = ffmpeg.input("pipe:", **rawvideo_params)
-        output = drawbox
-    if overlay_enabled:
-        output = ffmpeg.overlay(drawtext, drawbox)
+        inputs.append(ffmpeg.input("pipe:", **global_params, **rawvideo_params))
+        outputs.append([])
 
-    if encode_enabled:
-        split = output.filter_multi_output("split")
-        inputs = [split.stream(0), split.stream(1)]
+    if drawtext_enabled:
+        drawtext = inputs[-1].drawtext("Hello, world!")
+        split = drawtext.filter_multi_output("split")
+        splits = [split.stream(0), split.stream(1)]
     else:
-        inputs = [output, output]
+        splits = [inputs[-1], inputs[-1]]
 
-    outputs.append(
-        inputs[0].output(
+    outputs[-1].append(
+        splits[0].output(
             f"{stream_dir}/out.m3u8",
-            vcodec="copy" if copy_enabled else "h264_vaapi",
+            vcodec=vcodec_encode,
             **hls_params,
         )
     )
-    outputs.append(
-        inputs[1]
-        .output(fifo_path, vcodec="copy" if copy_enabled else "h264")
+    outputs[-1].append(
+        splits[1]
+        .output(
+            fifo_path,
+            vcodec=vcodec_encode,
+        )
         .overwrite_output()
     )
 
-    main_cmd = ffmpeg.merge_outputs(*outputs)
-    main_cmd = main_cmd.global_args("-hide_banner", "-loglevel", "error")
+    main_cmds = [ffmpeg.merge_outputs(*output) for output in outputs]
 
     print()
     print(f"{camera_id}: Starting stream...", flush=True)
-    main_process = main_cmd.run_async(pipe_stdin=True, pipe_stdout=True)
+    main_processes = [
+        main_cmd.run_async(pipe_stdin=True, pipe_stdout=True) for main_cmd in main_cmds
+    ]
     print(f"{camera_id}: Started stream.")
 
     print()
@@ -258,11 +265,21 @@ def handle_stream(camera_id):
             print()
             print(f"{camera_id}: Starting overlay loop...", flush=True)
 
-            while main_process.poll() is None:
-                in_bytes = main_process.stdout.read(width * height * 3)
-                if not in_bytes:
-                    break
-                frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
+            frame_size = width * height * 3
+
+            while all(main_process.poll() is None for main_process in main_processes):
+                frame_bytes = b""
+                while (bytes_left := frame_size - len(frame_bytes)) > 0:
+                    frame_bytes += (
+                        in_bytes := main_processes[0].stdout.read(bytes_left)
+                    )
+                    if not in_bytes:
+                        main_processes[0].terminate()
+                        break
+
+                if len(frame_bytes) != frame_size:
+                    continue
+                frame = np.frombuffer(frame_bytes, np.uint8).reshape([height, width, 3])
 
                 if detect_enabled:
                     # TODO: Do detection on frame
@@ -270,24 +287,26 @@ def handle_stream(camera_id):
 
                 if drawbox_enabled:
                     # TODO: Do drawbox on frame
-                    pass
-
-                    main_process.stdin.write(frame.astype(np.uint8).tobytes())
+                    main_processes[1].stdin.write(frame.astype(np.uint8).tobytes())
 
         else:
             print()
             print(f"{camera_id}: Waiting for end of stream...", flush=True)
-            main_process.wait()
+            for main_process in main_processes:
+                main_process.wait()
 
-        print(f"{camera_id}: Stream ended. Status: {main_process.returncode})")
+        print(
+            f"{camera_id}: Stream ended. Statuses: {[main_process.returncode for main_process in main_processes]})"
+        )
 
     except KeyboardInterrupt:
         manual_exit = True
 
     print()
-    print(f"{camera_id}: Stopping stream and segmented recorder...", flush=True)
+    print(f"{camera_id}: Stopping segmented recorder...", flush=True)
 
-    main_process.terminate()
+    for main_process in main_processes:
+        main_process.terminate()
     kill(record_process.pid, SIGINT)
     record_process.join()
 

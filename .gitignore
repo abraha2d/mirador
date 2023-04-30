@@ -1,7 +1,6 @@
 deploy/_cache/
 deploy/envs/
 db.sqlite3*
-schema.yml
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,linux,macos,python,windows,jetbrains
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,linux,macos,python,windows,jetbrains
