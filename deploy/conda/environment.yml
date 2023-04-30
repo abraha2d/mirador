@@ -5,8 +5,10 @@ dependencies:
   - djangorestframework
   - drf-spectacular
   - ffmpeg-python
+  - humanize
   - nginx
   - nodejs
+  - pandas
   - pip
   - python-dateutil
   - pytorch

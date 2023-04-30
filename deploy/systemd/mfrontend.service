@@ -4,8 +4,8 @@ Description=Mirador development frontend
 #StartLimitBurst=5
 
 [Service]
-WorkingDirectory=/opt/mirador/ui
-ExecStart=. /opt/mirador/deploy/envs/_base/bin/activate && yarn start
+WorkingDirectory=/opt/mirador
+ExecStart=/bin/sh -c '. deploy/envs/_base/bin/activate && cd ui && yarn start'
 
 [Install]
 WantedBy=multi-user.target
