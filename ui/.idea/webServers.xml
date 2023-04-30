@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="954d3cd8-b12e-4a87-9b82-96eb931dc43b" name="mirador" url="http://mirador:3000/">
-        <fileTransfer rootFolder="/opt/mirador/ui" accessType="SFTP" host="mirador" port="22" sshConfigId="4e23792f-2e55-462e-a847-f40dcf2455e8" sshConfig="root@mirador:22 agent" authAgent="true">
+        <fileTransfer rootFolder="/opt/mirador/ui" accessType="SFTP" host="mirador" port="22" sshConfigId="4e23792f-2e55-462e-a847-f40dcf2455e8" sshConfig="kevin@mirador:22 agent" authAgent="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

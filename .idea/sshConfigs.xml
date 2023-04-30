@@ -2,7 +2,7 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig authType="OPEN_SSH" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="mirador" id="f2e29c6d-4161-44ec-93d0-aad69d9c94dd" port="22" nameFormat="DESCRIPTIVE" username="root" />
+      <sshConfig authType="OPEN_SSH" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="mirador" id="39ac3f84-6eae-48c0-aa91-10b5d23607a7" port="22" nameFormat="DESCRIPTIVE" username="kevin" useOpenSSHConfig="true" />
     </configs>
   </component>
 </project>
