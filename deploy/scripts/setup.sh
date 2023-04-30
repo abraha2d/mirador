@@ -11,6 +11,3 @@ mamba env update -f "$DEPLOY_ROOT/conda/environment.yml"
 
 (cd ui && yarn)
 
-sudo cp -a "$DEPLOY_ROOT/systemd"/* /etc/systemd/system/
-sudo systemctl daemon-reload
-
