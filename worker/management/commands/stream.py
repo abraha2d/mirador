@@ -1,4 +1,5 @@
 import sys
+import time
 from datetime import timedelta
 from multiprocessing import Process
 from os import kill, mkfifo, makedirs
@@ -135,11 +136,14 @@ def handle_stream(camera_id):
     encode_enabled = drawtext_enabled or drawbox_enabled
     copy_enabled = not encode_enabled and (codec_name == "h264")
 
+    decode_width, decode_height = 1920, 1080
+
     print()
     print(f"{camera_id}: Pipeline configuration:")
     print(f"{camera_id}: - Decode:  {decode_enabled}")
+    print(f"{camera_id}:   - Size:  {decode_width}x{decode_height}")
     print(f"{camera_id}: - Encode:  {encode_enabled}")
-    print(f"""{camera_id}: - Copy:    {copy_enabled}""", flush=True)
+    print(f"{camera_id}: - Copy:    {copy_enabled}", flush=True)
 
     # TODO: Detect hwaccel availability
     nvdec_available = True
@@ -169,7 +173,7 @@ def handle_stream(camera_id):
     rawvideo_params = {
         "format": "rawvideo",
         "pix_fmt": "rgb24",
-        "s": f"{width}x{height}",
+        "s": f"{decode_width}x{decode_height}",
     }
 
     hls_params = {
@@ -205,7 +209,8 @@ def handle_stream(camera_id):
     outputs = [[]]
 
     if decode_enabled:
-        outputs[0].append(inputs[0].output("pipe:", **rawvideo_params))
+        decode_scaled = inputs[0].filter("scale", decode_width, decode_height)
+        outputs[0].append(decode_scaled.output("pipe:", **rawvideo_params))
 
     if drawbox_enabled:
         inputs.append(ffmpeg.input("pipe:", **global_params, **rawvideo_params))
@@ -236,6 +241,18 @@ def handle_stream(camera_id):
 
     main_cmds = [ffmpeg.merge_outputs(*output) for output in outputs]
 
+    if detect_enabled:
+        from ultralytics import YOLO
+
+        print(f"{camera_id}: Loading YOLOv8 model...", flush=True)
+        model = YOLO("yolov8n.pt")
+        print(f"{camera_id}: Loaded yolov8n.pt.")
+
+        print(f"{camera_id}: Priming tracker...", flush=True)
+        frame = np.zeros([decode_height, decode_width, 3])
+        model.track(frame, half=True, verbose=False)
+        print(f"{camera_id}: Primed with zeroes.")
+
     print()
     print(f"{camera_id}: Starting stream...", flush=True)
     main_processes = [
@@ -265,29 +282,42 @@ def handle_stream(camera_id):
             print()
             print(f"{camera_id}: Starting overlay loop...", flush=True)
 
-            frame_size = width * height * 3
+            frame_size = decode_width * decode_height * 3
+            frame_buffer = bytearray(frame_size)
+
+            counter = 0
+            start = time.time()
 
             while all(main_process.poll() is None for main_process in main_processes):
-                frame_bytes = b""
-                while (bytes_left := frame_size - len(frame_bytes)) > 0:
-                    frame_bytes += (
-                        in_bytes := main_processes[0].stdout.read(bytes_left)
-                    )
+                frame_pos = 0
+                while frame_pos < frame_size:
+                    frame_view = memoryview(frame_buffer)[frame_pos:]
+                    in_bytes = main_processes[0].stdout.readinto(frame_view)
                     if not in_bytes:
                         main_processes[0].terminate()
                         break
+                    frame_pos += in_bytes
 
-                if len(frame_bytes) != frame_size:
+                if frame_pos != frame_size:
                     continue
-                frame = np.frombuffer(frame_bytes, np.uint8).reshape([height, width, 3])
+                frame = np.frombuffer(frame_buffer, np.uint8).reshape(
+                    [decode_height, decode_width, 3]
+                )
 
                 if detect_enabled:
-                    # TODO: Do detection on frame
-                    pass
+                    results = model.track(frame, half=True, verbose=False)
 
                 if drawbox_enabled:
-                    # TODO: Do drawbox on frame
-                    main_processes[1].stdin.write(frame.astype(np.uint8).tobytes())
+                    frame = results[0].plot()
+                    main_processes[1].stdin.write(frame.tobytes())
+
+                counter += 1
+                if counter == int(frame_rate) * 10:
+                    end = time.time()
+                    fps = counter / (end - start)
+                    print(f"{camera_id}: {fps} fps")
+                    counter = 0
+                    start = end
 
         else:
             print()
@@ -310,6 +340,7 @@ def handle_stream(camera_id):
     kill(record_process.pid, SIGINT)
     record_process.join()
 
+    camera.refresh_from_db()
     camera.last_ping = None
     camera.save()
 
@@ -375,6 +406,7 @@ def segment_h264(camera, input_fifo_path, record_path, mp4_params):
                     )
                     record_process = record_cmd.run_async(pipe_stdin=True)
 
+                    camera.refresh_from_db()
                     camera.last_ping = current_date
                     camera.save()
 

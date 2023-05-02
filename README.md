@@ -5,8 +5,9 @@ noun    a turret or tower attached to a building and providing an extensive view
 ```
 
 ## System requirements
-- 4GB memory
-- 20GB storage
+- 4GB RAM per detection-enabled camera
+- 2GB VRAM per detection-enabled camera
+- 32GB storage (not including recordings)
 
 ## Install dependencies
 ```shell
