@@ -1,5 +1,7 @@
 [Unit]
 Description=Mirador worker for camera %i
+Requires=mnt-watchtower.mount
+After=mnt-watchtower.mount
 #StartLimitIntervalSec=10
 #StartLimitBurst=5
 
