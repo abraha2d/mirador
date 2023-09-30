@@ -1,5 +1,4 @@
-import HlsJs from "hls.js";
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useContext } from "react";
 import { Button, Spinner } from "react-bootstrap";
 import { Download, ExclamationCircle } from "react-bootstrap-icons";
 import { useDrag, useDrop } from "react-dnd";
@@ -8,13 +7,14 @@ import {
   FullScreenHandle,
   useFullScreenHandle,
 } from "react-full-screen";
-import ReactHlsPlayer from "react-hls-player";
 
 import { Context } from "components/Store";
 import { START_STREAM } from "components/Store/constants";
-import { Stream, Video } from "components/Store/types";
+import { Stream } from "components/Store/types";
 import { DragItemTypes, DragObjectWithPayload } from "utils";
 
+import useCurrentVideos from "./useCurrentVideos";
+import { isVideo } from "./utils";
 import "./StreamContainer.css";
 
 type StreamContainerProps = {
@@ -34,16 +34,10 @@ export const StreamContainer = ({
   onDrag,
   fullscreenHandle,
 }: StreamContainerProps) => {
-  const [
-    { cameras, date, isPlaying, isMuted, playbackSpeed, videos },
-    dispatch,
-  ] = useContext(Context);
+  const [{ cameras }, dispatch] = useContext(Context);
   const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const handle = useFullScreenHandle();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isLoading, setLoading] = useState(false);
-  const [isError, setError] = useState(false);
 
   const [{ isOver, itemType }, drop] = useDrop({
     accept: [DragItemTypes.CAMERA, DragItemTypes.STREAM],
@@ -93,111 +87,7 @@ export const StreamContainer = ({
     end: () => onDrag(false),
   });
 
-  const source =
-    camera && camera.lastPing && date > camera.lastPing
-      ? stream
-      : videos.find(
-          (video) =>
-            video.camera === camera?.id &&
-            video.startDate < date &&
-            video.endDate > date
-        );
-
-  const isVideo = (source: Stream | Video | undefined): source is Video =>
-    !!source && "file" in source;
-  const isStream = (source: Stream | Video | undefined): source is Stream =>
-    !!source && !isVideo(source);
-
-  const sourceUrl = isVideo(source)
-    ? source.file
-    : isStream(source)
-    ? `/stream/${source.id}/out.m3u8`
-    : "";
-
-  const isHLS = isStream(source) && HlsJs.isSupported();
-
-  const video = useMemo(
-    () =>
-      isHLS ? (
-        <ReactHlsPlayer
-          playerRef={videoRef}
-          src={sourceUrl}
-          className="w-100 h-100"
-          autoPlay
-          onLoadStart={() => setLoading(true)}
-          onError={() => {
-            setLoading(false);
-            setError(true);
-          }}
-          onCanPlay={() => {
-            setLoading(false);
-            setError(false);
-          }}
-        />
-      ) : (
-        <video
-          ref={videoRef}
-          src={sourceUrl}
-          className="w-100 h-100"
-          autoPlay
-          onLoadStart={() => setLoading(true)}
-          onError={() => {
-            setLoading(false);
-            setError(true);
-          }}
-          onCanPlay={() => {
-            setLoading(false);
-            setError(false);
-          }}
-        />
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [stream, isHLS]
-  );
-
-  useEffect(() => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = isMuted;
-  }, [isLoading, isMuted]);
-
-  useEffect(() => {
-    if (!videoRef.current) return;
-    isPlaying ? videoRef.current.play() : videoRef.current.pause();
-  }, [isLoading, isPlaying]);
-
-  useEffect(() => {
-    if (!videoRef.current) return;
-    if (isNaN(videoRef.current.duration)) return;
-    const speedComp =
-      isVideo(source) && !isNaN(videoRef.current.duration)
-        ? videoRef.current.duration /
-          ((+source.endDate - +source.startDate) / 1000)
-        : 1;
-    try {
-      videoRef.current.playbackRate = speedComp * playbackSpeed;
-    } catch (error) {
-      console.log(error);
-    }
-  }, [isLoading, source, playbackSpeed]);
-
-  useEffect(() => {
-    if (!videoRef.current || isHLS) return;
-    videoRef.current.src = sourceUrl;
-  }, [isHLS, sourceUrl]);
-
-  useEffect(() => {
-    if (!videoRef.current || isNaN(videoRef.current.duration) || !source)
-      return;
-    const selectedTime = isVideo(source)
-      ? ((+date - +source.startDate) / 1000) *
-        (videoRef.current.duration /
-          ((+source.endDate - +source.startDate) / 1000))
-      : videoRef.current.duration - (+new Date() - +date) / 1000;
-    if (Math.abs(selectedTime - videoRef.current.currentTime) > 2) {
-      console.log("ADJUSTING");
-      videoRef.current.currentTime = selectedTime;
-    }
-  }, [date, source]);
+  const { isError, isLoading, source, videoList } = useCurrentVideos(stream);
 
   return (
     <div
@@ -232,13 +122,13 @@ export const StreamContainer = ({
           pointerEvents: isOver ? "auto" : "none",
         }}
       />
-      {sourceUrl && (
+      {source && (
         <FullScreen handle={handle} className="h-100">
           <div
             ref={drag}
             className="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
           >
-            {video}
+            {videoList}
             {(isLoading || isError) && (
               <>
                 <div
