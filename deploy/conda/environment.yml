@@ -3,6 +3,7 @@ dependencies:
   - django
   - django-colorfield
   - django-debug-toolbar
+  - django-oauth-toolkit
   - djangorestframework
   - drf-spectacular
   - ffmpeg-python
@@ -17,7 +18,5 @@ dependencies:
   - pytorch-cuda =11.8
   - torchaudio
   - torchvision =0.15.1
+  - ultralytics
   - yarn =1
-  - pip:
-      - django-oauth-toolkit
-      - ultralytics
