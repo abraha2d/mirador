@@ -7,6 +7,7 @@ Description=Mirador reverse proxy
 Type=forking
 PIDFile=/run/mproxy.pid
 ExecStartPre=/opt/mirador/deploy/envs/_base/bin/nginx -c ../../nginx/proxy.conf -t
+ExecStartPre=/usr/bin/mkdir -p /var/tmp/mproxy
 ExecStart=/opt/mirador/deploy/envs/_base/bin/nginx -c ../../nginx/proxy.conf
 ExecReload=/opt/mirador/deploy/envs/_base/bin/nginx -c ../../nginx/proxy.conf -s reload
 ExecStop=/bin/kill -s QUIT $MAINPID

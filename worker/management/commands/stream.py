@@ -1,8 +1,9 @@
 import sys
 import time
+
 from datetime import timedelta
 from multiprocessing import Process
-from os import kill, mkfifo, makedirs
+from os import kill, mkfifo, makedirs, sched_getaffinity, sched_setaffinity
 from os.path import join
 from shutil import rmtree
 from signal import SIGINT
@@ -136,7 +137,7 @@ def handle_stream(camera_id):
     encode_enabled = drawtext_enabled or drawbox_enabled
     copy_enabled = not encode_enabled and (codec_name == "h264")
 
-    decode_width, decode_height = 1920, 1080
+    decode_width, decode_height = 1280, 720
 
     print()
     print(f"{camera_id}: Pipeline configuration:")
@@ -151,6 +152,12 @@ def handle_stream(camera_id):
     vaapi_available = False
 
     # TODO: Hardware-accelerate decode
+    if nvdec_available:
+        decode_params = {"hwaccel": "cuda"}
+    elif vaapi_available:
+        decode_params = {"hwaccel": "vaapi"}
+    else:
+        decode_params = {}
 
     if copy_enabled:
         vcodec_encode = "copy"
@@ -203,6 +210,7 @@ def handle_stream(camera_id):
         ffmpeg.input(
             stream_url,
             **global_params,
+            **decode_params,
             **rtsp_params,
         )
     ]
@@ -246,12 +254,15 @@ def handle_stream(camera_id):
 
         print(f"{camera_id}: Loading YOLOv8 model...", flush=True)
         model = YOLO("yolov8n.pt")
-        print(f"{camera_id}: Loaded yolov8n.pt.")
-
-        print(f"{camera_id}: Priming tracker...", flush=True)
         frame = np.zeros([decode_height, decode_width, 3])
         model.track(frame, half=True, verbose=False)
-        print(f"{camera_id}: Primed with zeroes.")
+        print(f"{camera_id}: Loaded yolov8n.pt.")
+
+        print(f"{camera_id}: Setting CPU affinity...", flush=True)
+        cpus = list(sched_getaffinity(0))
+        affinity = {cpus[camera_id % len(cpus)]}
+        sched_setaffinity(0, affinity)
+        print(f"{camera_id}: Set affinity to {affinity}.")
 
     print()
     print(f"{camera_id}: Starting stream...", flush=True)
@@ -306,6 +317,7 @@ def handle_stream(camera_id):
 
                 if detect_enabled:
                     results = model.track(frame, half=True, verbose=False)
+                    pass
 
                 if drawbox_enabled:
                     frame = results[0].plot()
