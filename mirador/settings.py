@@ -168,3 +168,5 @@ CSRF_TRUSTED_ORIGINS = [
     "http://mirador",
     "https://mirador.westhousefarm.com",
 ]
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

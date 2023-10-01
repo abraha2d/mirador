@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Black">
+    <option name="enabledOnReformat" value="true" />
+    <option name="enabledOnSave" value="true" />
+    <option name="executionMode" value="BINARY" />
+    <option name="pathToExecutable" value="/usr/local/bin/black" />
+    <option name="sdkUUID" value="544af7ee-0598-4262-bb8f-681b0df22a18" />
+  </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="$PROJECT_DIR$/deploy/envs/_base" project-jdk-type="Python SDK" />
 </project>
