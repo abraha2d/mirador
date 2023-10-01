@@ -1,6 +1,6 @@
 from errno import ENXIO
 
-from select import select
+from select import PIPE_BUF, select
 
 import ffmpeg
 import os
@@ -118,12 +118,13 @@ def segment_h264(
                     h264_buffer.extend(os.read(h264_in_fd.fileno(), READ_MAX_SIZE))
 
                 if h264_out_fd in wlist and len(h264_buffer) > H264_NALU_HEADER_SIZE:
-                    flush_to = h264_buffer.find(
+                    flush_to = h264_buffer.rfind(
                         H264_NALU_HEADER,
                         H264_NALU_HEADER_SIZE,
                     )
                     if flush_to == -1:
-                        flush_to = -H264_NALU_HEADER_SIZE
+                        flush_to = len(h264_buffer) - H264_NALU_HEADER_SIZE
+                    flush_to = min(flush_to, PIPE_BUF)
                     os.write(h264_out_fd.fileno(), h264_buffer[:flush_to])
                     del h264_buffer[:flush_to]
 
@@ -171,12 +172,15 @@ def segment_h264(
     rawaudio_out_fd.close()
 
     if record_process is not None:
-        record_process.terminate()
+        try:
+            record_process.wait(5)
+        except TimeoutExpired:
+            record_process.terminate()
         try:
             record_process.wait(5)
         except TimeoutExpired:
             record_process.kill()
-            record_process.wait()
+        record_process.wait()
 
     if start_date is not None:
         file_path = start_date.strftime(record_path)

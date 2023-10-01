@@ -156,7 +156,7 @@ def get_stream_config(camera: Camera):
     except ZeroDivisionError:
         frame_rate = get_frame_rate(video_stream, "r_frame_rate")
 
-    # TODO: allow force-disabling audio
+    # TODO: allow disabling audio
     has_audio = get_stream(probe, "audio") is not None
 
     return stream_url, codec, size, frame_rate, has_audio, rtsp_params
@@ -164,6 +164,7 @@ def get_stream_config(camera: Camera):
 
 def get_transcode_params(copy_enabled: bool):
     # TODO: actually detect hwaccel
+    # TODO: allow disabling hwaccel
     nvdec_available = True
     nvenc_available = True
     vaapi_available = False
