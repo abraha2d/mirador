@@ -15,9 +15,38 @@ from worker.management.commands.constants import (
     FF_GLOBAL_ARGS,
     H264_EXT,
     H264_NALU_HEADER,
+    H264_NALU_HEADER_SIZE,
     RAWAUDIO_EXT,
+    RAWAUDIO_SAMPLE_SIZE,
+    READ_MAX_SIZE,
+    RECORD_SEGMENT_MINS,
 )
 from worker.management.commands.utils import mkfifotemp
+
+
+class LazyFD:
+    def __init__(self, path: str, flags: int):
+        self.path = path
+        self.flags = flags
+        self._fileno = None
+
+    def close(self):
+        if self._fileno is not None:
+            os.close(self._fileno)
+            self._fileno = None
+
+    def fileno(self):
+        if self._fileno is None:
+            try:
+                self._fileno = os.open(self.path, self.flags | O_NONBLOCK)
+            except OSError as e:
+                if e.errno != ENXIO:
+                    raise e
+        return self._fileno
+
+
+def filter_fds(fds: list[LazyFD]):
+    return [fd for fd in fds if fd.fileno() is not None]
 
 
 def segment_h264(
@@ -28,11 +57,13 @@ def segment_h264(
     rawaudio_in_path: str,
     rawaudio_params,
 ):
-    h264_in_fd, h264_buffer = None, bytearray()
-    h264_out_path, h264_out_fd = mkfifotemp(H264_EXT), None
+    h264_in_fd = LazyFD(h264_in_path, O_RDONLY)
+    h264_buffer, h264_out_path = bytearray(), mkfifotemp(H264_EXT)
+    h264_out_fd = LazyFD(h264_out_path, O_WRONLY)
 
-    rawaudio_in_fd, rawaudio_buffer = None, bytearray()
-    rawaudio_out_path, rawaudio_out_fd = mkfifotemp(RAWAUDIO_EXT), None
+    rawaudio_in_fd = LazyFD(rawaudio_in_path, O_RDONLY)
+    rawaudio_buffer, rawaudio_out_path = bytearray(), mkfifotemp(RAWAUDIO_EXT)
+    rawaudio_out_fd = LazyFD(rawaudio_out_path, O_WRONLY)
 
     ffmpeg_input = (
         ffmpeg.input(
@@ -58,8 +89,8 @@ def segment_h264(
         while True:
             start_date = current_date
             next_split = start_date.replace(
-                minute=start_date.minute // 15 * 15
-            ) + timedelta(minutes=15)
+                minute=start_date.minute // RECORD_SEGMENT_MINS * RECORD_SEGMENT_MINS
+            ) + timedelta(minutes=RECORD_SEGMENT_MINS)
             file_path = start_date.strftime(record_path)
 
             record_cmd = (
@@ -76,81 +107,50 @@ def segment_h264(
             camera.last_ping = current_date
             camera.save()
 
-            rfds = []
-            wfds = []
-
             while True:
-                if h264_in_fd is None:
-                    try:
-                        h264_in_fd = os.open(h264_in_path, O_RDONLY | O_NONBLOCK)
-                        rfds.append(h264_in_fd)
-                    except OSError as e:
-                        if e.errno != ENXIO:
-                            raise e
-
-                if h264_out_fd is None:
-                    try:
-                        h264_out_fd = os.open(h264_out_path, O_WRONLY | O_NONBLOCK)
-                        wfds.append(h264_out_fd)
-                    except OSError as e:
-                        if e.errno != ENXIO:
-                            raise e
-
-                if rawaudio_in_fd is None:
-                    try:
-                        rawaudio_in_fd = os.open(
-                            rawaudio_in_path, O_RDONLY | O_NONBLOCK
-                        )
-                        rfds.append(rawaudio_in_fd)
-                    except OSError as e:
-                        if e.errno != ENXIO:
-                            raise e
-
-                if rawaudio_out_fd is None:
-                    try:
-                        rawaudio_out_fd = os.open(
-                            rawaudio_out_path, O_WRONLY | O_NONBLOCK
-                        )
-                        wfds.append(rawaudio_out_fd)
-                    except OSError as e:
-                        if e.errno != ENXIO:
-                            raise e
-
-                rlist, wlist, _ = select(rfds, wfds, [])
+                rlist, wlist, _ = select(
+                    filter_fds([h264_in_fd, rawaudio_in_fd]),
+                    filter_fds([h264_out_fd, rawaudio_out_fd]),
+                    [],
+                )
 
                 if h264_in_fd in rlist:
-                    h264_buffer.extend(os.read(h264_in_fd, 1048576))
+                    h264_buffer.extend(os.read(h264_in_fd.fileno(), READ_MAX_SIZE))
 
-                if h264_out_fd in wlist and len(h264_buffer) > len(H264_NALU_HEADER):
+                if h264_out_fd in wlist and len(h264_buffer) > H264_NALU_HEADER_SIZE:
                     flush_to = h264_buffer.find(
                         H264_NALU_HEADER,
-                        len(H264_NALU_HEADER),
+                        H264_NALU_HEADER_SIZE,
                     )
                     if flush_to == -1:
-                        flush_to = -len(H264_NALU_HEADER)
-                    os.write(h264_out_fd, h264_buffer[:flush_to])
+                        flush_to = -H264_NALU_HEADER_SIZE
+                    os.write(h264_out_fd.fileno(), h264_buffer[:flush_to])
                     del h264_buffer[:flush_to]
 
                 if rawaudio_in_fd in rlist:
-                    rawaudio_buffer.extend(os.read(rawaudio_in_fd, 1048576))
+                    rawaudio_buffer.extend(
+                        os.read(rawaudio_in_fd.fileno(), READ_MAX_SIZE)
+                    )
 
-                if rawaudio_out_fd in wlist and len(rawaudio_buffer):
-                    os.write(rawaudio_out_fd, rawaudio_buffer)
-                    del rawaudio_buffer[:]
+                if rawaudio_out_fd in wlist and len(rawaudio_buffer) > 0:
+                    flush_to = (
+                        len(rawaudio_buffer)
+                        // RAWAUDIO_SAMPLE_SIZE
+                        * RAWAUDIO_SAMPLE_SIZE
+                    )
+                    os.write(rawaudio_out_fd.fileno(), rawaudio_buffer[:flush_to])
+                    del rawaudio_buffer[:flush_to]
 
                 if (
-                    h264_buffer[: len(H264_NALU_HEADER)] == H264_NALU_HEADER
+                    h264_buffer[:H264_NALU_HEADER_SIZE] == H264_NALU_HEADER
                     and timezone.now() > next_split
                 ):
                     break
 
             current_date = timezone.now()
 
-            os.close(h264_out_fd)
-            h264_out_fd = None
-
-            os.close(rawaudio_out_fd)
-            rawaudio_out_fd = None
+            h264_out_fd.close()
+            rawaudio_out_fd.close()
 
             record_process.wait()
             Video.objects.create(
@@ -164,11 +164,11 @@ def segment_h264(
         print_exception(e)
         pass
 
-    if h264_out_fd is not None:
-        os.close(h264_out_fd)
+    h264_in_fd.close()
+    h264_out_fd.close()
 
-    if rawaudio_out_fd is not None:
-        os.close(rawaudio_out_fd)
+    rawaudio_in_fd.close()
+    rawaudio_out_fd.close()
 
     if record_process is not None:
         record_process.terminate()
