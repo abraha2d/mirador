@@ -1,6 +1,7 @@
 import sys
 import time
 from errno import ENXIO
+from subprocess import TimeoutExpired
 
 from select import select
 
@@ -385,7 +386,8 @@ def handle_stream(camera_id):
 
     print()
     print(f"{camera_id}: Waiting for segmented recorder...", flush=True)
-    # kill(record_process.pid, SIGINT)
+    if not manual_exit:
+        kill(record_process.pid, SIGINT)
     record_process.join()
 
     camera.refresh_from_db()
@@ -545,7 +547,12 @@ def segment_h264(
         os.close(s16le_out_fd)
 
     if record_process is not None:
-        record_process.wait()
+        record_process.terminate()
+        try:
+            record_process.wait(5)
+        except TimeoutExpired:
+            record_process.kill()
+            record_process.wait()
 
     if start_date is not None:
         file_path = start_date.strftime(record_path)
