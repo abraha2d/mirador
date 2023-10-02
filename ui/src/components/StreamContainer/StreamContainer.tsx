@@ -79,7 +79,7 @@ export const StreamContainer = ({
     type: DragItemTypes.STREAM,
     item: () => {
       onDrag(true);
-      return { stream };
+      return { type: DragItemTypes.STREAM, stream };
     },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),

@@ -19,7 +19,7 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
   const [{ isDragging }, drag] = useDrag({
     canDrag: camera.enabled,
     type: DragItemTypes.CAMERA,
-    item: { camera },
+    item: { type: DragItemTypes.CAMERA, camera },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
