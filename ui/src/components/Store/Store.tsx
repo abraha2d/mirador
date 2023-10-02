@@ -2,15 +2,17 @@ import React, { createContext, useReducer } from "react";
 import Reducer from "./reducer";
 import { ContextType, StateType } from "./types";
 
+const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
 const initialState: StateType = {
   cameras: [],
   date: new Date(),
   gridSize: 1,
-  isDarkMode: false,
+  isDarkMode: darkModeQuery.matches,
   isMuted: false,
   isPlaying: true,
   isScrubbing: false,
-  colorMode: "light",
+  colorMode: darkModeQuery.matches ? "dark" : "light",
   playbackSpeed: 1,
   streams: new Map(),
   streamIds: [],
