@@ -1,6 +1,6 @@
 import { isEqual } from "lodash";
 import React, { useContext, useEffect, useState } from "react";
-import { Spinner, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import { ButtonGroup, Spinner, ToggleButton } from "react-bootstrap";
 import { ExclamationTriangleFill, TrashFill } from "react-bootstrap-icons";
 import { useDrop } from "react-dnd";
 
@@ -87,12 +87,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       <div className="pb-2 d-flex justify-content-between">
         <span>Cameras</span>
       </div>
-      <ToggleButtonGroup
-        type="checkbox"
-        value={streamIds}
-        vertical
-        className="w-100"
-      >
+      <ButtonGroup vertical className="w-100">
         <div
           ref={drop}
           className={`
@@ -135,7 +130,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             key={camera.id}
             camera={camera}
             selected={streamIds.includes(camera.id)}
-            onChange={(id) => {
+            onClick={(id) => {
               if (streamIds.includes(id)) {
                 dispatch?.({
                   type: STOP_STREAM,
@@ -155,7 +150,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
             }}
           />
         ))}
-      </ToggleButtonGroup>
+      </ButtonGroup>
     </>
   );
 };

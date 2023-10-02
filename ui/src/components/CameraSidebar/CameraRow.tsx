@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { ToggleButton } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { CameraVideoFill, CircleFill } from "react-bootstrap-icons";
 import { useDrag } from "react-dnd";
 
@@ -10,14 +10,13 @@ import { Context } from "../Store";
 type CameraRowProps = {
   camera: Camera;
   selected: boolean;
-  onChange: (idx: number) => void;
+  onClick: (idx: number) => void;
 };
 
-export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
+export const CameraRow = ({ camera, selected, onClick }: CameraRowProps) => {
   const [{ colorMode }] = useContext(Context);
 
   const [{ isDragging }, drag] = useDrag({
-    canDrag: camera.enabled,
     type: DragItemTypes.CAMERA,
     item: { type: DragItemTypes.CAMERA, camera },
     collect: (monitor) => ({
@@ -26,15 +25,13 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
   });
 
   return (
-    <ToggleButton
+    <Button
       id={`CameraRow-${camera.id}`}
       ref={drag}
-      type="checkbox"
       value={camera.id}
       variant={selected || isDragging ? "primary" : colorMode}
       className={`d-flex align-items-center ${camera.enabled || "abled"}`}
-      // disabled={!camera.enabled}
-      onChange={() => onChange(camera.id)}
+      onClick={() => onClick(camera.id)}
     >
       <CameraVideoFill className="me-2" />
       <span className="flex-grow-1 text-start text-truncate">
@@ -50,7 +47,7 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
         }
         width="0.5em"
       />
-    </ToggleButton>
+    </Button>
   );
 };
 

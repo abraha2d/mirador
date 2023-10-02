@@ -17,6 +17,6 @@ label.disabled {
   margin-right: 0.25em;
 }
 
-.abled.btn-light {
-  color: #212529a6 !important;
+.abled:not(.btn-primary) {
+  opacity: 0.65;
 }

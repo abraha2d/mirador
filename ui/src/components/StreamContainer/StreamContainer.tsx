@@ -89,6 +89,15 @@ export const StreamContainer = ({
 
   const { isError, isLoading, source, videoList } = useCurrentVideos(stream);
 
+  const cameraName = camera && (
+    <span
+      className="position-absolute w-100 p-1 bg-dark opacity-75 text-center text-truncate text-light"
+      style={{ bottom: 0 }}
+    >
+      {camera.name}
+    </span>
+  );
+
   return (
     <div
       ref={drop}
@@ -110,7 +119,7 @@ export const StreamContainer = ({
           isDragging
             ? "bg-secondary"
             : isOver
-            ? source
+            ? stream
               ? itemType === DragItemTypes.CAMERA
                 ? "bg-danger"
                 : "bg-info"
@@ -122,7 +131,7 @@ export const StreamContainer = ({
           pointerEvents: isOver ? "auto" : "none",
         }}
       />
-      {source && (
+      {source ? (
         <FullScreen handle={handle} className="h-100">
           <div
             ref={drag}
@@ -146,14 +155,7 @@ export const StreamContainer = ({
                     isError && <ExclamationCircle color="white" size="2.5em" />
                   )}
                 </div>
-                {camera && (
-                  <span
-                    className="position-absolute w-100 p-1 bg-dark opacity-75 text-center text-truncate text-light"
-                    style={{ bottom: 0 }}
-                  >
-                    {camera.name}
-                  </span>
-                )}
+                {cameraName}
               </>
             )}
             {isVideo(source) && (
@@ -170,6 +172,10 @@ export const StreamContainer = ({
             )}
           </div>
         </FullScreen>
+      ) : (
+        <div ref={drag} className="h-100">
+          {cameraName}
+        </div>
       )}
     </div>
   );
