@@ -271,7 +271,7 @@ export const Timeline = () => {
           >
             <div
               ref={draggerRef}
-              className="timeline-stream-bar position-absolute pe-all"
+              className="timeline-stream-bar position-absolute pe-auto"
               style={{
                 width: `${100 * zoom}%`,
                 left: `${50 - getPercentFromDate(date) * 100 * zoom}%`,
@@ -349,7 +349,7 @@ export const Timeline = () => {
               <input
                 type="time"
                 step={1}
-                className="pe-all"
+                className="pe-auto"
                 value={timeEdit}
                 autoFocus
                 onChange={(e) => setTimeEdit(e.target.value)}
@@ -365,7 +365,7 @@ export const Timeline = () => {
               />
             ) : (
               <span
-                className="pe-all"
+                className="pe-auto"
                 tabIndex={-1}
                 onFocus={() => {
                   setShowTimeEdit(true);
@@ -423,8 +423,12 @@ export const Timeline = () => {
           style={{
             display: hoverLocation === -1 ? "none" : "block",
             left: `${hoverLocation}px`,
+            position: "absolute",
           }}
-          arrowProps={{ ref: () => {}, style: { left: "35px" } }}
+          arrowProps={{
+            ref: () => {},
+            style: { left: "35px", position: "absolute" },
+          }}
         >
           {hoverDate.toLocaleString()}
         </Tooltip>
@@ -439,7 +443,7 @@ export const Timeline = () => {
             {isPlaying ? <PauseFill /> : <PlayFill />}
           </Button>
           <Dropdown.Toggle split variant="light" />
-          <Dropdown.Menu align="right" className="text-nowrap">
+          <Dropdown.Menu align="end" className="text-nowrap">
             <ButtonGroup className="px-2">
               <Button
                 variant={playbackSpeed === 0.125 ? "secondary" : "light"}
@@ -503,7 +507,7 @@ export const Timeline = () => {
       </ButtonGroup>
       <Button
         variant="light"
-        className="flex-grow-0 ml-2 d-flex align-items-center"
+        className="flex-grow-0 ms-2 d-flex align-items-center"
         disabled={+now - +date < 2000 && isPlaying}
         onClick={() => {
           dispatch?.({ type: SET_DATE, payload: new Date() });

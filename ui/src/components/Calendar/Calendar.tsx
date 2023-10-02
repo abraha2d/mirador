@@ -1,5 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Button, ButtonGroup, Popover, Spinner } from "react-bootstrap";
+import {
+  Button,
+  ButtonGroup,
+  PopoverBody,
+  PopoverHeader,
+  Spinner,
+} from "react-bootstrap";
 import { CaretLeftFill, CaretRightFill } from "react-bootstrap-icons";
 
 import { Context } from "components/Store";
@@ -73,7 +79,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
 
   return (
     <>
-      <Popover.Title
+      <PopoverHeader
         className={`d-flex align-items-center justify-content-between ${
           isError && "bg-danger"
         }`}
@@ -91,15 +97,15 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
           className="d-flex"
           onClick={() => setMonth(thisMonth)}
         >
-          <div className="mr-2" style={{ width: "1rem", height: "1rem" }} />
+          <div className="me-2" style={{ width: "1rem", height: "1rem" }} />
           {month.toLocaleString("default", {
             month: "long",
             year: "numeric",
           })}
           {isLoading ? (
-            <Spinner animation="border" size="sm" className="ml-2" />
+            <Spinner animation="border" size="sm" className="ms-2" />
           ) : (
-            <div className="ml-2" style={{ width: "1rem", height: "1rem" }} />
+            <div className="ms-2" style={{ width: "1rem", height: "1rem" }} />
           )}
         </Button>
         <Button
@@ -110,8 +116,8 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         >
           <CaretRightFill />
         </Button>
-      </Popover.Title>
-      <Popover.Content>
+      </PopoverHeader>
+      <PopoverBody>
         <div
           className="calendar-body"
           style={{
@@ -160,7 +166,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
             </ButtonGroup>
           ))}
         </div>
-      </Popover.Content>
+      </PopoverBody>
     </>
   );
 };

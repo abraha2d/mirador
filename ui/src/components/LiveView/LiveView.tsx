@@ -24,7 +24,7 @@ export const LiveView = () => {
           >
             <div
               className={`live-view-container ${
-                handle.active ? "" : "bg-dark border-top border-left"
+                handle.active ? "" : "bg-dark border-top border-start"
               }`}
             >
               {[...Array(4).keys()].map((i) =>

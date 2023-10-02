@@ -17,38 +17,6 @@ label.disabled {
   margin-right: 0.25em;
 }
 
-.left-0 {
-  left: 0;
-}
-
-.right-0 {
-  right: 0;
-}
-
-.top-0 {
-  top: 0;
-}
-
-.bottom-0 {
-  bottom: 0;
-}
-
-.opacity-50 {
-  opacity: 0.5;
-}
-
-.opacity-75 {
-  opacity: 0.75;
-}
-
-.pe-all {
-  pointer-events: all;
-}
-
-.pe-none {
-  pointer-events: none;
-}
-
 .abled.btn-light {
   color: #212529a6 !important;
 }

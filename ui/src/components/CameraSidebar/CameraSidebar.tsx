@@ -109,22 +109,24 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         </div>
         {isLoading && (isError || cameras.length === 0) && (
           <ToggleButton
+            id={"CameraSidebar-loading"}
             value={-1}
             variant="light"
             className="d-flex align-items-center"
             disabled
           >
-            <Spinner animation="border" size="sm" className="mr-2" />
+            <Spinner animation="border" size="sm" className="me-2" />
             <span>Loading...</span>
           </ToggleButton>
         )}
         {isError && !isLoading && (
           <ToggleButton
+            id={"CameraSidebar-error"}
             value={-1}
             variant="danger"
             className="d-flex align-items-center"
           >
-            <ExclamationTriangleFill className="mr-2" />
+            <ExclamationTriangleFill className="me-2" />
             <span>An error occurred.</span>
           </ToggleButton>
         )}

@@ -93,7 +93,7 @@ export const StreamContainer = ({
     <div
       ref={drop}
       className={`stream-container ${
-        fullscreenHandle.active ? "" : "border-right border-bottom"
+        fullscreenHandle.active ? "" : "border-end border-bottom"
       }`}
       style={{
         left: `${x * (100 / gridSide)}%`,
@@ -159,7 +159,7 @@ export const StreamContainer = ({
             {isVideo(source) && (
               <Button
                 variant="dark"
-                className="position-absolute top-0 right-0 m-3 opacity-50"
+                className="position-absolute top-0 end-0 m-3 opacity-50"
                 href={source.file}
                 // @ts-ignore `download` will be passed down through Button to
                 // the underlying HTML <a> tag (guaranteed by the `href` prop).

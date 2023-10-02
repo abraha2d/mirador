@@ -24,6 +24,7 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
 
   return (
     <ToggleButton
+      id={`CameraRow-${camera.id}`}
       ref={drag}
       type="checkbox"
       value={camera.id}
@@ -32,8 +33,10 @@ export const CameraRow = ({ camera, selected, onChange }: CameraRowProps) => {
       // disabled={!camera.enabled}
       onChange={() => onChange(camera.id)}
     >
-      <CameraVideoFill className="mr-2" />
-      <span className="flex-grow-1 text-left text-truncate">{camera.name}</span>
+      <CameraVideoFill className="me-2" />
+      <span className="flex-grow-1 text-start text-truncate">
+        {camera.name}
+      </span>
       <CircleFill
         className={
           camera.enabled

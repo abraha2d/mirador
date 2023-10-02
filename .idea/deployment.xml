@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" promptOnRemoteOverwrite="CHECK_CONTENT" serverName="mirador" deleteMissingItems="true" createEmptyFolders="true" preserveFilePermissions="true" autoUploadExternalChanges="true" notifyRemoteChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" promptOnRemoteOverwrite="CHECK_CONTENT" serverName="mirador" deleteMissingItems="true" createEmptyFolders="true" preserveFilePermissions="true" confirmBeforeDeletion="false" autoUploadExternalChanges="true" notifyRemoteChanges="true">
+    <option name="confirmBeforeDeletion" value="false" />
     <serverData>
       <paths name="mirador">
         <serverdata>
@@ -13,7 +14,7 @@
             <excludedPath path="/db.sqlite3" />
             <excludedPath path="/db.sqlite3-shm" />
             <excludedPath path="/db.sqlite3-wal" />
-            <excludedPath local="true" path="/ui" />
+            <excludedPath path="/ui/node_modules" />
           </excludedPaths>
         </serverdata>
       </paths>

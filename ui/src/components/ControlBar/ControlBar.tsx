@@ -27,7 +27,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
   const [{ gridSize, isMuted }, dispatch] = useContext(Context);
   return (
     <div className={`control-bar ${fullscreenHandle.active ? "" : "bg-dark"}`}>
-      <ButtonToolbar className="pr-2">
+      <ButtonToolbar className="pe-2">
         <DropdownButton
           drop="up"
           title={<Grid3x3 className="gridsize-dropup-icon" />}
@@ -48,7 +48,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
         </DropdownButton>
       </ButtonToolbar>
       <Timeline />
-      <ButtonToolbar className="pl-2">
+      <ButtonToolbar className="ps-2">
         <Button
           variant="light"
           className="d-flex align-items-center"
@@ -62,7 +62,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
         </Button>
         <Button
           variant={fullscreenHandle.active ? "primary" : "light"}
-          className="ml-2 d-flex align-items-center"
+          className="ms-2 d-flex align-items-center"
           onClick={
             fullscreenHandle.active
               ? fullscreenHandle.exit
