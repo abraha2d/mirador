@@ -24,21 +24,22 @@ export type ControlBarProps = {
 };
 
 export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
-  const [{ gridSize, isMuted }, dispatch] = useContext(Context);
+  const [{ colorMode, gridSize, isDarkMode, isMuted }, dispatch] =
+    useContext(Context);
   return (
     <div className={`control-bar ${fullscreenHandle.active ? "" : "bg-dark"}`}>
       <ButtonToolbar className="pe-2">
         <DropdownButton
           drop="up"
           title={<Grid3x3 className="gridsize-dropup-icon" />}
-          variant="light"
+          variant={isDarkMode ? "secondary" : "light"}
           className="p-0"
         >
           <ButtonGroup className="px-2">
             {[1, 4, 9, 16].map((gs) => (
               <Button
                 key={gs}
-                variant={gs === gridSize ? "secondary" : "light"}
+                variant={gs === gridSize ? "secondary" : colorMode}
                 onClick={() => dispatch?.({ type: SET_GRIDSIZE, payload: gs })}
               >
                 {gs}
@@ -50,7 +51,7 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
       <Timeline />
       <ButtonToolbar className="ps-2">
         <Button
-          variant="light"
+          variant={isDarkMode ? "secondary" : "light"}
           className="d-flex align-items-center"
           onClick={() => dispatch?.({ type: SET_MUTED, payload: !isMuted })}
         >
@@ -61,7 +62,13 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
           )}
         </Button>
         <Button
-          variant={fullscreenHandle.active ? "primary" : "light"}
+          variant={
+            fullscreenHandle.active
+              ? "primary"
+              : isDarkMode
+              ? "secondary"
+              : "light"
+          }
           className="ms-2 d-flex align-items-center"
           onClick={
             fullscreenHandle.active

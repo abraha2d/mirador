@@ -1,5 +1,6 @@
 import {
   SET_CAMERAS,
+  SET_DARK_MODE,
   SET_DATE,
   SET_GRIDSIZE,
   SET_MUTED,
@@ -21,6 +22,12 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       return {
         ...state,
         cameras: action.payload,
+      };
+    case SET_DARK_MODE:
+      return {
+        ...state,
+        isDarkMode: action.payload,
+        colorMode: action.payload ? "dark" : "light",
       };
     case SET_DATE:
       return {

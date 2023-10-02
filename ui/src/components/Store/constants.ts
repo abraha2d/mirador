@@ -1,4 +1,5 @@
 export const SET_CAMERAS = "SET_CAMERAS";
+export const SET_DARK_MODE = "SET_DARK_MODE";
 export const SET_DATE = "SET_DATE";
 export const SET_GRIDSIZE = "SET_GRIDSIZE";
 export const SET_MUTED = "SET_MUTED";

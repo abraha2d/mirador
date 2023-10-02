@@ -24,9 +24,11 @@ export type StateType = {
   cameras: Camera[];
   date: Date;
   gridSize: number;
+  isDarkMode: boolean;
   isMuted: boolean;
   isPlaying: boolean;
   isScrubbing: boolean;
+  colorMode: "light" | "dark";
   playbackSpeed: number;
   streams: Map<number, Stream>;
   streamIds: number[];
@@ -37,6 +39,10 @@ export type ActionType =
   | {
       type: "SET_CAMERAS";
       payload: Camera[];
+    }
+  | {
+      type: "SET_DARK_MODE";
+      payload: boolean;
     }
   | {
       type: "SET_DATE";

@@ -23,7 +23,7 @@ type CameraSidebarProps = {
 };
 
 export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
-  const [{ cameras, streamIds }, dispatch] = useContext(Context);
+  const [{ cameras, colorMode, streamIds }, dispatch] = useContext(Context);
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
@@ -111,7 +111,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
           <ToggleButton
             id={"CameraSidebar-loading"}
             value={-1}
-            variant="light"
+            variant={colorMode}
             className="d-flex align-items-center"
             disabled
           >

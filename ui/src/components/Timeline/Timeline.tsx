@@ -52,7 +52,17 @@ let abortController = new AbortController();
 
 export const Timeline = () => {
   const [
-    { cameras, date, isPlaying, isScrubbing, playbackSpeed, streamIds, videos },
+    {
+      cameras,
+      colorMode,
+      date,
+      isDarkMode,
+      isPlaying,
+      isScrubbing,
+      playbackSpeed,
+      streamIds,
+      videos,
+    },
     dispatch,
   ] = useContext(Context);
   const prevDate: Date | undefined = usePrevious(date);
@@ -207,8 +217,10 @@ export const Timeline = () => {
           {({ ref, ...triggerHandler }) => (
             <Button
               ref={ref}
-              variant={isError ? "danger" : "light"}
-              className="flex-grow-0 d-flex align-items-center"
+              variant={isError ? "danger" : isDarkMode ? "secondary" : "light"}
+              className={`flex-grow-0 d-flex align-items-center ${
+                isDarkMode ? "border-0 border-end border-dark" : ""
+              }`}
               {...triggerHandler}
             >
               {isLoading ? (
@@ -434,19 +446,25 @@ export const Timeline = () => {
         </Tooltip>
         <Dropdown as={ButtonGroup} drop="up">
           <Button
-            variant="light"
-            className="flex-grow-0 d-flex align-items-center"
+            variant={isDarkMode ? "secondary" : "light"}
+            className={`flex-grow-0 d-flex align-items-center ${
+              isDarkMode ? "border-0 border-start border-dark" : ""
+            }`}
             onClick={() =>
               dispatch?.({ type: SET_PLAYING, payload: !isPlaying })
             }
           >
             {isPlaying ? <PauseFill /> : <PlayFill />}
           </Button>
-          <Dropdown.Toggle split variant="light" />
+          <Dropdown.Toggle
+            split
+            variant={isDarkMode ? "secondary" : "light"}
+            className={isDarkMode ? "border-0 border-start border-dark" : ""}
+          />
           <Dropdown.Menu align="end" className="text-nowrap">
             <ButtonGroup className="px-2">
               <Button
-                variant={playbackSpeed === 0.125 ? "secondary" : "light"}
+                variant={playbackSpeed === 0.125 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.125 })
                 }
@@ -454,7 +472,7 @@ export const Timeline = () => {
                 <ChevronDoubleLeft />
               </Button>
               <Button
-                variant={playbackSpeed === 0.25 ? "secondary" : "light"}
+                variant={playbackSpeed === 0.25 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.25 })
                 }
@@ -462,7 +480,7 @@ export const Timeline = () => {
                 <ChevronLeft />
               </Button>
               <Button
-                variant={playbackSpeed === 0.5 ? "secondary" : "light"}
+                variant={playbackSpeed === 0.5 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.5 })
                 }
@@ -470,7 +488,7 @@ export const Timeline = () => {
                 <ChevronCompactLeft />
               </Button>
               <Button
-                variant={playbackSpeed === 1 ? "secondary" : "light"}
+                variant={playbackSpeed === 1 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 1 })
                 }
@@ -478,7 +496,7 @@ export const Timeline = () => {
                 <Circle />
               </Button>
               <Button
-                variant={playbackSpeed === 2.5 ? "secondary" : "light"}
+                variant={playbackSpeed === 2.5 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 2.5 })
                 }
@@ -486,7 +504,7 @@ export const Timeline = () => {
                 <ChevronCompactRight />
               </Button>
               <Button
-                variant={playbackSpeed === 6.25 ? "secondary" : "light"}
+                variant={playbackSpeed === 6.25 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 6.25 })
                 }
@@ -494,7 +512,7 @@ export const Timeline = () => {
                 <ChevronRight />
               </Button>
               <Button
-                variant={playbackSpeed === 15.625 ? "secondary" : "light"}
+                variant={playbackSpeed === 15.625 ? "secondary" : colorMode}
                 onClick={() =>
                   dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 15.625 })
                 }
@@ -506,7 +524,7 @@ export const Timeline = () => {
         </Dropdown>
       </ButtonGroup>
       <Button
-        variant="light"
+        variant={isDarkMode ? "secondary" : "light"}
         className="flex-grow-0 ms-2 d-flex align-items-center"
         disabled={+now - +date < 2000 && isPlaying}
         onClick={() => {

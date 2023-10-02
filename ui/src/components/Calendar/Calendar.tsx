@@ -22,7 +22,7 @@ type CalendarProps = {
 let abortController = new AbortController();
 
 export const Calendar = ({ date, onClickDate }: CalendarProps) => {
-  const [{ streamIds }] = useContext(Context);
+  const [{ colorMode, isDarkMode, streamIds }] = useContext(Context);
 
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
@@ -77,23 +77,23 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
 
   const { monthArray, numWeeksPrev, numWeeks } = getMonthArray(month);
 
+  const popoverHeaderVariant = isError ? "danger" : colorMode;
+
   return (
     <>
       <PopoverHeader
-        className={`d-flex align-items-center justify-content-between ${
-          isError && "bg-danger"
-        }`}
+        className={`d-flex align-items-center justify-content-between bg-${popoverHeaderVariant}`}
       >
         <Button
           size="sm"
-          variant={isError ? "danger" : "light"}
+          variant={popoverHeaderVariant}
           onClick={changeMonth(-1)}
         >
           <CaretLeftFill />
         </Button>
         <Button
           size="sm"
-          variant={isError ? "danger" : "light"}
+          variant={popoverHeaderVariant}
           className="d-flex"
           onClick={() => setMonth(thisMonth)}
         >
@@ -110,7 +110,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
         </Button>
         <Button
           size="sm"
-          variant={isError ? "danger" : "light"}
+          variant={popoverHeaderVariant}
           disabled={month >= thisMonth}
           onClick={changeMonth(1)}
         >
@@ -143,18 +143,23 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                         : d.getFullYear() === month.getFullYear() &&
                           d.getMonth() === month.getMonth()
                         ? d <= today
-                          ? "outline-dark"
+                          ? `outline-${isDarkMode ? "light" : "dark"}`
                           : "outline-secondary"
                         : ""
                     }
                     className={`calendar-day ${
-                      +d === +today ? "font-weight-bolder" : ""
+                      +d === +today ? "font-weight-bold" : ""
                     } ${
                       dates.includes(d.toLocaleDateString())
                         ? +d === +date
                           ? "btn-info"
                           : "text-info"
                         : ""
+                    } ${
+                      d.getFullYear() === month.getFullYear() &&
+                      d.getMonth() === month.getMonth()
+                        ? ""
+                        : "border-0"
                     }`}
                     disabled={d > today}
                     onClick={() => onClickDate(d)}
