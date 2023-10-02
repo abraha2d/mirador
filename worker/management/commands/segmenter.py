@@ -85,6 +85,8 @@ def segment_h264(
     record_process = None
     start_date = None
 
+    rawaudio_bps = RAWAUDIO_SAMPLE_SIZE * rawaudio_params["ar"]
+
     try:
         while True:
             start_date = current_date
@@ -106,6 +108,8 @@ def segment_h264(
             camera.refresh_from_db()
             camera.last_ping = current_date
             camera.save()
+
+            rawaudio_sent = 0
 
             while True:
                 rlist, wlist, _ = select(
@@ -139,13 +143,24 @@ def segment_h264(
                         // RAWAUDIO_SAMPLE_SIZE
                         * RAWAUDIO_SAMPLE_SIZE
                     )
+
+                    elapsed_time = timezone.now() - start_date
+                    rawaudio_limit = int(elapsed_time.total_seconds() * rawaudio_bps)
+                    flush_to = min(max(0, rawaudio_limit - rawaudio_sent), flush_to)
+
                     os.write(rawaudio_out_fd.fileno(), rawaudio_buffer[:flush_to])
                     del rawaudio_buffer[:flush_to]
+
+                    rawaudio_sent += flush_to
 
                 if (
                     h264_buffer[:H264_NALU_HEADER_SIZE] == H264_NALU_HEADER
                     and timezone.now() > next_split
                 ):
+                    print(f"Split point reached:       {timezone.now() - start_date}")
+                    print(f"Video remaining in buffer: {len(h264_buffer)} bytes")
+                    print(f"Audio remaining in buffer: {len(rawaudio_buffer)} bytes")
+                    print(f"{' '*27}{len(rawaudio_buffer)/rawaudio_bps} seconds")
                     break
 
             current_date = timezone.now()
