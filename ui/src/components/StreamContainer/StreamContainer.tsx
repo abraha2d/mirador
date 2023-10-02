@@ -144,6 +144,7 @@ export const StreamContainer = ({
                   className={`position-absolute p-3 ${
                     isError ? "bg-danger" : "bg-dark"
                   } opacity-75 rounded-circle`}
+                  style={{ width: "4.5em", height: "4.5em" }}
                 >
                   {isLoading ? (
                     <Spinner
