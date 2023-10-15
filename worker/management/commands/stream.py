@@ -7,19 +7,18 @@ from shutil import rmtree
 from signal import SIGINT
 from worker.management.commands.constants import (
     DECODE_SIZE,
-    H264_CODEC,
-    H264_EXT,
-    RAWAUDIO_CODEC,
-    RAWAUDIO_EXT,
+    HXXX_CODECS,
+    CODEC_RAWAUDIO,
     RECORD_DIR,
     RECORD_FILENAME,
     STREAM_DIR,
 )
 from worker.management.commands.pipeline import load_model, run_pipeline
-from worker.management.commands.segmenter import segment_h264
+from worker.management.commands.segmenter import segment_hxxx
 from worker.management.commands.utils import (
     get_feature_config,
     get_ffmpeg_cmds,
+    get_hxxx_output,
     get_stream_config,
     mkfifotemp,
 )
@@ -57,7 +56,7 @@ def handle_stream(camera_id):
 
     decode_enabled = detect_enabled
     encode_enabled = drawtext_enabled or drawbox_enabled
-    copy_enabled = not encode_enabled and codec_name == H264_CODEC
+    copy_enabled = not encode_enabled and codec_name in HXXX_CODECS
 
     decode_size = DECODE_SIZE  # TODO: cap to `size`
     decode_width, decode_height = decode_size
@@ -70,10 +69,11 @@ def handle_stream(camera_id):
     print(f"{camera_id}: - Encode:  {encode_enabled}")
     print(f"{camera_id}: - Copy:    {copy_enabled}", flush=True)
 
-    h264_out_path = mkfifotemp(H264_EXT)
-    rawaudio_out_path = mkfifotemp(RAWAUDIO_EXT)
+    hxxx_codec = get_hxxx_output(codec_name)
+    hxxx_out_path = mkfifotemp(hxxx_codec)
+    rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
     rawaudio_params = {
-        "f": RAWAUDIO_CODEC,
+        "f": CODEC_RAWAUDIO,
         "ar": 44100,  # TODO: adapt rate to source
         "channel_layout": "mono",  # TODO: adapt layout to source
     }
@@ -88,7 +88,7 @@ def handle_stream(camera_id):
     ffmpeg_cmds = get_ffmpeg_cmds(
         (copy_enabled, decode_width, decode_height),
         feature_config,
-        h264_out_path,
+        hxxx_out_path,
         rawaudio_out_path,
         rawaudio_params,
         stream_config,
@@ -109,11 +109,12 @@ def handle_stream(camera_id):
     print()
     print(f"{camera_id}: Starting segmented recorder...", flush=True)
     record_process = Process(
-        target=segment_h264,
+        target=segment_hxxx,
         args=(
             camera,
             f"{record_dir}/{RECORD_FILENAME}",
-            h264_out_path,
+            hxxx_codec,
+            hxxx_out_path,
             has_audio,
             rawaudio_out_path,
             rawaudio_params,

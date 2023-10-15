@@ -7,6 +7,9 @@ from os import mkfifo
 from os.path import join
 from tempfile import mkdtemp
 from worker.management.commands.constants import (
+    CODEC_EXT_MAP,
+    CODEC_H264,
+    CODEC_HEVC,
     FF_GLOBAL_ARGS,
     FF_GLOBAL_PARAMS,
     FF_RTSP_DEFAULT_PARAMS,
@@ -39,7 +42,7 @@ def get_feature_config(camera: Camera):
 def get_ffmpeg_cmds(
     decode_config,
     feature_config,
-    h264_out_path: str,
+    hxxx_out_path: str,
     rawaudio_out_path: str,
     rawaudio_params,
     stream_config,
@@ -98,7 +101,7 @@ def get_ffmpeg_cmds(
 
     outputs[-1].append(
         splits[1].output(
-            h264_out_path,
+            hxxx_out_path,
             **encode_params,
         )
     )
@@ -120,6 +123,11 @@ def get_ffmpeg_cmds(
 def get_frame_rate(video_stream, frame_rate_key: str):
     frame_rate_parts = video_stream[frame_rate_key].split("/")
     return int(frame_rate_parts[0]) / int(frame_rate_parts[1])
+
+
+def get_hxxx_output(codec: str):
+    # return CODEC_HEVC if codec == CODEC_HEVC else CODEC_H264
+    return CODEC_H264
 
 
 def get_stream(probe, codec_type: str):
@@ -157,7 +165,8 @@ def get_stream_config(camera: Camera):
         frame_rate = get_frame_rate(video_stream, "r_frame_rate")
 
     # TODO: allow disabling audio
-    has_audio = get_stream(probe, "audio") is not None
+    # has_audio = get_stream(probe, "audio") is not None
+    has_audio = False
 
     return stream_url, codec, size, frame_rate, has_audio, rtsp_params
 
@@ -187,7 +196,8 @@ def get_transcode_params(copy_enabled: bool):
     return decode_params, encode_params
 
 
-def mkfifotemp(extension):
+def mkfifotemp(codec: str):
+    extension = CODEC_EXT_MAP.get(codec, "raw")
     path = join(mkdtemp(), f"tmp.{extension}")
     mkfifo(path)
     return path

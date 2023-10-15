@@ -12,11 +12,10 @@ from storage.models import Video
 from subprocess import TimeoutExpired
 from traceback import print_exception
 from worker.management.commands.constants import (
+    CODEC_RAWAUDIO,
     FF_GLOBAL_ARGS,
-    H264_EXT,
-    H264_NALU_HEADER,
-    H264_NALU_HEADER_SIZE,
-    RAWAUDIO_EXT,
+    HXXX_NALU_HEADER,
+    HXXX_NALU_HEADER_SIZE,
     RAWAUDIO_SAMPLE_SIZE,
     READ_MAX_SIZE,
     RECORD_SEGMENT_MINS,
@@ -49,20 +48,21 @@ def filter_fds(fds: list[LazyFD]):
     return [fd for fd in fds if fd.fileno() is not None]
 
 
-def segment_h264(
+def segment_hxxx(
     camera: Camera,
     record_path: str,
-    h264_in_path: str,
+    hxxx_in_codec: str,
+    hxxx_in_path: str,
     has_audio: bool,
     rawaudio_in_path: str,
     rawaudio_params,
 ):
-    h264_in_fd = LazyFD(h264_in_path, O_RDONLY)
-    h264_buffer, h264_out_path = bytearray(), mkfifotemp(H264_EXT)
-    h264_out_fd = LazyFD(h264_out_path, O_WRONLY)
+    hxxx_in_fd = LazyFD(hxxx_in_path, O_RDONLY)
+    hxxx_buffer, hxxx_out_path = bytearray(), mkfifotemp(hxxx_in_codec)
+    hxxx_out_fd = LazyFD(hxxx_out_path, O_WRONLY)
 
     rawaudio_in_fd = LazyFD(rawaudio_in_path, O_RDONLY)
-    rawaudio_buffer, rawaudio_out_path = bytearray(), mkfifotemp(RAWAUDIO_EXT)
+    rawaudio_buffer, rawaudio_out_path = bytearray(), mkfifotemp(CODEC_RAWAUDIO)
     rawaudio_out_fd = LazyFD(rawaudio_out_path, O_WRONLY)
 
     ffmpeg_input = (
@@ -71,10 +71,10 @@ def segment_h264(
             **rawaudio_params,
         )
         if has_audio
-        else ffmpeg.input(h264_out_path)
+        else ffmpeg.input(hxxx_out_path)
     )
 
-    audio_hack = {"i": h264_out_path} if has_audio else {}
+    audio_hack = {"i": hxxx_out_path} if has_audio else {}
     record_params = {
         **audio_hack,  # TODO: this only works because "i" is alphabetically first in the list of params
         "movflags": "+faststart",
@@ -109,24 +109,24 @@ def segment_h264(
 
             while True:
                 rlist, wlist, _ = select(
-                    filter_fds([h264_in_fd, rawaudio_in_fd]),
-                    filter_fds([h264_out_fd, rawaudio_out_fd]),
+                    filter_fds([hxxx_in_fd, rawaudio_in_fd]),
+                    filter_fds([hxxx_out_fd, rawaudio_out_fd]),
                     [],
                 )
 
-                if h264_in_fd in rlist:
-                    h264_buffer.extend(os.read(h264_in_fd.fileno(), READ_MAX_SIZE))
+                if hxxx_in_fd in rlist:
+                    hxxx_buffer.extend(os.read(hxxx_in_fd.fileno(), READ_MAX_SIZE))
 
-                if h264_out_fd in wlist and len(h264_buffer) > H264_NALU_HEADER_SIZE:
-                    flush_to = h264_buffer.rfind(
-                        H264_NALU_HEADER,
-                        H264_NALU_HEADER_SIZE,
+                if hxxx_out_fd in wlist and len(hxxx_buffer) > HXXX_NALU_HEADER_SIZE:
+                    flush_to = hxxx_buffer.rfind(
+                        HXXX_NALU_HEADER,
+                        HXXX_NALU_HEADER_SIZE,
                     )
                     if flush_to == -1:
-                        flush_to = len(h264_buffer) - H264_NALU_HEADER_SIZE
+                        flush_to = len(hxxx_buffer) - HXXX_NALU_HEADER_SIZE
                     flush_to = min(flush_to, PIPE_BUF)
-                    os.write(h264_out_fd.fileno(), h264_buffer[:flush_to])
-                    del h264_buffer[:flush_to]
+                    os.write(hxxx_out_fd.fileno(), hxxx_buffer[:flush_to])
+                    del hxxx_buffer[:flush_to]
 
                 if rawaudio_in_fd in rlist:
                     rawaudio_buffer.extend(
@@ -143,14 +143,14 @@ def segment_h264(
                     del rawaudio_buffer[:flush_to]
 
                 if (
-                    h264_buffer[:H264_NALU_HEADER_SIZE] == H264_NALU_HEADER
+                    hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
                     and timezone.now() > next_split
                 ):
                     break
 
             current_date = timezone.now()
 
-            h264_out_fd.close()
+            hxxx_out_fd.close()
             rawaudio_out_fd.close()
 
             record_process.wait()
@@ -165,8 +165,8 @@ def segment_h264(
         print_exception(e)
         pass
 
-    h264_in_fd.close()
-    h264_out_fd.close()
+    hxxx_in_fd.close()
+    hxxx_out_fd.close()
 
     rawaudio_in_fd.close()
     rawaudio_out_fd.close()

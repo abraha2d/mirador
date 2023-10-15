@@ -1,8 +1,18 @@
+CODEC_H264 = "h264"
+CODEC_HEVC = "hevc"
+CODEC_RAWAUDIO = "s16le"
+
+CODEC_EXT_MAP = {
+    CODEC_H264: "h264",
+    CODEC_HEVC: "hevc",
+    CODEC_RAWAUDIO: "s16le",
+}
+
 DECODE_SIZE = 1280, 720
 
 FF_GLOBAL_PARAMS = {
     "hide_banner": None,
-    "loglevel": "error",
+    # "loglevel": "error",
 }
 
 FF_GLOBAL_ARGS = []
@@ -13,13 +23,10 @@ for k, v in FF_GLOBAL_PARAMS.items():
 
 FF_RTSP_DEFAULT_PARAMS = {"stimeout": 5000000}
 
-H264_CODEC = "h264"
-H264_EXT = "h264"
-H264_NALU_HEADER = b"\x00\x00\x00\x01\x67"
-H264_NALU_HEADER_SIZE = len(H264_NALU_HEADER)
+HXXX_CODECS = ["h264", "hevc"]
+HXXX_NALU_HEADER = b"\x00\x00\x00\x01\x67"
+HXXX_NALU_HEADER_SIZE = len(HXXX_NALU_HEADER)
 
-RAWAUDIO_CODEC = "s16le"
-RAWAUDIO_EXT = "s16le"
 RAWAUDIO_SAMPLE_SIZE = 2
 
 READ_MAX_SIZE = 1048576
