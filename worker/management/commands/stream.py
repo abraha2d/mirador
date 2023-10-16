@@ -6,6 +6,7 @@ from os import kill, makedirs
 from shutil import rmtree
 from signal import SIGINT
 from worker.management.commands.constants import (
+    CODEC_H264,
     DECODE_SIZE,
     HXXX_CODECS,
     CODEC_RAWAUDIO,
@@ -56,7 +57,8 @@ def handle_stream(camera_id):
 
     decode_enabled = detect_enabled
     encode_enabled = drawtext_enabled or drawbox_enabled
-    copy_enabled = not encode_enabled and codec_name in HXXX_CODECS
+    # copy_enabled = not encode_enabled and codec_name in HXXX_CODECS
+    copy_enabled = not encode_enabled and codec_name == CODEC_H264
 
     decode_size = DECODE_SIZE  # TODO: cap to `size`
     decode_width, decode_height = decode_size

@@ -12,7 +12,7 @@ DECODE_SIZE = 1280, 720
 
 FF_GLOBAL_PARAMS = {
     "hide_banner": None,
-    # "loglevel": "error",
+    "loglevel": "error",
 }
 
 FF_GLOBAL_ARGS = []
