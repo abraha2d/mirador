@@ -78,7 +78,7 @@ export const Timeline = () => {
   const [isError, setError] = useState(false);
 
   const [showCal, setShowCal] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(8);
 
   const [hoverLocation, setHoverLocation] = useState(-1);
   const [hoverDate, setHoverDate] = useState(now);
