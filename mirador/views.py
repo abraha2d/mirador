@@ -27,8 +27,7 @@ def execute_get_camera_stream(request, device_id, params):
         "states": {
             "online": online,
             "cameraStreamProtocol": "hls",
-            "cameraStreamAccessUrl": f"https://mirador.westhousefarm.com/stream/{camera.id}/out.m3u8",
-            "cameraStreamAuthToken": f"NotARealTokenLol",
+            "cameraStreamAccessUrl": f"https://mirador.westhousefarm.com/stream/{camera.id}/out.m3u8?token=eyJhbGciOiI",
         },
     }
 
@@ -80,7 +79,7 @@ def handle_sync(request, payload):
                     "cameraStreamSupportedProtocols": [
                         "hls",
                     ],
-                    "cameraStreamNeedAuthToken": True,
+                    "cameraStreamNeedAuthToken": False,
                 },
             }
             for c in Camera.objects.all()
