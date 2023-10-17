@@ -28,6 +28,7 @@ def execute_get_camera_stream(request, device_id, params):
             "online": online,
             "cameraStreamProtocol": "hls",
             "cameraStreamAccessUrl": f"https://mirador.westhousefarm.com/stream/{camera.id}/out.m3u8",
+            "cameraStreamAuthToken": f"NotARealTokenLol",
         },
     }
 
@@ -79,7 +80,7 @@ def handle_sync(request, payload):
                     "cameraStreamSupportedProtocols": [
                         "hls",
                     ],
-                    "cameraStreamNeedAuthToken": False,
+                    "cameraStreamNeedAuthToken": True,
                 },
             }
             for c in Camera.objects.all()
@@ -127,8 +128,7 @@ class Fulfillment(ProtectedResourceView):
             "requestId": req["requestId"],
         }
 
-        print("Request:")
-        pprint(req)  # TODO: remove
+        print(f"Request: {req}")
 
         for req_input in req["inputs"]:
             intent = req_input["intent"]
@@ -138,8 +138,7 @@ class Fulfillment(ProtectedResourceView):
             if handler is not None:
                 resp["payload"] = handler(request, payload)
 
-        print("Response:")
-        pprint(resp)  # TODO: remove
+        print(f"Response: {resp}")
 
         print("Done.", flush=True)
         return HttpResponse(json.dumps(resp))
