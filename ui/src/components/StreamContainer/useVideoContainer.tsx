@@ -1,5 +1,11 @@
 import { Stream } from "components/Store/types";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  Fragment,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import HlsJs from "hls.js";
 import ReactHlsPlayer from "react-hls-player";
 import { isStream, isVideo } from "./utils";
@@ -59,7 +65,6 @@ const useVideoContainer = (
     aud === sourceUrl ? `${sourceUrl}?token=${token}` : "";
 
   const videoProps = {
-    key: sourceUrl || background,
     src: sourceUrlWithToken,
     className: "w-100 h-100",
     autoPlay: !background,
@@ -80,9 +85,13 @@ const useVideoContainer = (
   const video =
     sourceUrlWithToken &&
     (isHLS ? (
-      <ReactHlsPlayer playerRef={videoRef} {...videoProps} />
+      <ReactHlsPlayer
+        playerRef={videoRef}
+        key={sourceUrl || background}
+        {...videoProps}
+      />
     ) : (
-      <>
+      <Fragment key={sourceUrl || background}>
         <video ref={videoRef} {...videoProps} />
         {isVideo(source) && (
           <Button
@@ -97,7 +106,7 @@ const useVideoContainer = (
             <Download />
           </Button>
         )}
-      </>
+      </Fragment>
     ));
 
   return { isError, isLoading, source, video, videoRef };

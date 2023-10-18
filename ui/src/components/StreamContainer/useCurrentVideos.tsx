@@ -73,7 +73,7 @@ const useCurrentVideos = (stream?: Stream) => {
         (videoRef.current.duration /
           ((+source.endDate - +source.startDate) / 1000))
       : videoRef.current.duration - (+new Date() - +date) / 1000;
-    if (Math.abs(selectedTime - videoRef.current.currentTime) > 2) {
+    if (Math.abs(selectedTime - videoRef.current.currentTime) > 5) {
       console.log("ADJUSTING");
       videoRef.current.currentTime = selectedTime;
     }
