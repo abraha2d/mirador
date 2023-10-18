@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.contrib.auth.decorators import login_required
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
@@ -41,6 +42,7 @@ def token_check(request):
         return HttpResponse(status=401, headers={"WWW-Authenticate": e})
 
 
+@login_required(login_url="/admin/login/")
 def token_request(request):
     aud = request.GET.get("aud", "")
     kwargs = {}

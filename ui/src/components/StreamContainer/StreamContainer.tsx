@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { Button, Spinner } from "react-bootstrap";
-import { Download, ExclamationCircle } from "react-bootstrap-icons";
+import { Spinner } from "react-bootstrap";
+import { ExclamationCircle } from "react-bootstrap-icons";
 import { useDrag, useDrop } from "react-dnd";
 import {
   FullScreen,
@@ -14,7 +14,6 @@ import { Stream } from "components/Store/types";
 import { DragItemTypes, DragObjectWithPayload } from "utils";
 
 import useCurrentVideos from "./useCurrentVideos";
-import { isVideo } from "./utils";
 import "./StreamContainer.css";
 
 type StreamContainerProps = {

@@ -61,7 +61,10 @@ urlpatterns = [
     path("fulfillment/", csrf_exempt(mirador_views.Fulfillment.as_view())),
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
     path("auth/token/check", auth_views.token_check),
-    path("auth/token/request", auth_views.token_request),
+    path(
+        "auth/token/request",
+        auth_views.token_request
+    ),
     path("__debug__/", include(debug_toolbar.urls)),
     path(
         "",

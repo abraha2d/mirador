@@ -12,5 +12,4 @@ mamba env update -f "$DEPLOY_ROOT/conda/environment.yml"
 
 (cd "$PROJECT_ROOT/ui" && yarn)
 
-python "$PROJECT_ROOT/manage.py" collectstatic
 python "$PROJECT_ROOT/manage.py" migrate

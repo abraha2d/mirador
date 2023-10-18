@@ -9,3 +9,5 @@ source "$(get_base_env)/bin/activate"
 
 (cd "$PROJECT_ROOT/ui" && yarn build)
 
+rm -rf "$DEPLOY_ROOT/static"
+python "$PROJECT_ROOT/manage.py" collectstatic
