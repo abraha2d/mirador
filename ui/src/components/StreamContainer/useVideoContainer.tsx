@@ -1,9 +1,11 @@
 import { Stream } from "components/Store/types";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import HlsJs from "hls.js";
 import ReactHlsPlayer from "react-hls-player";
 import { isStream, isVideo } from "./utils";
 import { Context } from "../Store";
+import { Button } from "react-bootstrap";
+import { Download } from "react-bootstrap-icons";
 
 const useVideoContainer = (
   date: Date,
@@ -13,6 +15,7 @@ const useVideoContainer = (
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
+  const [token, setToken] = useState<string>();
 
   const [{ cameras, videos }] = useContext(Context);
   const camera = cameras.find((camera) => camera.id === stream?.id);
@@ -33,11 +36,29 @@ const useVideoContainer = (
     ? `/stream/${source.id}/out.m3u8`
     : "";
 
-  const isHLS = isStream(source) && HlsJs.isSupported();
+  useEffect(() => {
+    if (sourceUrl) {
+      setLoading(true);
+      setToken(undefined);
+      fetch(`/auth/token/request?aud=${sourceUrl}`)
+        .then((response) => {
+          setLoading(false);
+          if (response.ok) {
+            setError(false);
+            return response.text();
+          } else {
+            setError(true);
+          }
+        })
+        .then((response) => setToken(response));
+    }
+  }, [sourceUrl]);
+
+  const sourceUrlWithToken = `${sourceUrl}?token=${token}`;
 
   const videoProps = {
     key: sourceUrl || background,
-    src: sourceUrl,
+    src: sourceUrlWithToken,
     className: "w-100 h-100",
     autoPlay: !background,
     onLoadStart: () => setLoading(true),
@@ -52,11 +73,30 @@ const useVideoContainer = (
     style: background ? { display: "none" } : {},
   };
 
-  const video = isHLS ? (
-    <ReactHlsPlayer playerRef={videoRef} {...videoProps} />
-  ) : (
-    <video ref={videoRef} {...videoProps} />
-  );
+  const isHLS = isStream(source) && HlsJs.isSupported();
+
+  const video =
+    token &&
+    (isHLS ? (
+      <ReactHlsPlayer playerRef={videoRef} {...videoProps} />
+    ) : (
+      <>
+        <video ref={videoRef} {...videoProps} />
+        {isVideo(source) && (
+          <Button
+            variant="dark"
+            className="position-absolute top-0 end-0 m-3 opacity-50"
+            href={sourceUrlWithToken}
+            // @ts-ignore `download` will be passed down through Button to
+            // the underlying HTML <a> tag (guaranteed by the `href` prop).
+            download
+            style={background ? { display: "none" } : {}}
+          >
+            <Download />
+          </Button>
+        )}
+      </>
+    ));
 
   return { isError, isLoading, source, video, videoRef };
 };

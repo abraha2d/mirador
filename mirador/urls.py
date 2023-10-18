@@ -20,7 +20,6 @@ from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from mirador.views import proxy_auth
 
 from rest_framework import routers
 from drf_spectacular.views import (
@@ -30,6 +29,7 @@ from drf_spectacular.views import (
 )
 import debug_toolbar
 
+from auth import views as auth_views
 from camera.api import views as camera_api
 from mirador import views as mirador_views
 from storage.api import views as storage_api
@@ -60,7 +60,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("fulfillment/", csrf_exempt(mirador_views.Fulfillment.as_view())),
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
-    path("proxy_auth", proxy_auth),
+    path("auth/token/check", auth_views.token_check),
+    path("auth/token/request", auth_views.token_request),
     path("__debug__/", include(debug_toolbar.urls)),
     path(
         "",

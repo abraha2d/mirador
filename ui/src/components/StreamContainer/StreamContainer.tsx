@@ -159,18 +159,6 @@ export const StreamContainer = ({
                 {cameraName}
               </>
             )}
-            {isVideo(source) && (
-              <Button
-                variant="dark"
-                className="position-absolute top-0 end-0 m-3 opacity-50"
-                href={source.file}
-                // @ts-ignore `download` will be passed down through Button to
-                // the underlying HTML <a> tag (guaranteed by the `href` prop).
-                download
-              >
-                <Download />
-              </Button>
-            )}
           </div>
         </FullScreen>
       ) : (
