@@ -140,6 +140,8 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+STATIC_ROOT = BASE_DIR / "deploy/static"
+
 STATICFILES_DIRS = [
     BASE_DIR / "ui/build/static",
 ]

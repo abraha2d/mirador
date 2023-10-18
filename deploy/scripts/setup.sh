@@ -10,7 +10,7 @@ source "$(get_base_env)/bin/activate"
 cp -a "$DEPLOY_ROOT/conda/.condarc" "$(get_base_env)"
 mamba env update -f "$DEPLOY_ROOT/conda/environment.yml"
 
-python "$PROJECT_ROOT/manage.py" migrate
-
 (cd "$PROJECT_ROOT/ui" && yarn)
 
+python "$PROJECT_ROOT/manage.py" collectstatic
+python "$PROJECT_ROOT/manage.py" migrate

@@ -1,5 +1,6 @@
 deploy/_cache/
 deploy/envs/
+deploy/static/
 db.sqlite3*
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,linux,macos,python,windows,jetbrains
