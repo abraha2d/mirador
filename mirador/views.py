@@ -1,12 +1,58 @@
 from datetime import datetime, timedelta
 import json
-from pprint import pprint
 from pytz import UTC
+from urllib.parse import parse_qs, urlparse
 
+from django.conf import settings
 from django.http import HttpResponse
 from oauth2_provider.views.generic import ProtectedResourceView
+import jwt
 
 from camera.models import Camera
+
+JWT_ALG = "HS256"
+
+
+def encode_jwt(aud: str, exp_delta: timedelta = timedelta(days=1)) -> str:
+    now = datetime.now(tz=UTC)
+    payload = {
+        "aud": aud,
+        "exp": now + exp_delta,
+        "nbf": now,
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=JWT_ALG)
+
+
+def proxy_auth(request):
+    original_url = urlparse(request.headers["X-Original-URI"])
+
+    aud = original_url.path
+    token = parse_qs(original_url.query).get("token", [""])[0]
+
+    if aud[-3:] == ".ts":
+        # .ts files will be encrypted by ffmpeg
+        return HttpResponse(status=204)
+
+    try:
+        jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[JWT_ALG],
+            audience=original_url.path,
+            leeway=timedelta(seconds=10),
+            options={"require": ["aud", "exp", "nbf"]},
+        )
+        return HttpResponse(status=204)
+    except (
+        jwt.ExpiredSignatureError,
+        jwt.ImmatureSignatureError,
+        jwt.InvalidSignatureError,
+        jwt.InvalidAudienceError,
+        jwt.MissingRequiredClaimError,
+    ) as e:
+        return HttpResponse(status=403, headers={"WWW-Authenticate": e})
+    except (jwt.DecodeError,) as e:
+        return HttpResponse(status=401, headers={"WWW-Authenticate": e})
 
 
 def execute_get_camera_stream(request, device_id, params):
@@ -22,12 +68,17 @@ def execute_get_camera_stream(request, device_id, params):
         (datetime.now(UTC) - camera.last_ping) < timedelta(minutes=16)
     )
 
+    stream_host = "https://mirador.westhousefarm.com"  # TODO: don't hardcode this
+    stream_path = f"/stream/{camera.id}/out.m3u8"
+    stream_jwt = encode_jwt(stream_path)
+    stream_url = f"{stream_host}{stream_path}?token={stream_jwt}"
+
     return {
         "status": "SUCCESS" if online else "OFFLINE",
         "states": {
             "online": online,
             "cameraStreamProtocol": "hls",
-            "cameraStreamAccessUrl": f"https://mirador.westhousefarm.com/stream/{camera.id}/out.m3u8?token=eyJhbGciOiI",
+            "cameraStreamAccessUrl": stream_url,
         },
     }
 

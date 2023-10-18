@@ -13,6 +13,7 @@ dependencies:
   - nodejs
   - pandas
   - pip
+  - pyjwt
   - python-dateutil
   - pytorch =2.0.0
   - pytorch-cuda =11.8

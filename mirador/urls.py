@@ -20,6 +20,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
+from mirador.views import proxy_auth
 
 from rest_framework import routers
 from drf_spectacular.views import (
@@ -59,6 +60,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("fulfillment/", csrf_exempt(mirador_views.Fulfillment.as_view())),
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    path("proxy_auth", proxy_auth),
     path("__debug__/", include(debug_toolbar.urls)),
     path(
         "",
