@@ -15,7 +15,7 @@ const useVideoContainer = (
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
-  const [token, setToken] = useState<string>();
+  const [[aud, token], setToken] = useState<[string, string]>(["", ""]);
 
   const [{ cameras, videos }] = useContext(Context);
   const camera = cameras.find((camera) => camera.id === stream?.id);
@@ -39,7 +39,7 @@ const useVideoContainer = (
   useEffect(() => {
     if (sourceUrl) {
       setLoading(true);
-      setToken(undefined);
+      setToken(["", ""]);
       fetch(`/auth/token/request?aud=${sourceUrl}`)
         .then((response) => {
           setLoading(false);
@@ -48,13 +48,15 @@ const useVideoContainer = (
             return response.text();
           } else {
             setError(true);
+            throw new Error();
           }
         })
-        .then((response) => setToken(response));
+        .then((response) => setToken([sourceUrl, response]));
     }
   }, [sourceUrl]);
 
-  const sourceUrlWithToken = `${sourceUrl}?token=${token}`;
+  const sourceUrlWithToken =
+    aud === sourceUrl ? `${sourceUrl}?token=${token}` : "";
 
   const videoProps = {
     key: sourceUrl || background,
@@ -76,7 +78,7 @@ const useVideoContainer = (
   const isHLS = isStream(source) && HlsJs.isSupported();
 
   const video =
-    token &&
+    sourceUrlWithToken &&
     (isHLS ? (
       <ReactHlsPlayer playerRef={videoRef} {...videoProps} />
     ) : (
