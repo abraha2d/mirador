@@ -21,7 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = environ.get("MIRADOR_SECRET_KEY", token_urlsafe(32))
+SECRET_KEY_FILE = BASE_DIR / "deploy/secrets/secret.key"
+if not SECRET_KEY_FILE.is_file():
+    SECRET_KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    SECRET_KEY_FILE.write_text(token_urlsafe(32))
+SECRET_KEY = SECRET_KEY_FILE.read_text()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

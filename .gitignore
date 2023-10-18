@@ -1,5 +1,6 @@
 deploy/_cache/
 deploy/envs/
+deploy/secrets/
 deploy/static/
 db.sqlite3*
 
