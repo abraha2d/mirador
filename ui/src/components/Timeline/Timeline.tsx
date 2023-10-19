@@ -47,6 +47,7 @@ import {
 } from "./utils";
 
 import "./Timeline.css";
+import { DEFAULT_ZOOM } from "./constants";
 
 let abortController = new AbortController();
 
@@ -78,7 +79,7 @@ export const Timeline = () => {
   const [isError, setError] = useState(false);
 
   const [showCal, setShowCal] = useState(false);
-  const [zoom, setZoom] = useState(8);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   const [hoverLocation, setHoverLocation] = useState(-1);
   const [hoverDate, setHoverDate] = useState(now);
@@ -411,7 +412,7 @@ export const Timeline = () => {
               variant="outline-light"
               size="sm"
               className="timeline-zoom-current-level"
-              onClick={() => setZoom(1)}
+              onClick={() => setZoom(DEFAULT_ZOOM)}
             >
               {getTextForZoomLevel(zoom)}
             </Button>
