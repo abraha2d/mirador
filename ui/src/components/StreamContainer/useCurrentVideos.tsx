@@ -12,33 +12,34 @@ const useCurrentVideos = (stream?: Stream) => {
     stream
   );
 
-  const prevDate = isVideo(source) ? source.startDate : new Date(0);
-  prevDate.setMilliseconds(prevDate.getMilliseconds() - 1);
-
-  const nextDate = isVideo(source) ? source.endDate : new Date(0);
-  nextDate.setMilliseconds(nextDate.getMilliseconds() + 1);
-
-  const {
-    source: prevSource,
-    video: prevVideo,
-    videoRef: prevVideoRef,
-  } = useVideoContainer(prevDate, stream, "prev");
-  const {
-    source: nextSource,
-    video: nextVideo,
-    videoRef: nextVideoRef,
-  } = useVideoContainer(nextDate, stream, "next");
-
-  useEffect(() => {
-    if (prevVideoRef.current) {
-      prevVideoRef.current.pause();
-      prevVideoRef.current.currentTime = 0;
-    }
-    if (nextVideoRef.current) {
-      nextVideoRef.current.pause();
-      nextVideoRef.current.currentTime = 0;
-    }
-  }, [prevSource, prevVideoRef, nextSource, nextVideoRef]);
+  // TODO: Seamless playback is not working as intended with JWT auth
+  // const prevDate = isVideo(source) ? source.startDate : new Date(0);
+  // prevDate.setMilliseconds(prevDate.getMilliseconds() - 1);
+  //
+  // const nextDate = isVideo(source) ? source.endDate : new Date(0);
+  // nextDate.setMilliseconds(nextDate.getMilliseconds() + 1);
+  //
+  // const {
+  //   source: prevSource,
+  //   video: prevVideo,
+  //   videoRef: prevVideoRef,
+  // } = useVideoContainer(prevDate, stream, "prev");
+  // const {
+  //   source: nextSource,
+  //   video: nextVideo,
+  //   videoRef: nextVideoRef,
+  // } = useVideoContainer(nextDate, stream, "next");
+  //
+  // useEffect(() => {
+  //   if (prevVideoRef.current) {
+  //     prevVideoRef.current.pause();
+  //     prevVideoRef.current.currentTime = 0;
+  //   }
+  //   if (nextVideoRef.current) {
+  //     nextVideoRef.current.pause();
+  //     nextVideoRef.current.currentTime = 0;
+  //   }
+  // }, [prevSource, prevVideoRef, nextSource, nextVideoRef]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -79,7 +80,9 @@ const useCurrentVideos = (stream?: Stream) => {
     }
   }, [source, videoRef, date]);
 
-  const videoList = [video, prevVideo, nextVideo];
+  // TODO: Seamless playback is not working as intended with JWT auth
+  // const videoList = [video, prevVideo, nextVideo];
+  const videoList = [video];
 
   return { isError, isLoading, source, videoList };
 };
