@@ -165,8 +165,8 @@ def get_stream_config(camera: Camera):
         frame_rate = get_frame_rate(video_stream, "r_frame_rate")
 
     # TODO: allow disabling audio
-    # has_audio = get_stream(probe, "audio") is not None
-    has_audio = False
+    has_audio = get_stream(probe, "audio") is not None
+    # has_audio = False
 
     return stream_url, codec, size, frame_rate, has_audio, rtsp_params
 

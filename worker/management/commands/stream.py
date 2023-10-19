@@ -57,7 +57,7 @@ def handle_stream(camera_id):
 
     decode_enabled = detect_enabled
     encode_enabled = drawtext_enabled or drawbox_enabled
-    # copy_enabled = not encode_enabled and codec_name in HXXX_CODECS
+    # copy_enabled = not encode_enabled and codec_name in HXXX_CODECS  # HEVC can't be played without browser hwaccel
     copy_enabled = not encode_enabled and codec_name == CODEC_H264
 
     decode_size = DECODE_SIZE  # TODO: cap to `size`
