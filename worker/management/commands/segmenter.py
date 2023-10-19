@@ -60,12 +60,12 @@ def segment_hxxx(
     hxxx_in_fd = LazyFD(hxxx_in_path, O_RDONLY)
     hxxx_buffer, hxxx_out_path = bytearray(), mkfifotemp(hxxx_in_codec)
     hxxx_out_fd = LazyFD(hxxx_out_path, O_WRONLY)
-    # hxxx_in_stats, hxxx_out_stats = 0, 0
+    hxxx_in_stats, hxxx_out_stats = 0, 0
 
     rawaudio_in_fd = LazyFD(rawaudio_in_path, O_RDONLY)
     rawaudio_buffer, rawaudio_out_path = bytearray(), mkfifotemp(CODEC_RAWAUDIO)
     rawaudio_out_fd = LazyFD(rawaudio_out_path, O_WRONLY)
-    # rawaudio_in_stats, rawaudio_out_stats = 0, 0
+    rawaudio_in_stats, rawaudio_out_stats = 0, 0
 
     ffmpeg_input = (
         ffmpeg.input(
@@ -91,7 +91,9 @@ def segment_hxxx(
         while True:
             start_date = current_date
             next_split = start_date.replace(
-                minute=start_date.minute // RECORD_SEGMENT_MINS * RECORD_SEGMENT_MINS
+                minute=start_date.minute // RECORD_SEGMENT_MINS * RECORD_SEGMENT_MINS,
+                second=0,
+                microsecond=0,
             ) + timedelta(minutes=RECORD_SEGMENT_MINS)
             file_path = start_date.strftime(record_path)
 
@@ -109,44 +111,49 @@ def segment_hxxx(
             camera.last_ping = current_date
             camera.save()
 
-            # should_print_stats = timezone.now()
+            i = 0
+            should_print_stats = timezone.now()
 
             while True:
+                i += 1
+
                 rlist, wlist, _ = select(
                     filter_fds([hxxx_in_fd, rawaudio_in_fd]),
                     filter_fds([hxxx_out_fd, rawaudio_out_fd]),
                     [],
                 )
 
-                # hxxx_in_stats -= len(hxxx_buffer)
+                hxxx_in_stats -= len(hxxx_buffer)
 
                 if hxxx_in_fd in rlist:
                     hxxx_buffer.extend(os.read(hxxx_in_fd.fileno(), READ_MAX_SIZE))
 
-                # hxxx_in_stats += len(hxxx_buffer)
-                # hxxx_out_stats += len(hxxx_buffer)
+                hxxx_in_stats += len(hxxx_buffer)
+                hxxx_out_stats += len(hxxx_buffer)
 
                 if hxxx_out_fd in wlist and len(hxxx_buffer) > HXXX_NALU_HEADER_SIZE:
                     flush_to = hxxx_buffer.rfind(
                         HXXX_NALU_HEADER,
                         HXXX_NALU_HEADER_SIZE,
+                        PIPE_BUF,
                     )
                     if flush_to == -1:
-                        flush_to = len(hxxx_buffer) - HXXX_NALU_HEADER_SIZE
-                    # flush_to = min(flush_to, PIPE_BUF)
+                        flush_to = min(
+                            len(hxxx_buffer) - HXXX_NALU_HEADER_SIZE, PIPE_BUF
+                        )
                     os.write(hxxx_out_fd.fileno(), hxxx_buffer[:flush_to])
                     del hxxx_buffer[:flush_to]
 
-                # hxxx_out_stats -= len(hxxx_buffer)
-                # rawaudio_in_stats -= len(rawaudio_buffer)
+                hxxx_out_stats -= len(hxxx_buffer)
+                rawaudio_in_stats -= len(rawaudio_buffer)
 
                 if rawaudio_in_fd in rlist:
                     rawaudio_buffer.extend(
                         os.read(rawaudio_in_fd.fileno(), READ_MAX_SIZE)
                     )
 
-                # rawaudio_in_stats += len(rawaudio_buffer)
-                # rawaudio_out_stats += len(rawaudio_buffer)
+                rawaudio_in_stats += len(rawaudio_buffer)
+                rawaudio_out_stats += len(rawaudio_buffer)
 
                 if rawaudio_out_fd in wlist and len(rawaudio_buffer) > 0:
                     flush_to = (
@@ -157,23 +164,27 @@ def segment_hxxx(
                     os.write(rawaudio_out_fd.fileno(), rawaudio_buffer[:flush_to])
                     del rawaudio_buffer[:flush_to]
 
-                # rawaudio_out_stats -= len(rawaudio_buffer)
+                rawaudio_out_stats -= len(rawaudio_buffer)
 
-                # if timezone.now() > should_print_stats:
-                #     print(
-                #         f"hxxx {len(hxxx_buffer)} (+{hxxx_in_stats}, -{hxxx_out_stats}), "
-                #         f"rawaudio {len(rawaudio_buffer)} (+{rawaudio_in_stats}, -{rawaudio_out_stats})",
-                #         flush=True,
-                #     )
-                #     hxxx_in_stats, hxxx_out_stats = 0, 0
-                #     rawaudio_in_stats, rawaudio_out_stats = 0, 0
-                #     should_print_stats = timezone.now() + timedelta(seconds=1)
+                if timezone.now() > should_print_stats:
+                    print(
+                        f"V+{hxxx_in_stats:6}-{hxxx_out_stats:6}={len(hxxx_buffer):6} "
+                        f"A+{rawaudio_in_stats:6}-{rawaudio_out_stats:6}={len(rawaudio_buffer):6} "
+                        f"I={i}",
+                        flush=True,
+                    )
+
+                    hxxx_in_stats, hxxx_out_stats = 0, 0
+                    rawaudio_in_stats, rawaudio_out_stats = 0, 0
+
+                    i = 0
+                    should_print_stats = timezone.now() + timedelta(seconds=1)
 
                 if (
                     hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
                     and timezone.now() > next_split
                 ):
-                    # print("Split point reached.", flush=True)
+                    print("   === split point ===   ", flush=True)
                     break
 
             current_date = timezone.now()
