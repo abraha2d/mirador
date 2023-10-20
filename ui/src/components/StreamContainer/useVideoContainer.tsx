@@ -109,7 +109,7 @@ const useVideoContainer = (
       </Fragment>
     ));
 
-  return { isError, isLoading, source, video, videoRef };
+  return { isError, isLoading, source, sourceUrlWithToken, video, videoRef };
 };
 
 export default useVideoContainer;

@@ -7,10 +7,8 @@ import useVideoContainer from "./useVideoContainer";
 const useCurrentVideos = (stream?: Stream) => {
   const [{ date, isPlaying, isMuted, playbackSpeed }] = useContext(Context);
 
-  const { isError, isLoading, source, video, videoRef } = useVideoContainer(
-    date,
-    stream
-  );
+  const { isError, isLoading, source, sourceUrlWithToken, video, videoRef } =
+    useVideoContainer(date, stream);
 
   // TODO: Seamless playback is not working as intended with JWT auth
   // const prevDate = isVideo(source) ? source.startDate : new Date(0);
@@ -44,12 +42,12 @@ const useCurrentVideos = (stream?: Stream) => {
   useEffect(() => {
     if (!videoRef.current) return;
     videoRef.current.muted = isMuted;
-  }, [source, videoRef, isMuted]);
+  }, [sourceUrlWithToken, videoRef, isMuted]);
 
   useEffect(() => {
     if (!videoRef.current) return;
     isPlaying ? videoRef.current.play() : videoRef.current.pause();
-  }, [source, videoRef, isPlaying]);
+  }, [sourceUrlWithToken, videoRef, isPlaying]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -64,7 +62,7 @@ const useCurrentVideos = (stream?: Stream) => {
     } catch (error) {
       console.log(error);
     }
-  }, [source, videoRef, playbackSpeed]);
+  }, [source, sourceUrlWithToken, videoRef, playbackSpeed]);
 
   useEffect(() => {
     if (!videoRef.current || isNaN(videoRef.current.duration) || !source)
@@ -78,7 +76,7 @@ const useCurrentVideos = (stream?: Stream) => {
       console.log("ADJUSTING");
       videoRef.current.currentTime = selectedTime;
     }
-  }, [source, videoRef, date]);
+  }, [source, sourceUrlWithToken, videoRef, date]);
 
   // TODO: Seamless playback is not working as intended with JWT auth
   // const videoList = [video, prevVideo, nextVideo];
