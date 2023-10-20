@@ -8,6 +8,7 @@ from camera.models import Camera
 from datetime import timedelta
 from django.utils import timezone
 from os import O_NONBLOCK, O_RDONLY, O_WRONLY
+from pathlib import Path
 from storage.models import Video
 from subprocess import TimeoutExpired
 from traceback import print_exception
@@ -194,12 +195,13 @@ def segment_hxxx(
             rawaudio_out_fd.close()
 
             record_process.wait()
-            Video.objects.create(
-                camera=camera,
-                start_date=start_date,
-                end_date=current_date,
-                file="/".join(file_path.split("/")[-3:]),
-            )
+            if Path(file_path).is_file():
+                Video.objects.create(
+                    camera=camera,
+                    start_date=start_date,
+                    end_date=current_date,
+                    file="/".join(file_path.split("/")[-3:]),
+                )
 
     except KeyboardInterrupt as e:
         print_exception(e)
@@ -224,9 +226,10 @@ def segment_hxxx(
 
     if start_date is not None:
         file_path = start_date.strftime(record_path)
-        Video.objects.create(
-            camera=camera,
-            start_date=start_date,
-            end_date=timezone.now(),
-            file="/".join(file_path.split("/")[-3:]),
-        )
+        if Path(file_path).is_file():
+            Video.objects.create(
+                camera=camera,
+                start_date=start_date,
+                end_date=timezone.now(),
+                file="/".join(file_path.split("/")[-3:]),
+            )
