@@ -183,6 +183,7 @@ def segment_hxxx(
                 if (
                     hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
                     and timezone.now() > next_split
+                    and hxxx_out_stats > 0
                 ):
                     print("   === split point ===   ", flush=True)
                     break
