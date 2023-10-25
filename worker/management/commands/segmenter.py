@@ -20,7 +20,10 @@ from worker.management.commands.constants import (
     RAWAUDIO_SAMPLE_SIZE,
     READ_MAX_SIZE,
     RECORD_SEGMENT_MINS,
+    STALL_PERIOD_MAX,
+    STAT_CHECK_PERIOD,
 )
+from worker.management.commands.exceptions import StallDetectedError
 from worker.management.commands.utils import mkfifotemp
 
 
@@ -114,7 +117,8 @@ def segment_hxxx(
             camera.save()
 
             i = 0
-            should_print_stats = timezone.now()
+            stat_check = timezone.now()
+            stall_periods = 0
 
             while True:
                 i += 1
@@ -178,7 +182,7 @@ def segment_hxxx(
 
                 rawaudio_out_stats -= len(rawaudio_buffer)
 
-                if timezone.now() > should_print_stats:
+                if timezone.now() > stat_check:
                     print(
                         f"V+{hxxx_in_stats:6}-{hxxx_out_stats:6}={len(hxxx_buffer):6} "
                         f"A+{rawaudio_in_stats:6}-{rawaudio_out_stats:6}={len(rawaudio_buffer):6} "
@@ -186,11 +190,16 @@ def segment_hxxx(
                         flush=True,
                     )
 
+                    if hxxx_in_stats == 0 or hxxx_out_stats == 0:
+                        stall_periods += 1
+                    else:
+                        stall_periods = 0
+
                     hxxx_in_stats, hxxx_out_stats = 0, 0
                     rawaudio_in_stats, rawaudio_out_stats = 0, 0
 
                     i = 0
-                    should_print_stats = timezone.now() + timedelta(seconds=1)
+                    stat_check = timezone.now() + timedelta(seconds=STAT_CHECK_PERIOD)
 
                 if (
                     hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
@@ -199,6 +208,10 @@ def segment_hxxx(
                 ):
                     print("   === split point ===   ", flush=True)
                     break
+
+                if stall_periods > STALL_PERIOD_MAX:
+                    print("  === stall detected ===  ", flush=True)
+                    raise StallDetectedError()
 
             current_date = timezone.now()
 
@@ -210,6 +223,9 @@ def segment_hxxx(
 
     except KeyboardInterrupt as e:
         print_exception(e)
+        pass
+
+    except StallDetectedError:
         pass
 
     hxxx_in_fd.close()

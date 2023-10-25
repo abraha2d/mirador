@@ -1,0 +1,2 @@
+class StallDetectedError(Exception):
+    pass
