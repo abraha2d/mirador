@@ -3,6 +3,7 @@ import React, {
   Fragment,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -64,50 +65,53 @@ const useVideoContainer = (
   const sourceUrlWithToken =
     aud === sourceUrl ? `${sourceUrl}?token=${token}` : "";
 
-  const videoProps = {
-    src: sourceUrlWithToken,
-    className: "w-100 h-100",
-    autoPlay: !background,
-    onLoadStart: () => setLoading(true),
-    onError: () => {
-      setLoading(false);
-      setError(true);
-    },
-    onCanPlay: () => {
-      setLoading(false);
-      setError(false);
-    },
-    style: background ? { display: "none" } : {},
-  };
-
   const isHLS = isStream(source) && HlsJs.isSupported();
 
-  const video =
-    sourceUrlWithToken &&
-    (isHLS ? (
-      <ReactHlsPlayer
-        playerRef={videoRef}
-        key={sourceUrl || background}
-        {...videoProps}
-      />
-    ) : (
-      <Fragment key={sourceUrl || background}>
-        <video ref={videoRef} {...videoProps} />
-        {isVideo(source) && (
-          <Button
-            variant="dark"
-            className="position-absolute top-0 end-0 m-3 opacity-50"
-            href={sourceUrlWithToken}
-            // @ts-ignore `download` will be passed down through Button to
-            // the underlying HTML <a> tag (guaranteed by the `href` prop).
-            download
-            style={background ? { display: "none" } : {}}
-          >
-            <Download />
-          </Button>
-        )}
-      </Fragment>
-    ));
+  const video = useMemo(() => {
+    const videoProps = {
+      src: sourceUrlWithToken,
+      className: "w-100 h-100",
+      autoPlay: !background,
+      onLoadStart: () => setLoading(true),
+      onError: () => {
+        setLoading(false);
+        setError(true);
+      },
+      onCanPlay: () => {
+        setLoading(false);
+        setError(false);
+      },
+      style: background ? { display: "none" } : {},
+    };
+
+    return (
+      sourceUrlWithToken &&
+      (isHLS ? (
+        <ReactHlsPlayer
+          playerRef={videoRef}
+          key={sourceUrl || background}
+          {...videoProps}
+        />
+      ) : (
+        <Fragment key={sourceUrl || background}>
+          <video ref={videoRef} {...videoProps} />
+          {isVideo(source) && (
+            <Button
+              variant="dark"
+              className="position-absolute top-0 end-0 m-3 opacity-50"
+              href={sourceUrlWithToken}
+              // @ts-ignore `download` will be passed down through Button to
+              // the underlying HTML <a> tag (guaranteed by the `href` prop).
+              download
+              style={background ? { display: "none" } : {}}
+            >
+              <Download />
+            </Button>
+          )}
+        </Fragment>
+      ))
+    );
+  }, [background, isHLS, source, sourceUrl, sourceUrlWithToken]);
 
   return { isError, isLoading, source, sourceUrlWithToken, video, videoRef };
 };
