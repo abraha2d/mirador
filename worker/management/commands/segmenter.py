@@ -1,17 +1,17 @@
-from errno import ENXIO
-
-from select import PIPE_BUF, select
-
-import ffmpeg
-import os
-from camera.models import Camera
 from datetime import timedelta
-from django.utils import timezone
-from os import O_NONBLOCK, O_RDONLY, O_WRONLY
+from errno import ENXIO
+from select import PIPE_BUF, select
+import os
 from pathlib import Path
-from storage.models import Video
+from random import randrange
 from subprocess import TimeoutExpired
 from traceback import print_exception
+
+from django.utils import timezone
+import ffmpeg
+
+from camera.models import Camera
+from storage.models import Video
 from worker.management.commands.constants import (
     CODEC_RAWAUDIO,
     FF_GLOBAL_ARGS,
@@ -38,7 +38,7 @@ class LazyFD:
     def fileno(self):
         if self._fileno is None:
             try:
-                self._fileno = os.open(self.path, self.flags | O_NONBLOCK)
+                self._fileno = os.open(self.path, self.flags | os.O_NONBLOCK)
             except OSError as e:
                 if e.errno != ENXIO:
                     raise e
@@ -58,14 +58,14 @@ def segment_hxxx(
     rawaudio_in_path: str,
     rawaudio_params,
 ):
-    hxxx_in_fd = LazyFD(hxxx_in_path, O_RDONLY)
+    hxxx_in_fd = LazyFD(hxxx_in_path, os.O_RDONLY)
     hxxx_buffer, hxxx_out_path = bytearray(), mkfifotemp(hxxx_in_codec)
-    hxxx_out_fd = LazyFD(hxxx_out_path, O_WRONLY)
+    hxxx_out_fd = LazyFD(hxxx_out_path, os.O_WRONLY)
     hxxx_in_stats, hxxx_out_stats = 0, 0
 
-    rawaudio_in_fd = LazyFD(rawaudio_in_path, O_RDONLY)
+    rawaudio_in_fd = LazyFD(rawaudio_in_path, os.O_RDONLY)
     rawaudio_buffer, rawaudio_out_path = bytearray(), mkfifotemp(CODEC_RAWAUDIO)
-    rawaudio_out_fd = LazyFD(rawaudio_out_path, O_WRONLY)
+    rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY)
     rawaudio_in_stats, rawaudio_out_stats = 0, 0
 
     ffmpeg_input = (
@@ -93,8 +93,8 @@ def segment_hxxx(
             start_date = current_date
             next_split = start_date.replace(
                 minute=start_date.minute // RECORD_SEGMENT_MINS * RECORD_SEGMENT_MINS,
-                second=0,
-                microsecond=0,
+                second=randrange(59),
+                microsecond=randrange(999999),
             ) + timedelta(minutes=RECORD_SEGMENT_MINS)
             file_path = start_date.strftime(record_path)
 
