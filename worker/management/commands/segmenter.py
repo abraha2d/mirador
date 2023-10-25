@@ -86,6 +86,7 @@ def segment_hxxx(
 
     current_date = timezone.now()
     record_process = None
+    save_process, save_path, save_start, save_end = None, None, None, None
     start_date = None
 
     try:
@@ -117,6 +118,16 @@ def segment_hxxx(
 
             while True:
                 i += 1
+
+                if save_process is not None and save_process.poll() is not None:
+                    if Path(save_path).is_file():
+                        Video.objects.create(
+                            camera=camera,
+                            start_date=save_start,
+                            end_date=save_end,
+                            file="/".join(save_path.split("/")[-3:]),
+                        )
+                    save_process = None
 
                 rlist, wlist, _ = select(
                     filter_fds([hxxx_in_fd, rawaudio_in_fd]),
@@ -194,14 +205,8 @@ def segment_hxxx(
             hxxx_out_fd.close()
             rawaudio_out_fd.close()
 
-            record_process.wait()
-            if Path(file_path).is_file():
-                Video.objects.create(
-                    camera=camera,
-                    start_date=start_date,
-                    end_date=current_date,
-                    file="/".join(file_path.split("/")[-3:]),
-                )
+            save_process, save_path = record_process, file_path
+            save_start, save_end = start_date, current_date
 
     except KeyboardInterrupt as e:
         print_exception(e)
