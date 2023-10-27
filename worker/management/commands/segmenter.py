@@ -124,6 +124,7 @@ def segment_hxxx(
                 i += 1
 
                 if save_process is not None and save_process.poll() is not None:
+                    print("    === save point ===   ", flush=True)
                     if Path(save_path).is_file():
                         Video.objects.create(
                             camera=camera,
@@ -131,6 +132,8 @@ def segment_hxxx(
                             end_date=save_end,
                             file="/".join(save_path.split("/")[-3:]),
                         )
+                    else:
+                        print("     === no file! ===    ", flush=True)
                     save_process = None
 
                 rlist, wlist, _ = select(
@@ -186,7 +189,7 @@ def segment_hxxx(
                     print(
                         f"V+{hxxx_in_stats:6}-{hxxx_out_stats:6}={len(hxxx_buffer):6} "
                         f"A+{rawaudio_in_stats:6}-{rawaudio_out_stats:6}={len(rawaudio_buffer):6} "
-                        f"I={i}",
+                        f"I={i} S={save_process is not None}",
                         flush=True,
                     )
 
@@ -210,13 +213,14 @@ def segment_hxxx(
                     break
 
                 if stall_periods > STALL_PERIOD_MAX:
-                    print("  === stall detected ===  ", flush=True)
+                    print("  === stall detected === ", flush=True)
                     raise StallDetectedError()
 
             current_date = timezone.now()
 
             hxxx_out_fd.close()
             rawaudio_out_fd.close()
+            record_process.terminate()
 
             save_process, save_path = record_process, file_path
             save_start, save_end = start_date, current_date
