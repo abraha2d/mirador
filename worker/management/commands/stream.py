@@ -5,10 +5,10 @@ from multiprocessing import Process
 from os import kill, makedirs
 from shutil import rmtree
 from signal import SIGINT
+from time import sleep
 from worker.management.commands.constants import (
     CODEC_H264,
     DECODE_SIZE,
-    HXXX_CODECS,
     CODEC_RAWAUDIO,
     RECORD_DIR,
     RECORD_FILENAME,
@@ -108,6 +108,9 @@ def handle_stream(camera_id):
     ]
     print(f"{camera_id}: Started streams.")
 
+    pids = [ff_process.pid for ff_process in ff_processes]
+    print(f"{camera.id}: - Stream process PIDs: {pids}")
+
     print()
     print(f"{camera_id}: Starting segmented recorder...", flush=True)
     record_process = Process(
@@ -125,6 +128,7 @@ def handle_stream(camera_id):
     )
     record_process.start()
     print(f"{camera_id}: Started segmented recorder.")
+    print(f"{camera.id}: - Segmented recorder PID: {record_process.pid}")
 
     manual_exit = False
 
@@ -140,11 +144,16 @@ def handle_stream(camera_id):
         else:
             print()
             print(f"{camera_id}: Waiting for end of stream...", flush=True)
-            for ff_process in ff_processes:
-                ff_process.wait()
+            while all(
+                [
+                    record_process.is_alive(),
+                    *(p.poll() is None for p in ff_processes),
+                ]
+            ):
+                sleep(1)
 
         rcs = [ff_process.returncode for ff_process in ff_processes]
-        print(f"{camera_id}: Stream ended. RCs: {rcs}")
+        print(f"{camera_id}: Stream ended. RCs: {rcs}, R = {record_process.is_alive()}")
 
     except KeyboardInterrupt:
         manual_exit = True
