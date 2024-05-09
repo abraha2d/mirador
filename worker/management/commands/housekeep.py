@@ -119,7 +119,7 @@ def add_missing_db_records():
                 continue
 
             if datetime.utcnow().replace(tzinfo=UTC) - start_date < timedelta(
-                minutes=15
+                minutes=settings.RECORD_SEGMENT_MINS
             ):
                 continue
 

@@ -2,6 +2,7 @@ from datetime import timedelta
 from errno import ENXIO
 from select import PIPE_BUF, select
 import os
+from django.conf import settings
 from pathlib import Path
 from random import randrange
 from subprocess import TimeoutExpired
@@ -19,7 +20,6 @@ from worker.management.commands.constants import (
     HXXX_NALU_HEADER_SIZE,
     RAWAUDIO_SAMPLE_SIZE,
     READ_MAX_SIZE,
-    RECORD_SEGMENT_MINS,
     STALL_PERIOD_MAX,
     STAT_CHECK_PERIOD,
 )
@@ -62,27 +62,14 @@ def segment_hxxx(
     rawaudio_params,
 ):
     hxxx_in_fd = LazyFD(hxxx_in_path, os.O_RDONLY)
-    hxxx_buffer, hxxx_out_path = bytearray(), mkfifotemp(hxxx_in_codec)
-    hxxx_out_fd = LazyFD(hxxx_out_path, os.O_WRONLY)
+    hxxx_buffer = bytearray()
     hxxx_in_stats, hxxx_out_stats = 0, 0
 
     rawaudio_in_fd = LazyFD(rawaudio_in_path, os.O_RDONLY)
-    rawaudio_buffer, rawaudio_out_path = bytearray(), mkfifotemp(CODEC_RAWAUDIO)
-    rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY)
+    rawaudio_buffer = bytearray()
     rawaudio_in_stats, rawaudio_out_stats = 0, 0
 
-    ffmpeg_input = (
-        ffmpeg.input(
-            rawaudio_out_path,
-            **rawaudio_params,
-        )
-        if has_audio
-        else ffmpeg.input(hxxx_out_path)
-    )
-
-    audio_hack = {"i": hxxx_out_path} if has_audio else {}
     record_params = {
-        **audio_hack,  # TODO: this only works because "i" is alphabetically first in the list of params
         "movflags": "+faststart",
         "vcodec": "copy",
     }
@@ -96,15 +83,34 @@ def segment_hxxx(
         while True:
             start_date = current_date
             next_split = start_date.replace(
-                minute=start_date.minute // RECORD_SEGMENT_MINS * RECORD_SEGMENT_MINS,
+                minute=start_date.minute
+                // settings.RECORD_SEGMENT_MINS
+                * settings.RECORD_SEGMENT_MINS,
                 second=randrange(59),
                 microsecond=randrange(999999),
-            ) + timedelta(minutes=RECORD_SEGMENT_MINS)
+            ) + timedelta(minutes=settings.RECORD_SEGMENT_MINS)
             file_path = start_date.strftime(record_path)
+
+            hxxx_out_path = mkfifotemp(hxxx_in_codec)
+            hxxx_out_fd = LazyFD(hxxx_out_path, os.O_WRONLY)
+
+            rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
+            rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY)
+
+            ffmpeg_input = (
+                ffmpeg.input(
+                    rawaudio_out_path,
+                    **rawaudio_params,
+                )
+                if has_audio
+                else ffmpeg.input(hxxx_out_path)
+            )
+            audio_hack = {"i": hxxx_out_path} if has_audio else {}
 
             record_cmd = (
                 ffmpeg_input.output(
                     file_path,
+                    **audio_hack,  # TODO: this only works because "i" is alphabetically first in the list of params
                     **record_params,
                 )
                 .global_args(*FF_GLOBAL_ARGS)

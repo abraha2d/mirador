@@ -19,6 +19,7 @@
       <sourceFolder url="file://$MODULE_DIR$/deploy/envs/_base/lib/python3.10/site-packages" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/deploy/_cache" />
       <excludeFolder url="file://$MODULE_DIR$/deploy/envs" />
+      <excludeFolder url="file://$MODULE_DIR$/ui/build" />
     </content>
     <orderEntry type="jdk" jdkName="$MODULE_DIR$/deploy/envs/_base" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
