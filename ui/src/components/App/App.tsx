@@ -1,26 +1,23 @@
 import React from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { DndProvider } from "react-dnd-multi-backend";
+import { HTML5toTouch } from "rdndmb-html5-to-touch";
 
 import { LiveView, Store, TopNav } from "components";
-
 import "./App.css";
 
 export const App = () => (
   <Store>
-    <Router>
-      <DndProvider backend={HTML5Backend}>
+    <BrowserRouter>
+      <DndProvider options={HTML5toTouch}>
         <div className="h-100 d-flex flex-column">
           <TopNav />
-          <Switch>
-            <Route path="/" exact>
-              <LiveView />
-            </Route>
-          </Switch>
+          <Routes>
+            <Route path="/" Component={LiveView} />
+          </Routes>
         </div>
       </DndProvider>
-    </Router>
+    </BrowserRouter>
   </Store>
 );
 

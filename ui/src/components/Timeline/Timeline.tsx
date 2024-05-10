@@ -48,6 +48,7 @@ import {
 
 import "./Timeline.css";
 import { DEFAULT_ZOOM } from "./constants";
+import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
 
 let abortController = new AbortController();
 
@@ -69,10 +70,6 @@ export const Timeline = () => {
   const prevDate: Date | undefined = usePrevious(date);
   const dateWithoutTime = +withoutTime(date);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const draggerRef = useRef<HTMLDivElement>(null);
-  const draggerWidth = draggerRef.current?.clientWidth;
-
   const now = new Date();
 
   const [isLoading, setLoading] = useState(false);
@@ -86,6 +83,12 @@ export const Timeline = () => {
 
   const [showTimeEdit, setShowTimeEdit] = useState(false);
   const [timeEdit, setTimeEdit] = useState("");
+
+  const [previousTouch, setPreviousTouch] = useState<Touch | undefined>(
+    undefined
+  );
+
+  const draggerRef = useRef<HTMLDivElement>(null);
 
   const latestPing = Math.max(
     ...cameras
@@ -164,7 +167,7 @@ export const Timeline = () => {
             camera: camera.id,
             // @ts-ignore camera.lastPing is guaranteed to be
             // non-null due to the .filter() before this .map()
-            startDate: new Date(camera.lastPing),
+            startDate: new Date(camera.lastPing - LIVE_VIEW_SLOP_SECS * 1000),
             endDate: now,
             file: "",
           };
@@ -232,54 +235,81 @@ export const Timeline = () => {
             </Button>
           )}
         </OverlayTrigger>
-        <div
-          ref={containerRef}
-          className="flex-grow-1 position-relative overflow-hidden pe-none"
-        >
+        <div className="flex-grow-1 position-relative overflow-hidden pe-none">
           <DraggableCore
             nodeRef={draggerRef}
             onDrag={(e) => {
               isScrubbing || dispatch?.({ type: SET_SCRUBBING, payload: true });
-              e instanceof MouseEvent &&
-                draggerWidth &&
+
+              const target = e.target as HTMLElement;
+              const targetRect = target.getClientRects()[0];
+
+              let movement = 0;
+
+              if (e instanceof MouseEvent) {
+                movement = e.movementX;
+              } else if (e instanceof TouchEvent) {
+                if (previousTouch) {
+                  const touchId = previousTouch.identifier;
+                  const touchStart = previousTouch.clientX;
+                  const touch = Array.from(e.changedTouches).find(
+                    (t) => t.identifier === touchId
+                  );
+                  if (touch) {
+                    movement = touch.clientX - touchStart;
+                    setPreviousTouch(touch);
+                  }
+                } else {
+                  setPreviousTouch(e.changedTouches[0]);
+                }
+              }
+
+              dispatch?.({
+                type: SET_DATE,
+                payload: new Date(
+                  Math.min(
+                    +getDateFromPosition(
+                      getPositionFromDate(date, targetRect.width) - movement,
+                      targetRect.width,
+                      date
+                    ),
+                    +now
+                  )
+                ),
+              });
+            }}
+            onStop={(e) => {
+              setPreviousTouch(undefined);
+
+              if (isScrubbing) {
+                dispatch?.({ type: SET_SCRUBBING, payload: false });
+                return;
+              }
+
+              const target = e.target as HTMLElement;
+              const targetRect = target.getClientRects()[0];
+
+              const position =
+                e instanceof MouseEvent
+                  ? e.offsetX
+                  : e instanceof TouchEvent
+                  ? e.changedTouches[0].clientX - targetRect.left
+                  : undefined;
+
+              position &&
                 dispatch?.({
                   type: SET_DATE,
                   payload: new Date(
                     Math.min(
                       +getDateFromPosition(
-                        getPositionFromDate(date, draggerWidth) - e.movementX,
-                        draggerWidth,
-                        date
+                        position,
+                        targetRect.width,
+                        new Date(parseInt(target.getAttribute("data-date")!))
                       ),
                       +now
                     )
                   ),
                 });
-            }}
-            onStop={(e) => {
-              isScrubbing
-                ? dispatch?.({ type: SET_SCRUBBING, payload: false })
-                : e instanceof MouseEvent &&
-                  draggerWidth &&
-                  dispatch?.({
-                    type: SET_DATE,
-                    payload: new Date(
-                      Math.min(
-                        +getDateFromPosition(
-                          e.offsetX,
-                          draggerWidth,
-                          new Date(
-                            parseInt(
-                              (e.target as HTMLElement).getAttribute(
-                                "data-date"
-                              )!
-                            )
-                          )
-                        ),
-                        +now
-                      )
-                    ),
-                  });
             }}
           >
             <div
@@ -295,19 +325,21 @@ export const Timeline = () => {
                     }),
               }}
               onMouseMove={(e) => {
-                if (!draggerWidth) return;
-                const nativeE = e.nativeEvent;
-                const target = nativeE.target as HTMLElement;
-                const parent = target.offsetParent as HTMLElement;
-                setHoverLocation(
-                  parent.offsetLeft + target.offsetLeft + nativeE.offsetX
-                );
+                const position = e.nativeEvent.offsetX;
+
+                const target = e.target as HTMLElement;
+                const targetRect = target.getClientRects()[0];
                 setHoverDate(
                   getDateFromPosition(
-                    nativeE.offsetX,
-                    draggerWidth,
+                    position,
+                    targetRect.width,
                     new Date(parseInt(target.getAttribute("data-date")!))
                   )
+                );
+
+                const parent = target.offsetParent as HTMLElement;
+                setHoverLocation(
+                  parent.offsetLeft + target.offsetLeft + position
                 );
               }}
               onMouseOut={() => setHoverLocation(-1)}
@@ -464,62 +496,31 @@ export const Timeline = () => {
           />
           <Dropdown.Menu align="end" className="text-nowrap">
             <ButtonGroup className="px-2">
-              <Button
-                variant={playbackSpeed === 0.125 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.125 })
-                }
-              >
-                <ChevronDoubleLeft />
-              </Button>
-              <Button
-                variant={playbackSpeed === 0.25 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.25 })
-                }
-              >
-                <ChevronLeft />
-              </Button>
-              <Button
-                variant={playbackSpeed === 0.5 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 0.5 })
-                }
-              >
-                <ChevronCompactLeft />
-              </Button>
-              <Button
-                variant={playbackSpeed === 1 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 1 })
-                }
-              >
-                <Circle />
-              </Button>
-              <Button
-                variant={playbackSpeed === 2.5 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 2.5 })
-                }
-              >
-                <ChevronCompactRight />
-              </Button>
-              <Button
-                variant={playbackSpeed === 6.25 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 6.25 })
-                }
-              >
-                <ChevronRight />
-              </Button>
-              <Button
-                variant={playbackSpeed === 15.625 ? "secondary" : colorMode}
-                onClick={() =>
-                  dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 15.625 })
-                }
-              >
-                <ChevronDoubleRight />
-              </Button>
+              {[0.125, 0.25, 0.5, 1, 2.5, 6.25, 15.625].map((speed) => (
+                <Button
+                  key={speed}
+                  variant={playbackSpeed === speed ? "secondary" : colorMode}
+                  onClick={() =>
+                    dispatch?.({ type: SET_PLAYBACK_SPEED, payload: speed })
+                  }
+                >
+                  {speed == 0.125 ? (
+                    <ChevronDoubleLeft />
+                  ) : speed == 0.25 ? (
+                    <ChevronLeft />
+                  ) : speed == 0.5 ? (
+                    <ChevronCompactLeft />
+                  ) : speed == 2.5 ? (
+                    <ChevronCompactRight />
+                  ) : speed == 6.25 ? (
+                    <ChevronRight />
+                  ) : speed == 15.625 ? (
+                    <ChevronDoubleRight />
+                  ) : (
+                    <Circle />
+                  )}
+                </Button>
+              ))}
             </ButtonGroup>
           </Dropdown.Menu>
         </Dropdown>

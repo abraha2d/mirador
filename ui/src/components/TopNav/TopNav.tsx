@@ -36,7 +36,7 @@ export const TopNav = () => {
       <NavbarBrand href="/">Mirador</NavbarBrand>
       <Nav className="flex-grow-1">
         <NavItem>
-          <Link className="nav-link" to="/" exact>
+          <Link className="nav-link" to="/">
             Live View
           </Link>
         </NavItem>

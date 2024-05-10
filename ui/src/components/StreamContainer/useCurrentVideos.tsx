@@ -3,6 +3,7 @@ import { useContext, useEffect } from "react";
 import { Context } from "../Store";
 import { isVideo } from "./utils";
 import useVideoContainer from "./useVideoContainer";
+import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
 
 const useCurrentVideos = (stream?: Stream) => {
   const [{ date, isPlaying, isMuted, playbackSpeed }] = useContext(Context);
@@ -72,7 +73,10 @@ const useCurrentVideos = (stream?: Stream) => {
         (videoRef.current.duration /
           ((+source.endDate - +source.startDate) / 1000))
       : videoRef.current.duration - (+new Date() - +date) / 1000;
-    if (Math.abs(selectedTime - videoRef.current.currentTime) > 5) {
+    if (
+      Math.abs(selectedTime - videoRef.current.currentTime) >
+      LIVE_VIEW_SLOP_SECS
+    ) {
       console.log("ADJUSTING");
       videoRef.current.currentTime = selectedTime;
     }

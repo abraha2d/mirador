@@ -13,6 +13,7 @@ import { isStream, isVideo } from "./utils";
 import { Context } from "../Store";
 import { Button } from "react-bootstrap";
 import { Download } from "react-bootstrap-icons";
+import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
 
 const useVideoContainer = (
   date: Date,
@@ -28,7 +29,9 @@ const useVideoContainer = (
   const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const source =
-    camera && camera.lastPing && date > camera.lastPing
+    camera &&
+    camera.lastPing &&
+    +date > +camera.lastPing - LIVE_VIEW_SLOP_SECS * 1000
       ? stream
       : videos.find(
           (video) =>

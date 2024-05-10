@@ -58,6 +58,8 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       .then((response) => {
         const newCameras: Camera[] = response.map((camera: any) => {
           const lastPing = camera.last_ping && new Date(camera.last_ping);
+          // TODO: pull segment length and slop (900000+60000=960000 below)
+          //       from some shared location (preferably statically)
           return {
             id: camera.id,
             enabled: camera.enabled,
