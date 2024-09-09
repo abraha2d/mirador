@@ -1,13 +1,15 @@
 from datetime import timedelta
 from errno import ENXIO
-from select import PIPE_BUF, select
+from io import FileIO
 import os
-from django.conf import settings
 from pathlib import Path
 from random import randrange
+from select import PIPE_BUF, select
 from subprocess import TimeoutExpired
+from time import perf_counter
 from traceback import print_exception
 
+from django.conf import settings
 from django.utils import timezone
 import ffmpeg
 
@@ -28,24 +30,29 @@ from worker.management.commands.utils import mkfifotemp
 
 
 class LazyFD:
-    def __init__(self, path: str, flags: int):
+    def __init__(self, path: str, flags: int, mode: str):
         self.path = path
         self.flags = flags
-        self._fileno = None
+        self.mode = mode
+        self._fileio: FileIO | None = None
 
     def close(self):
-        if self._fileno is not None:
-            os.close(self._fileno)
-            self._fileno = None
+        if self._fileio is not None:
+            self._fileio.close()
+            self._fileio = None
 
     def fileno(self):
-        if self._fileno is None:
+        if self._fileio is None:
             try:
-                self._fileno = os.open(self.path, self.flags | os.O_NONBLOCK)
+                self._fileio = FileIO(
+                    os.open(self.path, self.flags | os.O_NONBLOCK),
+                    self.mode,
+                )
+                os.set_blocking(self._fileio.fileno(), False)
             except OSError as e:
                 if e.errno != ENXIO:
                     raise e
-        return self._fileno
+        return self._fileio and self._fileio.fileno()
 
 
 def filter_fds(fds: list[LazyFD]):
@@ -61,11 +68,14 @@ def segment_hxxx(
     rawaudio_in_path: str,
     rawaudio_params,
 ):
-    hxxx_in_fd = LazyFD(hxxx_in_path, os.O_RDONLY)
+    read_buffer = bytearray(READ_MAX_SIZE)
+    read_buffer_view = memoryview(read_buffer)
+
+    hxxx_in_fd = LazyFD(hxxx_in_path, os.O_RDONLY, "r")
     hxxx_buffer = bytearray()
     hxxx_in_stats, hxxx_out_stats = 0, 0
 
-    rawaudio_in_fd = LazyFD(rawaudio_in_path, os.O_RDONLY)
+    rawaudio_in_fd = LazyFD(rawaudio_in_path, os.O_RDONLY, "r")
     rawaudio_buffer = bytearray()
     rawaudio_in_stats, rawaudio_out_stats = 0, 0
 
@@ -92,10 +102,10 @@ def segment_hxxx(
             file_path = start_date.strftime(record_path)
 
             hxxx_out_path = mkfifotemp(hxxx_in_codec)
-            hxxx_out_fd = LazyFD(hxxx_out_path, os.O_WRONLY)
+            hxxx_out_fd = LazyFD(hxxx_out_path, os.O_WRONLY, "w")
 
             rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
-            rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY)
+            rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY, "w")
 
             ffmpeg_input = (
                 ffmpeg.input(
@@ -124,7 +134,7 @@ def segment_hxxx(
             camera.save()
 
             i = 0
-            stat_check = timezone.now()
+            stat_check = perf_counter()
             stall_periods = 0
 
             while True:
@@ -149,41 +159,25 @@ def segment_hxxx(
 
                 rlist, wlist, xlist = select(_rlist, _wlist, _xlist)
 
-                hxxx_in_stats -= len(hxxx_buffer)
-
                 if hxxx_in_fd in rlist and hxxx_in_fd not in xlist:
-                    hxxx_buffer.extend(os.read(hxxx_in_fd.fileno(), READ_MAX_SIZE))
+                    num_bytes = hxxx_in_fd._fileio.readinto(read_buffer)
+                    hxxx_buffer.extend(read_buffer_view[:num_bytes])
+                    hxxx_in_stats += num_bytes
 
-                hxxx_in_stats += len(hxxx_buffer)
-                hxxx_out_stats += len(hxxx_buffer)
-
-                if (
-                    hxxx_out_fd in wlist
-                    and hxxx_out_fd not in xlist
-                    and len(hxxx_buffer) > HXXX_NALU_HEADER_SIZE
-                ):
-                    flush_to = hxxx_buffer.rfind(
-                        HXXX_NALU_HEADER,
-                        HXXX_NALU_HEADER_SIZE,
-                        PIPE_BUF,
-                    )
+                if hxxx_out_fd in wlist and hxxx_out_fd not in xlist:
+                    flush_to = hxxx_buffer.rfind(HXXX_NALU_HEADER, 1, PIPE_BUF)
                     if flush_to == -1:
                         flush_to = min(
-                            len(hxxx_buffer) - HXXX_NALU_HEADER_SIZE, PIPE_BUF
+                            len(hxxx_buffer) - (HXXX_NALU_HEADER_SIZE - 1), PIPE_BUF
                         )
-                    os.write(hxxx_out_fd.fileno(), hxxx_buffer[:flush_to])
+                    hxxx_out_fd._fileio.write(memoryview(hxxx_buffer)[:flush_to])
                     del hxxx_buffer[:flush_to]
-
-                hxxx_out_stats -= len(hxxx_buffer)
-                rawaudio_in_stats -= len(rawaudio_buffer)
+                    hxxx_out_stats += flush_to
 
                 if rawaudio_in_fd in rlist and rawaudio_in_fd not in xlist:
-                    rawaudio_buffer.extend(
-                        os.read(rawaudio_in_fd.fileno(), READ_MAX_SIZE)
-                    )
-
-                rawaudio_in_stats += len(rawaudio_buffer)
-                rawaudio_out_stats += len(rawaudio_buffer)
+                    num_bytes = rawaudio_in_fd._fileio.readinto(read_buffer)
+                    rawaudio_buffer.extend(read_buffer_view[:num_bytes])
+                    rawaudio_in_stats += num_bytes
 
                 if (
                     rawaudio_out_fd in wlist
@@ -195,12 +189,13 @@ def segment_hxxx(
                         // RAWAUDIO_SAMPLE_SIZE
                         * RAWAUDIO_SAMPLE_SIZE
                     )
-                    os.write(rawaudio_out_fd.fileno(), rawaudio_buffer[:flush_to])
+                    rawaudio_out_fd._fileio.write(
+                        memoryview(rawaudio_buffer)[:flush_to]
+                    )
                     del rawaudio_buffer[:flush_to]
+                    rawaudio_out_stats += flush_to
 
-                rawaudio_out_stats -= len(rawaudio_buffer)
-
-                if timezone.now() > stat_check:
+                if perf_counter() > stat_check:
                     print(
                         f"V + {hxxx_in_stats:7} - {hxxx_out_stats:7} = {len(hxxx_buffer):8}  "
                         f"A + {rawaudio_in_stats:7} - {rawaudio_out_stats:7} = {len(rawaudio_buffer):8}  "
@@ -217,7 +212,7 @@ def segment_hxxx(
                     rawaudio_in_stats, rawaudio_out_stats = 0, 0
 
                     i = 0
-                    stat_check = timezone.now() + timedelta(seconds=STAT_CHECK_PERIOD)
+                    stat_check += STAT_CHECK_PERIOD
 
                 if (
                     hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
