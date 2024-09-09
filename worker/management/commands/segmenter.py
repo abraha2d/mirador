@@ -153,8 +153,17 @@ def segment_hxxx(
                         print("   ===   no file!  ===   ", flush=True)
                     save_process = None
 
+                should_split = timezone.now() > next_split
+
                 _rlist = filter_fds([hxxx_in_fd, rawaudio_in_fd])
-                _wlist = filter_fds([hxxx_out_fd, rawaudio_out_fd])
+
+                _wlist = []
+                if len(hxxx_buffer):
+                    _wlist.append(hxxx_out_fd)
+                if len(rawaudio_buffer):
+                    _wlist.append(rawaudio_out_fd)
+                _wlist = filter_fds(_wlist)
+
                 _xlist = _rlist + _wlist
 
                 rlist, wlist, xlist = select(_rlist, _wlist, _xlist)
@@ -165,35 +174,45 @@ def segment_hxxx(
                     hxxx_in_stats += num_bytes
 
                 if hxxx_out_fd in wlist and hxxx_out_fd not in xlist:
-                    flush_to = hxxx_buffer.rfind(HXXX_NALU_HEADER, 1, PIPE_BUF)
-                    if flush_to == -1:
-                        flush_to = min(
-                            len(hxxx_buffer) - (HXXX_NALU_HEADER_SIZE - 1), PIPE_BUF
-                        )
-                    hxxx_out_fd._fileio.write(memoryview(hxxx_buffer)[:flush_to])
-                    del hxxx_buffer[:flush_to]
-                    hxxx_out_stats += flush_to
+                    if should_split:
+                        flush_to = hxxx_buffer.rfind(HXXX_NALU_HEADER)
+                        if flush_to == -1:
+                            flush_to = len(hxxx_buffer) - (HXXX_NALU_HEADER_SIZE - 1)
+                    else:
+                        flush_to = None
+
+                    num_bytes = hxxx_out_fd._fileio.write(
+                        memoryview(hxxx_buffer)[:flush_to]
+                    )
+
+                    del hxxx_buffer[:num_bytes]
+                    hxxx_out_stats += num_bytes
 
                 if rawaudio_in_fd in rlist and rawaudio_in_fd not in xlist:
                     num_bytes = rawaudio_in_fd._fileio.readinto(read_buffer)
                     rawaudio_buffer.extend(read_buffer_view[:num_bytes])
                     rawaudio_in_stats += num_bytes
 
-                if (
-                    rawaudio_out_fd in wlist
-                    and rawaudio_out_fd not in xlist
-                    and len(rawaudio_buffer) > 0
-                ):
+                if rawaudio_out_fd in wlist and rawaudio_out_fd not in xlist:
                     flush_to = (
                         len(rawaudio_buffer)
                         // RAWAUDIO_SAMPLE_SIZE
                         * RAWAUDIO_SAMPLE_SIZE
                     )
-                    rawaudio_out_fd._fileio.write(
+
+                    num_bytes = rawaudio_out_fd._fileio.write(
                         memoryview(rawaudio_buffer)[:flush_to]
                     )
-                    del rawaudio_buffer[:flush_to]
-                    rawaudio_out_stats += flush_to
+
+                    del rawaudio_buffer[:num_bytes]
+                    rawaudio_out_stats += num_bytes
+
+                if (
+                    should_split
+                    and hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
+                ):
+                    print("   === split point ===   ", flush=True)
+                    break
 
                 if perf_counter() > stat_check:
                     print(
@@ -213,14 +232,6 @@ def segment_hxxx(
 
                     i = 0
                     stat_check += STAT_CHECK_PERIOD
-
-                if (
-                    hxxx_buffer[:HXXX_NALU_HEADER_SIZE] == HXXX_NALU_HEADER
-                    and timezone.now() > next_split
-                    and hxxx_out_stats > 0
-                ):
-                    print("   === split point ===   ", flush=True)
-                    break
 
                 if stall_periods > STALL_PERIOD_MAX:
                     print("   =  stall detected =   ", flush=True)
