@@ -166,7 +166,10 @@ def handle_stream(camera_id):
     print()
     print(f"{camera_id}: Waiting for segmented recorder...", flush=True)
     if not manual_exit:
-        kill(record_process.pid, SIGINT)
+        try:
+            kill(record_process.pid, SIGINT)
+        except ProcessLookupError:
+            pass
     record_process.join()
 
     camera.refresh_from_db()
