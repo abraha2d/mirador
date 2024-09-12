@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { DndProvider } from "react-dnd-multi-backend";
-import { HTML5toTouch } from "rdndmb-html5-to-touch";
 
 import { LiveView, Store, TopNav } from "components";
+import { HTML5toTouch } from "./utils";
 import "./App.css";
 
 export const App = () => (
