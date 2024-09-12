@@ -50,8 +50,11 @@ def get_ffmpeg_cmds(
 ):
     copy_enabled, decode_width, decode_height = decode_config
     detect_enabled, drawbox_enabled, drawtext_enabled = feature_config
-    stream_url, _, _, frame_rate, has_audio, rtsp_params = stream_config
+    stream_url, codec_name, _, frame_rate, has_audio, rtsp_params = stream_config
     decode_params, encode_params = get_transcode_params(copy_enabled)
+
+    hxxx_codec = get_hxxx_output(codec_name)
+    hxxx_fifo_path = mkfifotemp(hxxx_codec)
 
     rawvideo_params = {
         "format": "rawvideo",
@@ -85,34 +88,44 @@ def get_ffmpeg_cmds(
         outputs.append([])
 
     if drawtext_enabled:
-        drawtext = inputs[-1].drawtext("Hello, world!")
-        split = drawtext.filter_multi_output("split")
-        splits = [split.stream(0), split.stream(1)]
-    else:
-        splits = [inputs[-1], inputs[-1]]
+        inputs[-1] = inputs[-1].drawtext("Hello, world!")
 
     outputs[-1].append(
-        splits[0].output(
-            f"{stream_dir}/out.m3u8",
-            **encode_params,
-            **stream_params,
-        )
-    )
-
-    outputs[-1].append(
-        splits[1].output(
-            hxxx_out_path,
+        inputs[-1].output(
+            hxxx_fifo_path,
             **encode_params,
         )
     )
 
     if has_audio:
         outputs[-1].append(
-            splits[1].output(
+            inputs[-1].output(
                 rawaudio_out_path,
                 **rawaudio_params,
             )
         )
+
+    inputs.append(
+        ffmpeg.input(
+            hxxx_fifo_path,
+        )
+    )
+    outputs.append([])
+
+    outputs[-1].append(
+        inputs[-1].output(
+            f"{stream_dir}/out.m3u8",
+            vcodec="copy",
+            **stream_params,
+        )
+    )
+
+    outputs[-1].append(
+        inputs[-1].output(
+            hxxx_out_path,
+            vcodec="copy",
+        )
+    )
 
     return [
         ffmpeg.merge_outputs(*output).global_args(*FF_GLOBAL_ARGS).overwrite_output()
@@ -181,7 +194,9 @@ def get_transcode_params(copy_enabled: bool):
     decode_params = {}
     encode_params = {"vcodec": "libx264"}
 
-    if nvdec_available:
+    if copy_enabled:
+        pass
+    elif nvdec_available:
         decode_params["hwaccel"] = "cuda"
     elif vaapi_available:
         decode_params["hwaccel"] = "vaapi"
@@ -190,6 +205,7 @@ def get_transcode_params(copy_enabled: bool):
         encode_params["vcodec"] = "copy"
     elif nvenc_available:
         encode_params["vcodec"] = "h264_nvenc"
+        encode_params["bf"] = 0
     elif vaapi_available:
         encode_params["vcodec"] = "h264_vaapi"
 

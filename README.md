@@ -5,11 +5,12 @@ noun    a turret or tower attached to a building and providing an extensive view
 ```
 
 ## System requirements
-- CPU: 1 thread per camera
+- CPU: 2 cores, plus 1 core per H.265 camera
 - GPU:
   - CUDA support if any cameras are detection-enabled
   - H.264 NVENC if any cameras are visualization-enabled
   - 2GB VRAM per detection-enabled camera
+  - 512MB VRAM per H.265 camera
 - Memory: 4GB, plus 4GB per detection-enabled camera
 - Storage: 32GB (not including recordings)
 
