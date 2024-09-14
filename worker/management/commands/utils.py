@@ -205,6 +205,8 @@ def get_transcode_params(copy_enabled: bool):
     elif vaapi_available:
         encode_params["vcodec"] = "h264_vaapi"
 
+    encode_params["acodec"] = "copy"
+
     return decode_params, encode_params
 
 
