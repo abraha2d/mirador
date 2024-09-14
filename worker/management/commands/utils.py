@@ -10,6 +10,7 @@ from worker.management.commands.constants import (
     CODEC_EXT_MAP,
     CODEC_H264,
     CODEC_HEVC,
+    CODEC_RAWAUDIO,
     FF_GLOBAL_ARGS,
     FF_GLOBAL_PARAMS,
     FF_RTSP_DEFAULT_PARAMS,
@@ -55,6 +56,7 @@ def get_ffmpeg_cmds(
 
     hxxx_codec = get_hxxx_output(codec_name)
     hxxx_fifo_path = mkfifotemp(hxxx_codec)
+    rawaudio_fifo_path = mkfifotemp(CODEC_RAWAUDIO)
 
     rawvideo_params = {
         "format": "rawvideo",
@@ -100,20 +102,24 @@ def get_ffmpeg_cmds(
     if has_audio:
         outputs[-1].append(
             inputs[-1].output(
-                rawaudio_out_path,
+                rawaudio_fifo_path,
                 **rawaudio_params,
             )
         )
 
-    inputs.append(
-        ffmpeg.input(
-            hxxx_fifo_path,
+    inputs.append([ffmpeg.input(hxxx_fifo_path)])
+    if has_audio:
+        inputs[-1].append(
+            ffmpeg.input(
+                rawaudio_fifo_path,
+                **rawaudio_params,
+            )
         )
-    )
     outputs.append([])
 
     outputs[-1].append(
-        inputs[-1].output(
+        ffmpeg.output(
+            *inputs[-1],
             f"{stream_dir}/out.m3u8",
             vcodec="copy",
             **stream_params,
@@ -121,7 +127,8 @@ def get_ffmpeg_cmds(
     )
 
     outputs[-1].append(
-        inputs[-1].output(
+        ffmpeg.output(
+            *inputs[-1],
             hxxx_out_path,
             vcodec="copy",
         )

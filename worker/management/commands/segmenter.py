@@ -107,20 +107,19 @@ def segment_hxxx(
             rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
             rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY, "w")
 
-            ffmpeg_input = (
-                ffmpeg.input(
-                    rawaudio_out_path,
-                    **rawaudio_params,
+            ffmpeg_inputs = [ffmpeg.input(hxxx_out_path)]
+            if has_audio:
+                ffmpeg_inputs.append(
+                    ffmpeg.input(
+                        rawaudio_out_path,
+                        **rawaudio_params,
+                    )
                 )
-                if has_audio
-                else ffmpeg.input(hxxx_out_path)
-            )
-            audio_hack = {"i": hxxx_out_path} if has_audio else {}
 
             record_cmd = (
-                ffmpeg_input.output(
+                ffmpeg.output(
+                    *ffmpeg_inputs,
                     file_path,
-                    **audio_hack,  # TODO: this only works because "i" is alphabetically first in the list of params
                     **record_params,
                 )
                 .global_args(*FF_GLOBAL_ARGS)
