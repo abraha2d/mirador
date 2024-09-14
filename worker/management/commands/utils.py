@@ -7,10 +7,7 @@ from os import mkfifo
 from os.path import join
 from tempfile import mkdtemp
 from worker.management.commands.constants import (
-    CODEC_EXT_MAP,
     CODEC_H264,
-    CODEC_HEVC,
-    CODEC_RAWAUDIO,
     FF_GLOBAL_ARGS,
     FF_GLOBAL_PARAMS,
     FF_RTSP_DEFAULT_PARAMS,
@@ -54,9 +51,7 @@ def get_ffmpeg_cmds(
     stream_url, codec_name, _, frame_rate, has_audio, rtsp_params = stream_config
     decode_params, encode_params = get_transcode_params(copy_enabled)
 
-    hxxx_codec = get_hxxx_output(codec_name)
-    hxxx_fifo_path = mkfifotemp(hxxx_codec)
-    rawaudio_fifo_path = mkfifotemp(CODEC_RAWAUDIO)
+    mkv_fifo_path = mkfifotemp("mkv")
 
     rawvideo_params = {
         "format": "rawvideo",
@@ -94,27 +89,12 @@ def get_ffmpeg_cmds(
 
     outputs[-1].append(
         inputs[-1].output(
-            hxxx_fifo_path,
+            mkv_fifo_path,
             **encode_params,
         )
     )
 
-    if has_audio:
-        outputs[-1].append(
-            inputs[-1].output(
-                rawaudio_fifo_path,
-                **rawaudio_params,
-            )
-        )
-
-    inputs.append([ffmpeg.input(hxxx_fifo_path)])
-    if has_audio:
-        inputs[-1].append(
-            ffmpeg.input(
-                rawaudio_fifo_path,
-                **rawaudio_params,
-            )
-        )
+    inputs.append([ffmpeg.input(mkv_fifo_path)])
     outputs.append([])
 
     outputs[-1].append(
@@ -133,6 +113,15 @@ def get_ffmpeg_cmds(
             vcodec="copy",
         )
     )
+
+    if has_audio:
+        outputs[-1].append(
+            ffmpeg.output(
+                *inputs[-1],
+                rawaudio_out_path,
+                **rawaudio_params,
+            )
+        )
 
     return [
         ffmpeg.merge_outputs(*output).global_args(*FF_GLOBAL_ARGS).overwrite_output()
@@ -219,8 +208,7 @@ def get_transcode_params(copy_enabled: bool):
     return decode_params, encode_params
 
 
-def mkfifotemp(codec: str):
-    extension = CODEC_EXT_MAP.get(codec, "raw")
-    path = join(mkdtemp(), f"tmp.{extension}")
+def mkfifotemp(ext: str):
+    path = join(mkdtemp(), f"tmp.{ext}")
     mkfifo(path)
     return path

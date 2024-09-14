@@ -2,11 +2,6 @@ CODEC_H264 = "h264"
 CODEC_HEVC = "hevc"
 CODEC_RAWAUDIO = "s16le"
 
-CODEC_EXT_MAP = {
-    CODEC_H264: "h264",
-    CODEC_HEVC: "hevc",
-    CODEC_RAWAUDIO: "s16le",
-}
 
 DECODE_SIZE = 1280, 720
 

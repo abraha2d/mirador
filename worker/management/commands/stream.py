@@ -5,7 +5,9 @@ from multiprocessing import Process
 from os import kill, makedirs
 from shutil import rmtree
 from signal import SIGINT
+from subprocess import TimeoutExpired
 from time import sleep
+
 from worker.management.commands.constants import (
     CODEC_H264,
     DECODE_SIZE,
@@ -162,6 +164,11 @@ def handle_stream(camera_id):
     print(f"{camera_id}: Signalling streams to stop...", flush=True)
     for ff_process in ff_processes:
         ff_process.terminate()
+        try:
+            ff_process.wait(5)
+        except TimeoutExpired:
+            ff_process.kill()
+        ff_process.wait()
 
     print()
     print(f"{camera_id}: Waiting for segmented recorder...", flush=True)
