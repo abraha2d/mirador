@@ -217,7 +217,7 @@ def segment_hxxx(
                     print(
                         f"V + {hxxx_in_stats:7} - {hxxx_out_stats:7} = {len(hxxx_buffer):8}  "
                         f"A + {rawaudio_in_stats:7} - {rawaudio_out_stats:7} = {len(rawaudio_buffer):8}  "
-                        f"I = {i:6}  S = {save_process is not None}",
+                        f"I = {i:6}  searching = {should_split}  saving = {save_process is not None}",
                         flush=True,
                     )
 
