@@ -10,13 +10,13 @@ from time import sleep
 
 from worker.management.commands.constants import (
     CODEC_H264,
-    DECODE_SIZE,
+    DEFAULT_DECODE_SIZE,
     CODEC_RAWAUDIO,
     RECORD_DIR,
     RECORD_FILENAME,
     STREAM_DIR,
 )
-from worker.management.commands.pipeline import load_model, run_pipeline
+from worker.management.commands.pipeline import load_labels, load_model, run_pipeline
 from worker.management.commands.segmenter import segment_hxxx
 from worker.management.commands.utils import (
     get_feature_config,
@@ -62,7 +62,10 @@ def handle_stream(camera_id):
     # copy_enabled = not encode_enabled and codec_name in HXXX_CODECS  # HEVC can't be played without browser hwaccel
     copy_enabled = not encode_enabled and codec_name == CODEC_H264
 
-    decode_size = DECODE_SIZE  # TODO: cap to `size`
+    decode_size = DEFAULT_DECODE_SIZE
+    if detect_enabled:
+        model, decode_size = load_model(camera_id, decode_size)
+        labels = load_labels(camera_id)
     decode_width, decode_height = decode_size
 
     print()
@@ -98,9 +101,6 @@ def handle_stream(camera_id):
         stream_config,
         stream_dir,
     )
-
-    if detect_enabled:
-        model = load_model(camera_id, decode_size)
 
     print()
     print(f"{camera_id}: Starting streams...", flush=True)
@@ -142,6 +142,7 @@ def handle_stream(camera_id):
                 feature_config,
                 ff_processes,
                 model,
+                labels,
             )
         else:
             print()

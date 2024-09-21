@@ -2,8 +2,14 @@ CODEC_H264 = "h264"
 CODEC_HEVC = "hevc"
 CODEC_RAWAUDIO = "s16le"
 
+DEFAULT_DECODE_SIZE = 1280, 720
 
-DECODE_SIZE = 1280, 720
+DETECT_TFLITE = True
+TFLITE_MODEL = "mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite"
+TFLITE_LABELS = "coco_labels.txt"
+
+DETECT_YOLO = False
+YOLO_MODEL = "yolov8n.pt"
 
 FF_GLOBAL_PARAMS = {
     "hide_banner": None,
@@ -33,5 +39,3 @@ STAT_CHECK_PERIOD = 5
 STALL_PERIOD_MAX = 12
 
 STREAM_DIR = "stream"
-
-YOLO_MODEL = "yolov8n.pt"

@@ -21,3 +21,5 @@ dependencies:
   - torchvision =0.15.1
   - ultralytics
   - yarn =1
+  - pip:
+    - tflite-runtime
