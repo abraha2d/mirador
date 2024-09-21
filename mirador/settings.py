@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "schedule",
     "storage",
     "worker",
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
