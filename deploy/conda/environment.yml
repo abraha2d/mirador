@@ -1,5 +1,6 @@
 dependencies:
   - channels
+  - dbus
   - django
   - django-colorfield
   - django-debug-toolbar

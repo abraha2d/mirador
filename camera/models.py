@@ -1,4 +1,8 @@
+import dbus
+
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from overlay import models as overlay
 
@@ -86,3 +90,9 @@ class Camera(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@receiver(pre_save, sender=Camera)
+def synchronize_systemd_unit_state(sender, instance, **kwargs):
+    sysbus = dbus.SystemBus()
+
