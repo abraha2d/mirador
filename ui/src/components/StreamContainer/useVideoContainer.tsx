@@ -78,42 +78,27 @@ const useVideoContainer = (
       if (!playbackActions) return;
       const streamState = playbackActions.inspect();
 
-      const sync = (
-        appState: boolean | undefined,
-        streamState: boolean | undefined,
-        setStreamTrue: () => void,
-        setStreamFalse: () => void
-      ) => {
-        if (appState && !streamState) {
-          setStreamTrue();
-        } else if (!appState && streamState) {
-          setStreamFalse();
-        }
-      };
-
-      sync(
+      playbackActions.setProperties({
+        isPaused: !isPlaying,
         isMuted,
-        streamState.isMuted,
-        playbackActions.mute,
-        playbackActions.unmute
-      );
+      });
 
-      sync(
-        isPlaying,
-        !streamState.isPaused,
-        playbackActions.play,
-        playbackActions.pause
-      );
-
-      if (changedState && !changedState.position) return;
-
+      // Don't do anything else if only non-time-related stream state changed
+      if (changedState && !changedState.duration && !changedState.position)
+        return;
       if (!streamState.duration || !streamState.position) return;
 
-      const selectedTime = isVideo(source)
+      let selectedTime = isVideo(source)
         ? ((+date - +source.startDate) / 1000) *
           (streamState.duration /
             ((+source.endDate - +source.startDate) / 1000))
         : streamState.duration - (+new Date() - +date) / 1000;
+
+      // If within slop of live edge, explicitly select live edge
+      if (Math.abs(streamState.duration - selectedTime) < LIVE_VIEW_SLOP_SECS) {
+        selectedTime = streamState.duration;
+      }
+
       if (Math.abs(selectedTime - streamState.position) > LIVE_VIEW_SLOP_SECS) {
         console.log(
           "ADJUSTING",

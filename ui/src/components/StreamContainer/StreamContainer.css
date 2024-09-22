@@ -3,6 +3,10 @@
   transition: width 150ms, height 150ms, left 150ms, top 150ms;
 }
 
+.replay, .replay-video-streamer {
+  background: transparent !important;
+}
+
 .replay-controls-bar {
   display: none !important;
 }

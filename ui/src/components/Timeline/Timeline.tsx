@@ -148,14 +148,16 @@ export const Timeline = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(loadVideos, [dispatch, cameras, date, latestPing]);
 
+  const isLive =
+    Math.abs(+now - +date) < LIVE_VIEW_SLOP_SECS * 1000 && playbackSpeed >= 1;
+
   useInterval(() => {
-    isPlaying &&
-      !isScrubbing &&
-      !showTimeEdit &&
-      dispatch?.({
-        type: SET_DATE,
-        payload: new Date(Math.min(+date + 1000, +now)),
-      });
+    if (!isPlaying || isScrubbing || showTimeEdit) return;
+
+    dispatch?.({
+      type: SET_DATE,
+      payload: new Date(isLive ? now : Math.min(+date + 1000, +now)),
+    });
   }, 1000 / playbackSpeed);
 
   const filteredVideos = videos
@@ -528,10 +530,11 @@ export const Timeline = () => {
       <Button
         variant={isDarkMode ? "secondary" : "light"}
         className="flex-grow-0 ms-2 d-flex align-items-center"
-        disabled={+now - +date < 2000 && isPlaying}
+        disabled={isLive && isPlaying}
         onClick={() => {
           dispatch?.({ type: SET_DATE, payload: new Date() });
           dispatch?.({ type: SET_PLAYING, payload: true });
+          dispatch?.({ type: SET_PLAYBACK_SPEED, payload: 1 });
         }}
         title="Go live"
       >
