@@ -1,31 +1,36 @@
 import { Stream } from "components/Store/types";
 import React, {
-  Fragment,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import HlsJs from "hls.js";
-import ReactHlsPlayer from "react-hls-player";
 import { isStream, isVideo } from "./utils";
 import { Context } from "../Store";
 import { Button } from "react-bootstrap";
 import { Download } from "react-bootstrap-icons";
 import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
+import { Replay } from "vimond-replay";
+import "vimond-replay/index.css";
+import CompoundVideoStreamer from "vimond-replay/video-streamer/compound";
+import {
+  PlaybackActions,
+  VideoStreamState,
+} from "vimond-replay/default-player/Replay";
 
 const useVideoContainer = (
   date: Date,
   stream?: Stream,
   background?: string
 ) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setLoading] = useState(false);
   const [isError, setError] = useState(false);
   const [[aud, token], setToken] = useState<[string, string]>(["", ""]);
 
-  const [{ cameras, videos }] = useContext(Context);
+  const [playbackActions, setPlaybackActions] = useState<PlaybackActions>();
+
+  const [{ cameras, isPlaying, isMuted, videos }] = useContext(Context);
   const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const source =
@@ -68,36 +73,82 @@ const useVideoContainer = (
   const sourceUrlWithToken =
     aud === sourceUrl ? `${sourceUrl}?token=${token}` : "";
 
-  const isHLS = isStream(source) && HlsJs.isSupported();
+  const handleStreamStateChange = useCallback(
+    (changedState?: VideoStreamState) => {
+      if (!playbackActions) return;
+      const streamState = playbackActions.inspect();
+
+      const sync = (
+        appState: boolean | undefined,
+        streamState: boolean | undefined,
+        setStreamTrue: () => void,
+        setStreamFalse: () => void
+      ) => {
+        if (appState && !streamState) {
+          setStreamTrue();
+        } else if (!appState && streamState) {
+          setStreamFalse();
+        }
+      };
+
+      sync(
+        isMuted,
+        streamState.isMuted,
+        playbackActions.mute,
+        playbackActions.unmute
+      );
+
+      sync(
+        isPlaying,
+        !streamState.isPaused,
+        playbackActions.play,
+        playbackActions.pause
+      );
+
+      if (changedState && !changedState.position) return;
+
+      if (!streamState.duration || !streamState.position) return;
+
+      const selectedTime = isVideo(source)
+        ? ((+date - +source.startDate) / 1000) *
+          (streamState.duration /
+            ((+source.endDate - +source.startDate) / 1000))
+        : streamState.duration - (+new Date() - +date) / 1000;
+      if (Math.abs(selectedTime - streamState.position) > LIVE_VIEW_SLOP_SECS) {
+        console.log(
+          "ADJUSTING",
+          Math.round(streamState.position),
+          "to",
+          Math.round(selectedTime),
+          "of",
+          Math.round(streamState.duration)
+        );
+        playbackActions.setPosition(selectedTime);
+      }
+    },
+    [date, isMuted, isPlaying, playbackActions, source]
+  );
+
+  useEffect(handleStreamStateChange, [date, isMuted, isPlaying]);
 
   const video = useMemo(() => {
-    const videoProps = {
-      src: sourceUrlWithToken,
-      className: "w-100 h-100",
-      autoPlay: !background,
-      onLoadStart: () => setLoading(true),
-      onError: () => {
-        setLoading(false);
-        setError(true);
-      },
-      onCanPlay: () => {
-        setLoading(false);
-        setError(false);
-      },
+    const videoContainerProps = {
+      className: "w-100 h-100 align-items-stretch",
       style: background ? { display: "none" } : {},
     };
 
     return (
-      sourceUrlWithToken &&
-      (isHLS ? (
-        <ReactHlsPlayer
-          playerRef={videoRef}
-          key={sourceUrl || background}
-          {...videoProps}
-        />
-      ) : (
-        <Fragment key={sourceUrl || background}>
-          <video ref={videoRef} {...videoProps} />
+      sourceUrlWithToken && (
+        <div key={sourceUrl || background} {...videoContainerProps}>
+          <Replay
+            source={sourceUrlWithToken}
+            onPlaybackActionsReady={setPlaybackActions}
+            onStreamStateChange={handleStreamStateChange}
+            initialPlaybackProps={{ isMuted, isPaused: !isPlaying }}
+          >
+            <CompoundVideoStreamer />
+          </Replay>
+
           {isVideo(source) && (
             <Button
               variant="dark"
@@ -111,12 +162,18 @@ const useVideoContainer = (
               <Download />
             </Button>
           )}
-        </Fragment>
-      ))
+        </div>
+      )
     );
-  }, [background, isHLS, source, sourceUrl, sourceUrlWithToken]);
+  }, [
+    background,
+    handleStreamStateChange,
+    source,
+    sourceUrl,
+    sourceUrlWithToken,
+  ]);
 
-  return { isError, isLoading, source, sourceUrlWithToken, video, videoRef };
+  return { isError, isLoading, source, video };
 };
 
 export default useVideoContainer;

@@ -3981,6 +3981,11 @@ electron-to-chromium@^1.4.284:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.377.tgz#7f326a0b2c1b96eca6bb65907addc505d0d15989"
   integrity sha512-H3BYG6DW5Z+l0xcfXaicJGxrpA4kMlCxnN71+iNX+dBLkRMOdVJqFJiAmbNZZKA1zISpRg17JR03qGifXNsJtw==
 
+eme-encryption-scheme-polyfill@^2.1.5:
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/eme-encryption-scheme-polyfill/-/eme-encryption-scheme-polyfill-2.1.5.tgz#86338bdd3b13f04ba02fa36758501c7c6c122efe"
+  integrity sha512-z9BKXV4TCYjmar0wiZLObZ0J8HE13VIg7Zq/iyPWdbEfROtxVXEJalknWKtBR5XNezzy15/zWS964TGbcAWlPg==
+
 emittery@^0.10.2:
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.10.2.tgz#902eec8aedb8c41938c46e9385e9db7e03182933"
@@ -4993,6 +4998,11 @@ hls.js@^0.14.17:
   dependencies:
     eventemitter3 "^4.0.3"
     url-toolkit "^2.1.6"
+
+hls.js@^1.0.7:
+  version "1.5.15"
+  resolved "https://registry.yarnpkg.com/hls.js/-/hls.js-1.5.15.tgz#dbceb45492dcbdce9659e0d43cffa6c5cebaefb7"
+  integrity sha512-6cD7xN6bycBHaXz2WyPIaHn/iXFizE5au2yvY5q9aC4wfihxAr16C9fUy4nxh2a3wOw0fEgLRa9dN6wsYjlpNg==
 
 hls.js@^1.4.0:
   version "1.4.0"
@@ -6436,6 +6446,11 @@ memfs@^3.1.2, memfs@^3.4.3:
   dependencies:
     fs-monkey "^1.0.3"
 
+memoize-one@^5.1.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-5.2.1.tgz#8337aa3c4335581839ec01c3d594090cebe8f00e"
+  integrity sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==
+
 merge-descriptors@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/merge-descriptors/-/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"
@@ -7826,6 +7841,13 @@ react-error-overlay@^6.0.11:
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.11.tgz#92835de5841c5cf08ba00ddd2d677b6d17ff9adb"
   integrity sha512-/6UZ2qgEyH2aqzYZgQPxEnz33NJ2gNsnHA2o5+o4wW9bLM/JYQitNP9xPhsXwC08hMMovfGe/8retsdDsczPRg==
 
+react-feather@^2.0.8:
+  version "2.0.10"
+  resolved "https://registry.yarnpkg.com/react-feather/-/react-feather-2.0.10.tgz#0e9abf05a66754f7b7bb71757ac4da7fb6be3b68"
+  integrity sha512-BLhukwJ+Z92Nmdcs+EMw6dy1Z/VLiJTzEQACDUEnWMClhYnFykJCGWQx+NmwP/qQHGX/5CzQ+TGi8ofg2+HzVQ==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-full-screen@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/react-full-screen/-/react-full-screen-1.1.1.tgz#b707d56891015a71c503a65dbab3086d75be97d7"
@@ -8102,6 +8124,11 @@ requires-port@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   integrity sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==
+
+resize-observer-polyfill@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/resize-observer-polyfill/-/resize-observer-polyfill-1.5.1.tgz#0e9020dd3d21024458d4ebd27e23e40269810464"
+  integrity sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==
 
 resolve-cwd@^3.0.0:
   version "3.0.0"
@@ -8394,6 +8421,13 @@ setprototypeof@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.2.0.tgz#66c9a24a73f9fc28cbe66b09fed3d33dcaf1b424"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
+
+shaka-player@^4.5.0:
+  version "4.11.4"
+  resolved "https://registry.yarnpkg.com/shaka-player/-/shaka-player-4.11.4.tgz#1380816ebc59a7373c850c2e8b9450356f39925e"
+  integrity sha512-4BqpeLgoPuEWgmlsIhrSNYMDpYXuWfSBJB8XmskO5JkF8O3YKF40DLVqdQVpQRBPtWQZc49nO4g3VTzI+7aBwg==
+  dependencies:
+    eme-encryption-scheme-polyfill "^2.1.5"
 
 shebang-command@^2.0.0:
   version "2.0.0"
@@ -9257,6 +9291,17 @@ vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
+
+vimond-replay@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/vimond-replay/-/vimond-replay-4.0.0.tgz#751ece08779b326ef5ae17a36f5a5148242e5585"
+  integrity sha512-9HHhjiBA3Q6DUU8wYVM2ZBErTADNn1iOZNOWv51psIBgIpxn+um3C4WEEM7moGv39/SKgOy0qnatvYHtIznNEA==
+  dependencies:
+    hls.js "^1.0.7"
+    memoize-one "^5.1.1"
+    react-feather "^2.0.8"
+    resize-observer-polyfill "^1.5.1"
+    shaka-player "^4.5.0"
 
 w3c-hr-time@^1.0.2:
   version "1.0.2"

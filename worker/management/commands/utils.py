@@ -62,8 +62,8 @@ def get_ffmpeg_cmds(
     stream_params = {
         "flags": "+cgop",
         "g": frame_rate,
-        "hls_time": 3,
-        "hls_list_size": 450,
+        "hls_time": 2,
+        "hls_list_size": 675,
         "hls_flags": "delete_segments",
     }
 

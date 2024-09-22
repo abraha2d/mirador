@@ -18,7 +18,8 @@
     "react-hls-player": "^3.0.7",
     "react-router-dom": "^6.23.0",
     "react-scripts": "^5.0.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vimond-replay": "^4.0.0"
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
