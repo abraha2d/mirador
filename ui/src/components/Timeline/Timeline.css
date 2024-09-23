@@ -19,6 +19,7 @@
   bottom: -0.5rem;
   margin: auto;
   pointer-events: none;
+  z-index: 1;
 }
 
 .timeline-stream {
