@@ -34,15 +34,13 @@ const useVideoContainer = (
   const camera = cameras.find((camera) => camera.id === stream?.id);
 
   const source =
-    camera &&
-    camera.lastPing &&
-    +date > +camera.lastPing - LIVE_VIEW_SLOP_SECS * 1000
+    camera?.streamStart && date > camera.streamStart
       ? stream
       : videos.find(
           (video) =>
             video.camera === camera?.id &&
-            video.startDate < date &&
-            video.endDate > date
+            video.startDate <= date &&
+            video.endDate >= date
         );
 
   const sourceUrl = isVideo(source)

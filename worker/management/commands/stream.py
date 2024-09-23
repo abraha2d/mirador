@@ -1,6 +1,7 @@
 from camera.models import Camera
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 from multiprocessing import Process
 from os import kill, makedirs
 from shutil import rmtree
@@ -113,6 +114,10 @@ def handle_stream(camera_id):
     pids = [ff_process.pid for ff_process in ff_processes]
     print(f"{camera.id}: - Stream process PIDs: {pids}")
 
+    camera.refresh_from_db()
+    camera.stream_start = timezone.now()
+    camera.save()
+
     print()
     print(f"{camera_id}: Starting segmented recorder...", flush=True)
     record_process = Process(
@@ -178,10 +183,6 @@ def handle_stream(camera_id):
         except ProcessLookupError:
             pass
     record_process.join()
-
-    camera.refresh_from_db()
-    camera.last_ping = None
-    camera.save()
 
     print(f"{camera_id}: All done.")
 

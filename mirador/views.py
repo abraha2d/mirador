@@ -18,19 +18,15 @@ def execute_get_camera_stream(request, device_id, params):
             "errorCode": "unableToLocateDevice",
         }
 
-    online = camera.last_ping and (
-        (datetime.now(UTC) - camera.last_ping) < timedelta(minutes=16)
-    )
-
     stream_host = "https://mirador.westhousefarm.com"  # TODO: don't hardcode this
     stream_path = f"/stream/{camera.id}/out.m3u8"
     stream_jwt = encode_jwt(stream_path, timedelta(days=1))
     stream_url = f"{stream_host}{stream_path}?token={stream_jwt}"
 
     return {
-        "status": "SUCCESS" if online else "OFFLINE",
+        "status": "SUCCESS" if camera.online else "OFFLINE",
         "states": {
-            "online": online,
+            "online": camera.online,
             "cameraStreamProtocol": "hls",
             "cameraStreamAccessUrl": stream_url,
         },
@@ -107,12 +103,9 @@ def handle_query(request, payload):
             }
             continue
 
-        online = bool(camera.last_ping) and (
-            (datetime.now(UTC) - camera.last_ping) < timedelta(minutes=16)
-        )
         resp[device_id] = {
-            "online": online,
-            "status": "SUCCESS" if online else "OFFLINE",
+            "online": camera.online,
+            "status": "SUCCESS" if camera.online else "OFFLINE",
         }
 
     return {"devices": resp}

@@ -40,7 +40,7 @@ export const CameraRow = ({ camera, selected, onClick }: CameraRowProps) => {
       <CircleFill
         className={
           camera.enabled
-            ? camera.lastPing
+            ? camera.online
               ? "text-success"
               : "text-danger"
             : "text-secondary"

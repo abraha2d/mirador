@@ -48,7 +48,7 @@ import {
 
 import "./Timeline.css";
 import { DEFAULT_ZOOM } from "./constants";
-import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
+import { LIVE_VIEW_SLOP_SECS, STREAM_MAX_DVR_SECS } from "shared/constants";
 
 let abortController = new AbortController();
 
@@ -90,19 +90,18 @@ export const Timeline = () => {
 
   const draggerRef = useRef<HTMLDivElement>(null);
 
-  const latestPing = Math.max(
+  const latestVideoEnd = Math.max(
     ...cameras
-      .filter((camera) => camera.lastPing && streamIds.includes(camera.id))
-      // @ts-ignore camera.lastPing is guaranteed to be
-      // non-null due to the .filter() before this .map()
-      .map((camera) => +camera.lastPing)
+      .filter((camera) => streamIds.includes(camera.id))
+      .map((camera) => +(camera.videoEnd || 0))
   );
-  const prevPing = usePrevious(latestPing);
+  const prevVideoEnd = usePrevious(latestVideoEnd);
 
   const loadVideos = () => {
     const dateStr = date.toLocaleDateString();
     if (
-      (dateStr === prevDate?.toLocaleDateString() && latestPing === prevPing) ||
+      (dateStr === prevDate?.toLocaleDateString() &&
+        latestVideoEnd === prevVideoEnd) ||
       !cameras ||
       !dispatch
     )
@@ -146,7 +145,7 @@ export const Timeline = () => {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(loadVideos, [dispatch, cameras, date, latestPing]);
+  useEffect(loadVideos, [dispatch, cameras, date, latestVideoEnd]);
 
   const isLive =
     Math.abs(+now - +date) < LIVE_VIEW_SLOP_SECS * 1000 && playbackSpeed >= 1;
@@ -163,13 +162,13 @@ export const Timeline = () => {
   const filteredVideos = videos
     .concat(
       cameras
-        .filter((camera) => camera.lastPing)
+        .filter((camera) => camera.online && camera.streamStart)
         .map((camera): Video => {
           return {
             camera: camera.id,
-            // @ts-ignore camera.lastPing is guaranteed to be
+            // @ts-ignore camera.streamStart is guaranteed to be
             // non-null due to the .filter() before this .map()
-            startDate: new Date(camera.lastPing - LIVE_VIEW_SLOP_SECS * 1000),
+            startDate: camera.streamStart,
             endDate: now,
             file: "",
           };

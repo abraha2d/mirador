@@ -4,8 +4,10 @@ import React from "react";
 export type Camera = {
   id: number;
   enabled: boolean;
-  lastPing?: Date;
   name: string;
+  online: boolean;
+  videoEnd?: Date;
+  streamStart?: Date;
 };
 
 // TODO: Generate from DRF

@@ -128,10 +128,6 @@ def segment_hxxx(
             record_process = record_cmd.run_async()
             print(f"{camera.id}: - Record process PID: {record_process.pid}")
 
-            camera.refresh_from_db()
-            camera.last_ping = current_date
-            camera.save()
-
             i = 0
             stat_check = perf_counter()
             stall_periods = 0

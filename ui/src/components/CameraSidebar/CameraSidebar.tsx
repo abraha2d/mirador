@@ -17,6 +17,7 @@ import { DragItemTypes } from "utils";
 import CameraRow from "./CameraRow";
 
 import "./CameraSidebar.css";
+import { STREAM_MAX_DVR_SECS } from "../../shared/constants";
 
 type CameraSidebarProps = {
   showTrash: boolean;
@@ -57,14 +58,20 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       })
       .then((response) => {
         const newCameras: Camera[] = response.map((camera: any) => {
-          const lastPing = camera.last_ping && new Date(camera.last_ping);
-          // TODO: pull segment length and slop (900000+60000=960000 below)
-          //       from some shared location (preferably statically)
+          const streamStart =
+            camera.stream_start && new Date(camera.stream_start);
           return {
             id: camera.id,
             enabled: camera.enabled,
-            lastPing: lastPing && +now - +lastPing < 960000 ? lastPing : null,
             name: camera.name,
+            online: camera.online,
+            videoEnd: new Date(camera.video_end),
+            streamStart:
+              camera.online &&
+              streamStart &&
+              new Date(
+                Math.max(+streamStart, +now - STREAM_MAX_DVR_SECS * 1000)
+              ),
           };
         });
         if (!isEqual(newCameras, cameras)) {
