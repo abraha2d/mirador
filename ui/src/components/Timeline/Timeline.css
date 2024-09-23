@@ -29,6 +29,10 @@
   pointer-events: none;
 }
 
+.timeline-stream.bg-primary {
+  z-index: 1;
+}
+
 .timeline-stream-bar {
   top: 0;
   bottom: 0;
@@ -45,6 +49,7 @@
 .timeline-tick {
   width: 1px;
   bottom: 0;
+  z-index: 1;
 }
 
 .timeline-tick.day {

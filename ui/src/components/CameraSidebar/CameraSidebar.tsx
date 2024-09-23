@@ -89,7 +89,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
   useEffect(loadCameras, [dispatch]);
 
   // TODO: Websocket-ify this
-  useInterval(loadCameras, 1000);
+  useInterval(loadCameras, 5000);
 
   return (
     <>
