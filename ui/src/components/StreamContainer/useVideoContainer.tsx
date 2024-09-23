@@ -112,7 +112,7 @@ const useVideoContainer = (
     [date, isMuted, isPlaying, playbackActions, source]
   );
 
-  useEffect(handleStreamStateChange, [date, isMuted, isPlaying]);
+  useEffect(handleStreamStateChange, [handleStreamStateChange]);
 
   const video = useMemo(() => {
     const videoContainerProps = {
@@ -151,6 +151,8 @@ const useVideoContainer = (
   }, [
     background,
     handleStreamStateChange,
+    isMuted,
+    isPlaying,
     source,
     sourceUrl,
     sourceUrlWithToken,

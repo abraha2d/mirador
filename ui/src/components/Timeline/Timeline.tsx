@@ -48,7 +48,7 @@ import {
 
 import "./Timeline.css";
 import { DEFAULT_ZOOM } from "./constants";
-import { LIVE_VIEW_SLOP_SECS, STREAM_MAX_DVR_SECS } from "shared/constants";
+import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
 
 let abortController = new AbortController();
 
@@ -505,17 +505,17 @@ export const Timeline = () => {
                     dispatch?.({ type: SET_PLAYBACK_SPEED, payload: speed })
                   }
                 >
-                  {speed == 0.125 ? (
+                  {speed === 0.125 ? (
                     <ChevronDoubleLeft />
-                  ) : speed == 0.25 ? (
+                  ) : speed === 0.25 ? (
                     <ChevronLeft />
-                  ) : speed == 0.5 ? (
+                  ) : speed === 0.5 ? (
                     <ChevronCompactLeft />
-                  ) : speed == 2.5 ? (
+                  ) : speed === 2.5 ? (
                     <ChevronCompactRight />
-                  ) : speed == 6.25 ? (
+                  ) : speed === 6.25 ? (
                     <ChevronRight />
-                  ) : speed == 15.625 ? (
+                  ) : speed === 15.625 ? (
                     <ChevronDoubleRight />
                   ) : (
                     <Circle />
