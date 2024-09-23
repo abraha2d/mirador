@@ -1,7 +1,7 @@
 import { withoutTime } from "utils";
 
-export const getPercentFromDate = (date: Date) => {
-  const msOnly = +date - +withoutTime(date);
+export const getPercentFromDate = (date: Date, day?: Date) => {
+  const msOnly = +date - +(day || withoutTime(date));
   return msOnly / 8.64e7;
 };
 

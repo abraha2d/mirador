@@ -364,9 +364,9 @@ export const Timeline = () => {
                     )
                     .map((video) => {
                       const startPercent =
-                        getPercentFromDate(video.startDate) * 100;
+                        getPercentFromDate(video.startDate, dt) * 100;
                       const endPercent =
-                        getPercentFromDate(video.endDate) * 100;
+                        getPercentFromDate(video.endDate, dt) * 100;
                       return (
                         <div
                           key={`${video.camera}-${+video.startDate}`}
