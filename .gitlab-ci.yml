@@ -23,7 +23,7 @@
     <<: *cache_node_modules
     policy: pull
 
-image: bash
+image: almalinux:minimal
 
 setup:envs:
   cache:
