@@ -14,6 +14,6 @@ if ! which bun >/dev/null; then
   curl -fsSL https://bun.sh/install | BUN_INSTALL=$(get_base_env) bash
 fi
 
-(cd "$PROJECT_ROOT/ui" && bun install)
+(cd "$PROJECT_ROOT/ui" && bun install --frozen-lockfile)
 
 python "$PROJECT_ROOT/manage.py" migrate

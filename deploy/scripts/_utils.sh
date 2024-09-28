@@ -25,7 +25,7 @@ MF_FILE="Mambaforge-$MF_VERSION-$(uname)-$(uname -m).sh"
 MF_URL="https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/$MF_FILE"
 
 get_base_env() {
-  base_env="/opt/mf"
+  base_env="/opt/conda"  # condaforge/mambaforge Docker image
   if [ ! -d "$base_env" ]; then
     base_env="$DEPLOY_ROOT/envs/_base"
   fi

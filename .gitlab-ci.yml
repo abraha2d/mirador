@@ -1,0 +1,29 @@
+cache:
+  paths: &setup_paths
+    - ui/node_modules/
+
+image: condaforge/mambaforge:24.3.0-0
+
+setup:
+  script:
+    - deploy/scripts/setup.sh
+    - deploy/envs/_base/bin/bun --revision
+  artifacts:
+    paths: *setup_paths
+
+build:
+  needs: [setup]
+  script:
+    - deploy/scripts/build.sh
+
+lint:biome:
+  needs: [setup]
+  script:
+    - &activate_base_env . /opt/conda/bin/activate
+    - cd ui && bun run biome ci .
+
+lint:ruff:
+  needs: [setup]
+  script:
+    - &activate_base_env . /opt/conda/bin/activate
+    - ruff check
