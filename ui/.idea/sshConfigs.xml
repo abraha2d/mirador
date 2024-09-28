@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig authType="OPEN_SSH" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="mirador" id="4e23792f-2e55-462e-a847-f40dcf2455e8" port="22" nameFormat="DESCRIPTIVE" username="kevin" useOpenSSHConfig="true" />
-    </configs>
-  </component>
-</project>

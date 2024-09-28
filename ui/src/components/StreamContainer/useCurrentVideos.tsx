@@ -1,41 +1,19 @@
-import { Stream } from "../Store/types";
 import { useContext } from "react";
 import { Context } from "../Store";
+import type { Stream } from "../Store/types";
 import useVideoContainer from "./useVideoContainer";
+// import { isVideo } from "./utils";
 
 const useCurrentVideos = (stream?: Stream) => {
   const [{ date }] = useContext(Context);
 
   const { isError, isLoading, source, video } = useVideoContainer(date, stream);
 
-  // TODO: Seamless playback is not working as intended with JWT auth
-  // const prevDate = isVideo(source) ? source.startDate : new Date(0);
-  // prevDate.setMilliseconds(prevDate.getMilliseconds() - 1);
+  // const prevDate = new Date(isVideo(source) ? +source.startDate - 1 : 0);
+  // const { video: prevVideo } = useVideoContainer(prevDate, stream, "prev");
   //
-  // const nextDate = isVideo(source) ? source.endDate : new Date(0);
-  // nextDate.setMilliseconds(nextDate.getMilliseconds() + 1);
-  //
-  // const {
-  //   source: prevSource,
-  //   video: prevVideo,
-  //   videoRef: prevVideoRef,
-  // } = useVideoContainer(prevDate, stream, "prev");
-  // const {
-  //   source: nextSource,
-  //   video: nextVideo,
-  //   videoRef: nextVideoRef,
-  // } = useVideoContainer(nextDate, stream, "next");
-  //
-  // useEffect(() => {
-  //   if (prevVideoRef.current) {
-  //     prevVideoRef.current.pause();
-  //     prevVideoRef.current.currentTime = 0;
-  //   }
-  //   if (nextVideoRef.current) {
-  //     nextVideoRef.current.pause();
-  //     nextVideoRef.current.currentTime = 0;
-  //   }
-  // }, [prevSource, prevVideoRef, nextSource, nextVideoRef]);
+  // const nextDate = new Date(isVideo(source) ? +source.endDate + 1 : 0);
+  // const { video: nextVideo } = useVideoContainer(nextDate, stream, "next");
 
   // TODO: Replay does not support setting playback rate
   // useEffect(() => {
@@ -53,7 +31,6 @@ const useCurrentVideos = (stream?: Stream) => {
   //   }
   // }, [source, sourceUrlWithToken, videoRef, playbackSpeed]);
 
-  // TODO: Seamless playback is not working as intended with JWT auth
   // const videoList = [video, prevVideo, nextVideo];
   const videoList = [video];
 

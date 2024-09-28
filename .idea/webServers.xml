@@ -2,10 +2,10 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="daa30aea-39af-467a-9b6b-e808daeb953f" name="mirador" url="http://mirador/">
-        <fileTransfer rootFolder="/opt/mirador" accessType="SFTP" host="mirador" port="22" sshConfigId="39ac3f84-6eae-48c0-aa91-10b5d23607a7" sshConfig="kevin@mirador:22 agent" authAgent="true">
+      <webServer id="20e84a1d-59f4-494c-86ca-cf55bf0b56e9" name="mirador" url="http://mirador">
+        <fileTransfer rootFolder="/opt/mirador" accessType="SFTP" host="mirador" port="22" sshConfigId="85c21215-8089-4805-8ee8-f1f1677c1cce" sshConfig="kevin@mirador:22 agent" authAgent="true">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" isUseRsync="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>

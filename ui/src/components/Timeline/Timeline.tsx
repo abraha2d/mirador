@@ -34,7 +34,7 @@ import {
   SET_SCRUBBING,
   SET_VIDEOS,
 } from "components/Store/constants";
-import { Video } from "components/Store/types";
+import type { Video } from "components/Store/types";
 import { useInterval, usePrevious } from "hooks";
 import { withoutTime } from "utils";
 
@@ -46,9 +46,9 @@ import {
   getTextForZoomLevel,
 } from "./utils";
 
+import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
 import "./Timeline.css";
 import { DEFAULT_ZOOM } from "./constants";
-import { LIVE_VIEW_SLOP_SECS } from "shared/constants";
 
 let abortController = new AbortController();
 
@@ -85,7 +85,7 @@ export const Timeline = () => {
   const [timeEdit, setTimeEdit] = useState("");
 
   const [previousTouch, setPreviousTouch] = useState<Touch | undefined>(
-    undefined
+    undefined,
   );
 
   const draggerRef = useRef<HTMLDivElement>(null);
@@ -93,7 +93,7 @@ export const Timeline = () => {
   const latestVideoEnd = Math.max(
     ...cameras
       .filter((camera) => streamIds.includes(camera.id))
-      .map((camera) => +(camera.videoEnd || 0))
+      .map((camera) => +(camera.videoEnd || 0)),
   );
   const prevVideoEnd = usePrevious(latestVideoEnd);
 
@@ -117,9 +117,8 @@ export const Timeline = () => {
       .then((response) => {
         if (response.ok) {
           return response.json();
-        } else {
-          throw new Error();
         }
+        throw new Error();
       })
       .then((response) => {
         const newVideos: Video[] = response.map((video: any): Video => {
@@ -172,7 +171,7 @@ export const Timeline = () => {
             endDate: now,
             file: "",
           };
-        })
+        }),
     )
     .filter((video) => video.camera && streamIds.includes(video.camera));
 
@@ -189,7 +188,7 @@ export const Timeline = () => {
         }}
       />
     ),
-    [dateWithoutTime, dispatch]
+    [dateWithoutTime, dispatch],
   );
 
   const dateArray = useMemo(
@@ -200,12 +199,12 @@ export const Timeline = () => {
       new Date(dateWithoutTime + 8.64e7),
       ...(zoom <= 0.5 ? [new Date(dateWithoutTime + 8.64e7 * 2)] : []),
     ],
-    [dateWithoutTime, zoom]
+    [dateWithoutTime, zoom],
   );
 
   const ticks = useMemo(
     () => <TimelineTicks dateArray={dateArray} zoom={zoom} />,
-    [dateArray, zoom]
+    [dateArray, zoom],
   );
 
   return (
@@ -254,7 +253,7 @@ export const Timeline = () => {
                   const touchId = previousTouch.identifier;
                   const touchStart = previousTouch.clientX;
                   const touch = Array.from(e.changedTouches).find(
-                    (t) => t.identifier === touchId
+                    (t) => t.identifier === touchId,
                   );
                   if (touch) {
                     movement = touch.clientX - touchStart;
@@ -272,10 +271,10 @@ export const Timeline = () => {
                     +getDateFromPosition(
                       getPositionFromDate(date, targetRect.width) - movement,
                       targetRect.width,
-                      date
+                      date,
                     ),
-                    +now
-                  )
+                    +now,
+                  ),
                 ),
               });
             }}
@@ -294,8 +293,8 @@ export const Timeline = () => {
                 e instanceof MouseEvent
                   ? e.offsetX
                   : e instanceof TouchEvent
-                  ? e.changedTouches[0].clientX - targetRect.left
-                  : undefined;
+                    ? e.changedTouches[0].clientX - targetRect.left
+                    : undefined;
 
               position &&
                 dispatch?.({
@@ -305,10 +304,12 @@ export const Timeline = () => {
                       +getDateFromPosition(
                         position,
                         targetRect.width,
-                        new Date(parseInt(target.getAttribute("data-date")!))
+                        new Date(
+                          Number.parseInt(target.getAttribute("data-date")!),
+                        ),
                       ),
-                      +now
-                    )
+                      +now,
+                    ),
                   ),
                 });
             }}
@@ -334,16 +335,19 @@ export const Timeline = () => {
                   getDateFromPosition(
                     position,
                     targetRect.width,
-                    new Date(parseInt(target.getAttribute("data-date")!))
-                  )
+                    new Date(
+                      Number.parseInt(target.getAttribute("data-date")!),
+                    ),
+                  ),
                 );
 
                 const parent = target.offsetParent as HTMLElement;
                 setHoverLocation(
-                  parent.offsetLeft + target.offsetLeft + position
+                  parent.offsetLeft + target.offsetLeft + position,
                 );
               }}
               onMouseOut={() => setHoverLocation(-1)}
+              onBlur={() => setHoverLocation(-1)}
             >
               {dateArray.map((dt, i) => (
                 <div
@@ -360,7 +364,7 @@ export const Timeline = () => {
                         video.camera &&
                         streamIds.includes(video.camera) &&
                         (+withoutTime(video.startDate) === +dt ||
-                          +withoutTime(video.endDate) === +dt)
+                          +withoutTime(video.endDate) === +dt),
                     )
                     .map((video) => {
                       const startPercent =
@@ -397,13 +401,12 @@ export const Timeline = () => {
                 step={1}
                 className="pe-auto"
                 value={timeEdit}
-                autoFocus
                 onChange={(e) => setTimeEdit(e.target.value)}
                 onBlur={() => {
                   dispatch?.({
                     type: SET_DATE,
                     payload: new Date(
-                      `${date.toLocaleDateString()} ${timeEdit}`
+                      `${date.toLocaleDateString()} ${timeEdit}`,
                     ),
                   });
                   setShowTimeEdit(false);
@@ -423,7 +426,7 @@ export const Timeline = () => {
                         minute: "2-digit",
                         second: "2-digit",
                       })
-                      .replace("24", "00")
+                      .replace("24", "00"),
                   );
                 }}
               >

@@ -1,4 +1,4 @@
-import { Camera, Stream } from "components/Store/types";
+import type { Camera, Stream } from "components/Store/types";
 
 export enum DragItemTypes {
   CAMERA = "camera",

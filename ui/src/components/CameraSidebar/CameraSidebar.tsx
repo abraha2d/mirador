@@ -10,14 +10,14 @@ import {
   START_STREAM,
   STOP_STREAM,
 } from "components/Store/constants";
-import { Camera, Stream } from "components/Store/types";
+import type { Camera, Stream } from "components/Store/types";
 import { useInterval } from "hooks";
 import { DragItemTypes } from "utils";
 
 import CameraRow from "./CameraRow";
 
-import "./CameraSidebar.css";
 import { STREAM_MAX_DVR_SECS } from "../../shared/constants";
+import "./CameraSidebar.css";
 
 type CameraSidebarProps = {
   showTrash: boolean;
@@ -52,9 +52,8 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
       .then((response) => {
         if (response.ok) {
           return response.json();
-        } else {
-          throw new Error();
         }
+        throw new Error();
       })
       .then((response) => {
         const newCameras: Camera[] = response.map((camera: any) => {
@@ -70,7 +69,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
               camera.online &&
               streamStart &&
               new Date(
-                Math.max(+streamStart, +now - STREAM_MAX_DVR_SECS * 1000)
+                Math.max(+streamStart, +now - STREAM_MAX_DVR_SECS * 1000),
               ),
           };
         });
@@ -100,9 +99,7 @@ export const CameraSidebar = ({ showTrash }: CameraSidebarProps) => {
         <div
           ref={drop}
           className={`
-            color-overlay ${
-              isOver ? "bg-danger" : "bg-secondary"
-            } rounded d-flex align-items-center justify-content-center
+            color-overlay ${isOver ? "bg-danger" : "bg-secondary"} rounded d-flex align-items-center justify-content-center
           `}
           style={{
             pointerEvents: showTrash ? "auto" : "none",

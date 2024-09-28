@@ -7,7 +7,7 @@ DECODE_SIZE = 1280, 720
 
 FF_GLOBAL_PARAMS = {
     "hide_banner": None,
-    "loglevel": "error",
+    "loglevel": "15",  # Just above "error", well below "fatal"
 }
 
 FF_GLOBAL_ARGS = []
@@ -31,6 +31,10 @@ RECORD_FILENAME = "VID_%Y%m%d_%H%M%S.mp4"
 
 STAT_CHECK_PERIOD = 5
 STALL_PERIOD_MAX = 12
+
+HXXX_OFLOW = 1 * 1024 * 1024 * 5  # 5 seconds of 8Mbps video
+RAWAUDIO_OFLOW = 8000 * 2 * 5  # 5 seconds of 44.1kHz audio
+OFLOW_PERIOD_MAX = 12
 
 STREAM_DIR = "stream"
 

@@ -4,17 +4,17 @@ import { ExclamationCircle } from "react-bootstrap-icons";
 import { useDrag, useDrop } from "react-dnd";
 import {
   FullScreen,
-  FullScreenHandle,
+  type FullScreenHandle,
   useFullScreenHandle,
 } from "react-full-screen";
 
 import { Context } from "components/Store";
 import { START_STREAM } from "components/Store/constants";
-import { Stream } from "components/Store/types";
-import { DragItemTypes, DragObjectWithPayload } from "utils";
+import type { Stream } from "components/Store/types";
+import { DragItemTypes, type DragObjectWithPayload } from "utils";
 
-import useCurrentVideos from "./useCurrentVideos";
 import "./StreamContainer.css";
+import useCurrentVideos from "./useCurrentVideos";
 
 type StreamContainerProps = {
   gridSide: number;
@@ -118,12 +118,12 @@ export const StreamContainer = ({
           isDragging
             ? "bg-secondary"
             : isOver
-            ? stream
-              ? itemType === DragItemTypes.CAMERA
-                ? "bg-danger"
-                : "bg-info"
-              : "bg-primary"
-            : ""
+              ? stream
+                ? itemType === DragItemTypes.CAMERA
+                  ? "bg-danger"
+                  : "bg-info"
+                : "bg-primary"
+              : ""
         }`}
         style={{
           opacity: isDragging || isOver ? "80%" : 0,

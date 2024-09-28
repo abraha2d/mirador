@@ -2,11 +2,11 @@ import React, { useContext, useLayoutEffect } from "react";
 import {
   Button,
   Nav,
-  Navbar,
-  NavbarBrand,
   NavDropdown,
   NavItem,
   NavLink,
+  Navbar,
+  NavbarBrand,
 } from "react-bootstrap";
 import { ClockHistory, Moon, PersonFill, Sun } from "react-bootstrap-icons";
 import { NavLink as Link } from "react-router-dom";
@@ -53,7 +53,8 @@ export const TopNav = () => {
         </Button>
         <Navbar.Text className="me-2 d-inline-flex align-items-center">
           <ClockHistory className="me-2" />
-          {process.env.REACT_APP_VERSION}
+          {/* biome-ignore lint/complexity/useLiteralKeys: TS4111 */}
+          {process.env['REACT_APP_VERSION']}
         </Navbar.Text>
         <NavDropdown
           id="user"

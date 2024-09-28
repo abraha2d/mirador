@@ -10,7 +10,7 @@ dependencies:
   - humanize
   - lap
   - nginx
-  - nodejs
+  - nodejs =20
   - pandas
   - pip
   - pyjwt
@@ -20,4 +20,3 @@ dependencies:
   - torchaudio
   - torchvision =0.15.1
   - ultralytics
-  - yarn =1

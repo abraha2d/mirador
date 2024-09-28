@@ -1,4 +1,4 @@
-import { StateType, Stream } from "./types";
+import type { StateType, Stream } from "./types";
 
 const idxToCoord = (idx: number, gridSide: number): [number, number] => [
   idx % gridSide,
@@ -30,7 +30,7 @@ export const findStreamIdx = (state: StateType, streamId: number): number => {
 
 export const resizeGrid = (
   state: StateType,
-  newGridSize: number
+  newGridSize: number,
 ): StateType => {
   const newStreams: Map<number, Stream> = new Map();
   const displacedStreams: Stream[] = [];
@@ -38,7 +38,7 @@ export const resizeGrid = (
     if (state.streams.get(i)) {
       const newIdx = coordToIdx(
         idxToCoord(i, Math.sqrt(state.gridSize)),
-        Math.sqrt(newGridSize)
+        Math.sqrt(newGridSize),
       );
       if (newIdx !== -1 && newIdx < newGridSize && !newStreams.get(newIdx)) {
         newStreams.set(newIdx, state.streams.get(i)!);

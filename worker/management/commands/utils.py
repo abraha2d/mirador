@@ -51,20 +51,10 @@ def get_ffmpeg_cmds(
     stream_url, codec_name, _, frame_rate, has_audio, rtsp_params = stream_config
     decode_params, encode_params = get_transcode_params(copy_enabled)
 
-    mkv_fifo_path = mkfifotemp("mkv")
-
     rawvideo_params = {
         "format": "rawvideo",
         "pix_fmt": "rgb24",
         "s": f"{decode_width}x{decode_height}",
-    }
-
-    stream_params = {
-        "flags": "+cgop",
-        "g": frame_rate,
-        "hls_time": 2,
-        "hls_list_size": 675,
-        "hls_flags": "delete_segments",
     }
 
     inputs = [
@@ -77,8 +67,8 @@ def get_ffmpeg_cmds(
     outputs = [[]]
 
     if detect_enabled:
-        decode_scaled = inputs[0].filter("scale", decode_width, decode_height)
-        outputs[0].append(decode_scaled.output("pipe:", **rawvideo_params))
+        decode_scaled = inputs[-1].filter("scale", decode_width, decode_height)
+        outputs[-1].append(decode_scaled.output("pipe:", **rawvideo_params))
 
     if drawbox_enabled:
         inputs.append(ffmpeg.input("pipe:", **rawvideo_params))
@@ -87,37 +77,48 @@ def get_ffmpeg_cmds(
     if drawtext_enabled:
         inputs[-1] = inputs[-1].drawtext("Hello, world!")
 
-    outputs[-1].append(
-        inputs[-1].output(
-            mkv_fifo_path,
-            **encode_params,
-        )
-    )
+    stream_params = {
+        # "flags": "+cgop",
+        # "g": frame_rate,
+        "hls_time": 2,
+        "hls_list_size": 675,
+        "hls_flags": "delete_segments",
+    }
 
-    inputs.append([ffmpeg.input(mkv_fifo_path)])
-    outputs.append([])
+    hxxx_params = {
+        "select": "v",
+    }
+
+    def teeify(params):
+        return ":".join(f"{k}={v}" for k, v in params.items())
+
+    tee_inputs = [inputs[-1]["v"]]
+    if has_audio:
+        tee_inputs.append(inputs[-1]["a"])
+
+    tee_outputs = [
+        f"[{teeify(stream_params)}]{stream_dir}/out.m3u8",
+        f"[{teeify(hxxx_params)}]{hxxx_out_path}",
+    ]
+
+    tee_params = {
+        "f": "tee",
+        "vcodec": "x264",
+        "acodec": "aac",
+        **encode_params,
+    }
 
     outputs[-1].append(
         ffmpeg.output(
-            *inputs[-1],
-            f"{stream_dir}/out.m3u8",
-            vcodec="copy",
-            **stream_params,
-        )
-    )
-
-    outputs[-1].append(
-        ffmpeg.output(
-            *inputs[-1],
-            hxxx_out_path,
-            vcodec="copy",
+            *tee_inputs,
+            "|".join(tee_outputs),
+            **tee_params,
         )
     )
 
     if has_audio:
         outputs[-1].append(
-            ffmpeg.output(
-                *inputs[-1],
+            inputs[-1].output(
                 rawaudio_out_path,
                 **rawaudio_params,
             )
@@ -204,8 +205,6 @@ def get_transcode_params(copy_enabled: bool):
         encode_params["bf"] = 0
     elif vaapi_available:
         encode_params["vcodec"] = "h264_vaapi"
-
-    encode_params["acodec"] = "copy"
 
     return decode_params, encode_params
 

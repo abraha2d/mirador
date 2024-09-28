@@ -42,5 +42,5 @@ systemctl start mworker@${CAMERA_ID}
 ## Run frontend (development)
 ```shell
 . deploy/envs/_base/bin/activate
-cd ui/ && yarn start
+cd ui/ && bun run start
 ```

@@ -11,7 +11,7 @@ import {
   VolumeMuteFill,
   VolumeUpFill,
 } from "react-bootstrap-icons";
-import { FullScreenHandle } from "react-full-screen";
+import type { FullScreenHandle } from "react-full-screen";
 
 import { Timeline } from "components";
 import { Context } from "components/Store";
@@ -66,8 +66,8 @@ export const ControlBar = ({ fullscreenHandle }: ControlBarProps) => {
             fullscreenHandle.active
               ? "primary"
               : isDarkMode
-              ? "secondary"
-              : "light"
+                ? "secondary"
+                : "light"
           }
           className="ms-2 d-flex align-items-center"
           onClick={

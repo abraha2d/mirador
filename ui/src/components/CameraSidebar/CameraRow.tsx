@@ -3,7 +3,7 @@ import { Button } from "react-bootstrap";
 import { CameraVideoFill, CircleFill } from "react-bootstrap-icons";
 import { useDrag } from "react-dnd";
 
-import { Camera } from "components/Store/types";
+import type { Camera } from "components/Store/types";
 import { DragItemTypes } from "utils";
 import { Context } from "../Store";
 

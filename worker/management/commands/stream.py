@@ -79,7 +79,7 @@ def handle_stream(camera_id):
     rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
     rawaudio_params = {
         "f": CODEC_RAWAUDIO,
-        "ar": 44100,  # TODO: adapt rate to source
+        "ar": 8000,  # TODO: adapt rate to source
         "channel_layout": "mono",  # TODO: adapt layout to source
     }
 
@@ -124,6 +124,7 @@ def handle_stream(camera_id):
         target=segment_hxxx,
         args=(
             camera,
+            frame_rate,
             f"{record_dir}/{RECORD_FILENAME}",
             hxxx_codec,
             hxxx_out_path,

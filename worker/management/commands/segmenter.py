@@ -20,12 +20,15 @@ from worker.management.commands.constants import (
     FF_GLOBAL_ARGS,
     HXXX_NALU_HEADER,
     HXXX_NALU_HEADER_SIZE,
+    HXXX_OFLOW,
+    OFLOW_PERIOD_MAX,
+    RAWAUDIO_OFLOW,
     RAWAUDIO_SAMPLE_SIZE,
     READ_MAX_SIZE,
     STALL_PERIOD_MAX,
     STAT_CHECK_PERIOD,
 )
-from worker.management.commands.exceptions import StallDetectedError
+from worker.management.commands.exceptions import OflowDetectedError, StallDetectedError
 from worker.management.commands.utils import mkfifotemp
 
 
@@ -61,6 +64,7 @@ def filter_fds(fds: list[LazyFD]):
 
 def segment_hxxx(
     camera: Camera,
+    frame_rate: float,
     record_path: str,
     hxxx_in_codec: str,
     hxxx_in_path: str,
@@ -107,7 +111,7 @@ def segment_hxxx(
             rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
             rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY, "w")
 
-            ffmpeg_inputs = [ffmpeg.input(hxxx_out_path)]
+            ffmpeg_inputs = [ffmpeg.input(hxxx_out_path, framerate=frame_rate)]
             if has_audio:
                 ffmpeg_inputs.append(
                     ffmpeg.input(
@@ -131,6 +135,7 @@ def segment_hxxx(
             i = 0
             stat_check = perf_counter()
             stall_periods = 0
+            oflow_periods = 0
 
             while True:
                 i += 1
@@ -159,16 +164,14 @@ def segment_hxxx(
                     _wlist.append(rawaudio_out_fd)
                 _wlist = filter_fds(_wlist)
 
-                _xlist = _rlist + _wlist
+                rlist, wlist, _ = select(_rlist, _wlist, [])
 
-                rlist, wlist, xlist = select(_rlist, _wlist, _xlist)
-
-                if hxxx_in_fd in rlist and hxxx_in_fd not in xlist:
+                if hxxx_in_fd in rlist:
                     num_bytes = hxxx_in_fd._fileio.readinto(read_buffer)
                     hxxx_buffer.extend(read_buffer_view[:num_bytes])
                     hxxx_in_stats += num_bytes
 
-                if hxxx_out_fd in wlist and hxxx_out_fd not in xlist:
+                if hxxx_out_fd in wlist:
                     if should_split:
                         flush_to = hxxx_buffer.rfind(HXXX_NALU_HEADER)
                         if flush_to == -1:
@@ -183,12 +186,12 @@ def segment_hxxx(
                     del hxxx_buffer[:num_bytes]
                     hxxx_out_stats += num_bytes
 
-                if rawaudio_in_fd in rlist and rawaudio_in_fd not in xlist:
+                if rawaudio_in_fd in rlist:
                     num_bytes = rawaudio_in_fd._fileio.readinto(read_buffer)
                     rawaudio_buffer.extend(read_buffer_view[:num_bytes])
                     rawaudio_in_stats += num_bytes
 
-                if rawaudio_out_fd in wlist and rawaudio_out_fd not in xlist:
+                if rawaudio_out_fd in wlist:
                     flush_to = (
                         len(rawaudio_buffer)
                         // RAWAUDIO_SAMPLE_SIZE
@@ -211,9 +214,9 @@ def segment_hxxx(
 
                 if perf_counter() > stat_check:
                     print(
-                        f"V + {hxxx_in_stats:7} - {hxxx_out_stats:7} = {len(hxxx_buffer):8}  "
-                        f"A + {rawaudio_in_stats:7} - {rawaudio_out_stats:7} = {len(rawaudio_buffer):8}  "
-                        f"I = {i:6}  searching = {should_split}  saving = {save_process is not None}",
+                        f"V + {hxxx_in_stats:7} - {hxxx_out_stats:7} = {len(hxxx_buffer):8}          "
+                        f"A + {rawaudio_in_stats:7} - {rawaudio_out_stats:7} = {len(rawaudio_buffer):8}          "
+                        f"I = {i:6}     searching = {should_split}     saving = {save_process is not None}",
                         flush=True,
                     )
 
@@ -221,6 +224,14 @@ def segment_hxxx(
                         stall_periods += 1
                     else:
                         stall_periods = 0
+
+                    if (
+                        len(hxxx_buffer) > HXXX_OFLOW
+                        or len(rawaudio_buffer) > RAWAUDIO_OFLOW
+                    ):
+                        oflow_periods += 1
+                    else:
+                        oflow_periods = 0
 
                     hxxx_in_stats, hxxx_out_stats = 0, 0
                     rawaudio_in_stats, rawaudio_out_stats = 0, 0
@@ -231,6 +242,10 @@ def segment_hxxx(
                 if stall_periods > STALL_PERIOD_MAX:
                     print("   =  stall detected =   ", flush=True)
                     raise StallDetectedError()
+
+                if oflow_periods > OFLOW_PERIOD_MAX:
+                    print("  =  overflow detected = ", flush=True)
+                    raise OflowDetectedError()
 
             current_date = timezone.now()
 
@@ -249,7 +264,7 @@ def segment_hxxx(
         print_exception(e)
         pass
 
-    except StallDetectedError:
+    except (StallDetectedError, OflowDetectedError):
         pass
 
     hxxx_in_fd.close()

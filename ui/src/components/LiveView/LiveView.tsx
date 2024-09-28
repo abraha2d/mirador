@@ -42,7 +42,7 @@ export const LiveView = () => {
                     onDrag={setDragging}
                     fullscreenHandle={handle}
                   />
-                ))
+                )),
               )}
             </div>
             <ControlBar fullscreenHandle={handle} />

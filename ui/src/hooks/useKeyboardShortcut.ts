@@ -25,7 +25,7 @@ const keyReducer = (state: StateType, action: ActionType) => {
 
 export const useKeyboardShortcut = (
   shortcutKeys: string[],
-  callback: (keys: StateType) => void
+  callback: (keys: StateType) => void,
 ) => {
   const initialState = shortcutKeys.reduce((currentKeys: StateType, key) => {
     currentKeys[key.toLowerCase()] = false;
@@ -41,7 +41,7 @@ export const useKeyboardShortcut = (
       if (assignedKey === keydownEvent.key)
         dispatch({ type: "SET_KEY_DOWN", key: assignedKey });
     },
-    []
+    [],
   );
 
   const keyupListener = useCallback(
@@ -51,7 +51,7 @@ export const useKeyboardShortcut = (
       if (assignedKey === keyupEvent.key)
         dispatch({ type: "SET_KEY_UP", key: assignedKey });
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -62,22 +62,24 @@ export const useKeyboardShortcut = (
   }, [callback, keyState]);
 
   useEffect(() => {
-    shortcutKeys.forEach((k) =>
-      window.addEventListener("keydown", keydownListener(k))
-    );
-    return () =>
-      shortcutKeys.forEach((k) =>
-        window.removeEventListener("keydown", keydownListener(k))
-      );
+    for (const k of shortcutKeys) {
+      window.addEventListener("keydown", keydownListener(k));
+    }
+    return () => {
+      for (const k of shortcutKeys) {
+        window.removeEventListener("keydown", keydownListener(k));
+      }
+    };
   }, [keydownListener, shortcutKeys]);
 
   useEffect(() => {
-    shortcutKeys.forEach((k) =>
-      window.addEventListener("keyup", keyupListener(k))
-    );
-    return () =>
-      shortcutKeys.forEach((k) =>
-        window.removeEventListener("keyup", keyupListener(k))
-      );
+    for (const k of shortcutKeys) {
+      window.addEventListener("keyup", keyupListener(k));
+    }
+    return () => {
+      for (const k of shortcutKeys) {
+        window.removeEventListener("keyup", keyupListener(k));
+      }
+    };
   }, [keyupListener, shortcutKeys]);
 };

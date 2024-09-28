@@ -13,7 +13,7 @@ import {
   STOP_STREAM,
   STOP_STREAM_ALL,
 } from "./constants";
-import { ActionType, StateType } from "./types";
+import type { ActionType, StateType } from "./types";
 import { findOpenIdx, findStreamIdx, resizeGrid } from "./utils";
 
 export const Reducer = (state: StateType, action: ActionType): StateType => {
@@ -61,13 +61,13 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
         ...state,
         videos: action.payload,
       };
-    case START_STREAM:
+    case START_STREAM: {
       const idx =
         state.gridSize === 1
           ? 0
           : action.payload.idx > -1
-          ? action.payload.idx
-          : findOpenIdx(state);
+            ? action.payload.idx
+            : findOpenIdx(state);
       if (idx > -1) {
         const existingIdx = findStreamIdx(state, action.payload.stream.id);
         if (existingIdx > -1) {
@@ -84,6 +84,7 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       return {
         ...state,
       };
+    }
     case START_STREAM_ALL:
       for (const camera of state.cameras) {
         if (!camera.enabled || findStreamIdx(state, camera.id) > -1) {
@@ -100,7 +101,7 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       return {
         ...state,
       };
-    case STOP_STREAM:
+    case STOP_STREAM: {
       const streamIdx = findStreamIdx(state, action.payload);
       if (streamIdx > -1) {
         state.streams.delete(streamIdx);
@@ -109,6 +110,7 @@ export const Reducer = (state: StateType, action: ActionType): StateType => {
       return {
         ...state,
       };
+    }
     case STOP_STREAM_ALL:
       return {
         ...state,

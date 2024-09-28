@@ -14,20 +14,18 @@
   </component>
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/deploy/envs/_base/lib/python3.10" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/deploy/envs/_base/lib/python3.10/lib-dynload" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/deploy/envs/_base/lib/python3.10/site-packages" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/deploy/_cache" />
       <excludeFolder url="file://$MODULE_DIR$/deploy/envs" />
+      <excludeFolder url="file://$MODULE_DIR$/deploy/secrets" />
+      <excludeFolder url="file://$MODULE_DIR$/deploy/static" />
       <excludeFolder url="file://$MODULE_DIR$/ui/build" />
     </content>
-    <orderEntry type="jdk" jdkName="$MODULE_DIR$/deploy/envs/_base" jdkType="Python SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
-  <component name="PackageRequirementsSettings">
-    <option name="versionSpecifier" value="Strong equality (==x.y.z)" />
-    <option name="removeUnused" value="true" />
-    <option name="modifyBaseFiles" value="true" />
+  <component name="PyDocumentationSettings">
+    <option name="format" value="PLAIN" />
+    <option name="myDocStringFormat" value="Plain" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
@@ -36,5 +34,8 @@
         <option value="$MODULE_DIR$/templates" />
       </list>
     </option>
+  </component>
+  <component name="TestRunnerService">
+    <option name="PROJECT_TEST_RUNNER" value="py.test" />
   </component>
 </module>

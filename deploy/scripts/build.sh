@@ -7,7 +7,7 @@ PROJECT_ROOT=$(dirname "$DEPLOY_ROOT")
 . "$DEPLOY_SCRIPTS/_utils.sh"
 source "$(get_base_env)/bin/activate"
 
-(cd "$PROJECT_ROOT/ui" && yarn build)
+(cd "$PROJECT_ROOT/ui" && bun run build)
 
 rm -rf "$DEPLOY_ROOT/static"
 python "$PROJECT_ROOT/manage.py" collectstatic

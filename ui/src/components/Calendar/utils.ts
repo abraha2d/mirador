@@ -5,12 +5,12 @@ export const getMonthArray = (monthDate: Date) => {
   const monthDatePrev = new Date(
     monthDate.getFullYear(),
     monthDate.getMonth() - 1,
-    1
+    1,
   );
   const monthDateNext = new Date(
     monthDate.getFullYear(),
     monthDate.getMonth() + 1,
-    1
+    1,
   );
 
   const preDaysPrev = monthDatePrev.getDay();
@@ -28,7 +28,7 @@ export const getMonthArray = (monthDate: Date) => {
   let date = new Date(
     monthDatePrev.getFullYear(),
     monthDatePrev.getMonth(),
-    1 - preDaysPrev
+    1 - preDaysPrev,
   );
 
   const monthArray = [];

@@ -29,7 +29,7 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
   const [dates, setDates] = useState([""]);
 
   const [month, setMonth] = useState(
-    new Date(date.getFullYear(), date.getMonth(), 1)
+    new Date(date.getFullYear(), date.getMonth(), 1),
   );
 
   const now = new Date();
@@ -44,14 +44,13 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
       `/api/videos/dates/?month=${month.toLocaleDateString()}${id_params}`,
       {
         signal: abortController.signal,
-      }
+      },
     )
       .then((response) => {
         if (response.ok) {
           return response.json();
-        } else {
-          throw new Error();
         }
+        throw new Error();
       })
       .then((response) => {
         setDates(response);
@@ -141,11 +140,11 @@ export const Calendar = ({ date, onClickDate }: CalendarProps) => {
                       +d === +date
                         ? "primary"
                         : d.getFullYear() === month.getFullYear() &&
-                          d.getMonth() === month.getMonth()
-                        ? d <= today
-                          ? `outline-${isDarkMode ? "light" : "dark"}`
-                          : "outline-secondary"
-                        : ""
+                            d.getMonth() === month.getMonth()
+                          ? d <= today
+                            ? `outline-${isDarkMode ? "light" : "dark"}`
+                            : "outline-secondary"
+                          : ""
                     }
                     className={`calendar-day ${
                       +d === +today ? "font-weight-bold" : ""

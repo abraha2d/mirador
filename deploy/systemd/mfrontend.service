@@ -5,7 +5,7 @@ Description=Mirador development frontend
 
 [Service]
 WorkingDirectory=/opt/mirador
-ExecStart=/bin/sh -c '. deploy/envs/_base/bin/activate && cd ui && yarn start'
+ExecStart=/bin/sh -c '. deploy/envs/_base/bin/activate && cd ui && bun run start'
 
 [Install]
 WantedBy=multi-user.target

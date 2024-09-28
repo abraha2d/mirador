@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 // TODO: Generate from DRF
 export type Camera = {
