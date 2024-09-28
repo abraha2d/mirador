@@ -4,39 +4,38 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('detection', '0004_restructure_camera_detection_links'),
+        ("detection", "0004_restructure_camera_detection_links"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='alprsettings',
-            name='visualize',
+            model_name="alprsettings",
+            name="visualize",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='facedetectionsettings',
-            name='visualize',
+            model_name="facedetectionsettings",
+            name="visualize",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='motiondetectionsettings',
-            name='visualize',
+            model_name="motiondetectionsettings",
+            name="visualize",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='objectdetectionsettings',
-            name='visualize',
+            model_name="objectdetectionsettings",
+            name="visualize",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='sounddetectionsettings',
-            name='visualize',
+            model_name="sounddetectionsettings",
+            name="visualize",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),

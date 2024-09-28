@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('camera', '0009_camera_last_ping'),
+        ("camera", "0009_camera_last_ping"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='stream',
-            name='force_tcp',
+            model_name="stream",
+            name="force_tcp",
             field=models.BooleanField(default=True),
         ),
     ]

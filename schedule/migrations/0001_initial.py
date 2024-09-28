@@ -5,36 +5,57 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Schedule',
+            name="Schedule",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('invert', models.BooleanField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("invert", models.BooleanField()),
             ],
         ),
         migrations.CreateModel(
-            name='SchedulePart',
+            name="SchedulePart",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('sunday', models.BooleanField()),
-                ('monday', models.BooleanField()),
-                ('tuesday', models.BooleanField()),
-                ('wednesday', models.BooleanField()),
-                ('thursday', models.BooleanField()),
-                ('friday', models.BooleanField()),
-                ('saturday', models.BooleanField()),
-                ('start_time', models.TimeField()),
-                ('end_time', models.TimeField()),
-                ('schedule', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parts', to='schedule.schedule')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("sunday", models.BooleanField()),
+                ("monday", models.BooleanField()),
+                ("tuesday", models.BooleanField()),
+                ("wednesday", models.BooleanField()),
+                ("thursday", models.BooleanField()),
+                ("friday", models.BooleanField()),
+                ("saturday", models.BooleanField()),
+                ("start_time", models.TimeField()),
+                ("end_time", models.TimeField()),
+                (
+                    "schedule",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="parts",
+                        to="schedule.schedule",
+                    ),
+                ),
             ],
         ),
     ]

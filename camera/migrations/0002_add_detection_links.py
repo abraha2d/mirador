@@ -5,36 +5,60 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('detection', '0001_initial'),
-        ('camera', '0001_initial'),
+        ("detection", "0001_initial"),
+        ("camera", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='camera',
-            name='alpr_settings',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='detection.alprsettings'),
+            model_name="camera",
+            name="alpr_settings",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="detection.alprsettings",
+            ),
         ),
         migrations.AddField(
-            model_name='camera',
-            name='face_detection_settings',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='detection.facedetectionsettings'),
+            model_name="camera",
+            name="face_detection_settings",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="detection.facedetectionsettings",
+            ),
         ),
         migrations.AddField(
-            model_name='camera',
-            name='motion_detection_settings',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='detection.motiondetectionsettings'),
+            model_name="camera",
+            name="motion_detection_settings",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="detection.motiondetectionsettings",
+            ),
         ),
         migrations.AddField(
-            model_name='camera',
-            name='object_detection_settings',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='detection.objectdetectionsettings'),
+            model_name="camera",
+            name="object_detection_settings",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="detection.objectdetectionsettings",
+            ),
         ),
         migrations.AddField(
-            model_name='camera',
-            name='sound_detection_settings',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='detection.sounddetectionsettings'),
+            model_name="camera",
+            name="sound_detection_settings",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="detection.sounddetectionsettings",
+            ),
         ),
     ]

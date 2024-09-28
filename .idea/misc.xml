@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="pathToExecutable" value="/usr/local/bin/black" />
     <option name="sdkName" value="$PROJECT_DIR$/deploy/envs/_base" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="$PROJECT_DIR$/deploy/envs/_base" project-jdk-type="Python SDK" />

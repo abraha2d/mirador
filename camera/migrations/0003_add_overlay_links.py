@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('overlay', '0001_initial'),
-        ('camera', '0002_add_detection_links'),
+        ("overlay", "0001_initial"),
+        ("camera", "0002_add_detection_links"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='camera',
-            name='overlays',
-            field=models.ManyToManyField(to='overlay.Overlay'),
+            model_name="camera",
+            name="overlays",
+            field=models.ManyToManyField(to="overlay.Overlay"),
         ),
     ]

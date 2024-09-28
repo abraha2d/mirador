@@ -54,7 +54,7 @@ export const TopNav = () => {
         <Navbar.Text className="me-2 d-inline-flex align-items-center">
           <ClockHistory className="me-2" />
           {/* biome-ignore lint/complexity/useLiteralKeys: TS4111 */}
-          {process.env['REACT_APP_VERSION']}
+          {process.env["REACT_APP_VERSION"]}
         </Navbar.Text>
         <NavDropdown
           id="user"

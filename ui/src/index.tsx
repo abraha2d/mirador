@@ -13,12 +13,12 @@ if (container) {
   root.render(
     <React.StrictMode>
       <Store>
-        <App/>
+        <App />
       </Store>
     </React.StrictMode>,
   );
 } else {
-  console.error("Could not find #root")
+  console.error("Could not find #root");
 }
 
 if (process.env.NODE_ENV === "development") {

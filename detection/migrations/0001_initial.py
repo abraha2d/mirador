@@ -6,59 +6,115 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ALPRSettings',
+            name="ALPRSettings",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
             ],
         ),
         migrations.CreateModel(
-            name='FaceDetectionSettings',
+            name="FaceDetectionSettings",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
             ],
         ),
         migrations.CreateModel(
-            name='MotionDetectionSettings',
+            name="MotionDetectionSettings",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('sensitivity', models.FloatField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("sensitivity", models.FloatField()),
             ],
         ),
         migrations.CreateModel(
-            name='ObjectDetectionSettings',
+            name="ObjectDetectionSettings",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('threshold', models.FloatField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("threshold", models.FloatField()),
             ],
         ),
         migrations.CreateModel(
-            name='SoundDetectionSettings',
+            name="SoundDetectionSettings",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('sensitivity', models.FloatField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("sensitivity", models.FloatField()),
             ],
         ),
         migrations.CreateModel(
-            name='MotionDetectionRegion',
+            name="MotionDetectionRegion",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('color', colorfield.fields.ColorField(default='#FFFFFFFF', max_length=18)),
-                ('points', models.JSONField()),
-                ('motion_detection_settings', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='regions', to='detection.motiondetectionsettings')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                (
+                    "color",
+                    colorfield.fields.ColorField(default="#FFFFFFFF", max_length=18),
+                ),
+                ("points", models.JSONField()),
+                (
+                    "motion_detection_settings",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="regions",
+                        to="detection.motiondetectionsettings",
+                    ),
+                ),
             ],
         ),
     ]

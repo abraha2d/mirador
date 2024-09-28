@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('camera', '0011_last_ping_blank'),
+        ("camera", "0011_last_ping_blank"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='camera',
-            old_name='last_ping',
-            new_name='stream_start',
+            model_name="camera",
+            old_name="last_ping",
+            new_name="stream_start",
         ),
     ]

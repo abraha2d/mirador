@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('overlay', '0002_add_foreground_background_fields'),
+        ("overlay", "0002_add_foreground_background_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='overlay',
-            name='x_pos',
+            model_name="overlay",
+            name="x_pos",
             field=models.SmallIntegerField(),
         ),
         migrations.AlterField(
-            model_name='overlay',
-            name='y_pos',
+            model_name="overlay",
+            name="y_pos",
             field=models.SmallIntegerField(),
         ),
     ]

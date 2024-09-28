@@ -5,22 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Overlay',
+            name="Overlay",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('format', models.CharField(max_length=255)),
-                ('x_pos', models.PositiveSmallIntegerField()),
-                ('y_pos', models.PositiveSmallIntegerField()),
-                ('color', colorfield.fields.ColorField(default='#FFFFFFFF', max_length=18)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("format", models.CharField(max_length=255)),
+                ("x_pos", models.PositiveSmallIntegerField()),
+                ("y_pos", models.PositiveSmallIntegerField()),
+                (
+                    "color",
+                    colorfield.fields.ColorField(default="#FFFFFFFF", max_length=18),
+                ),
             ],
         ),
     ]

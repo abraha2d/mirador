@@ -5,70 +5,151 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='CameraType',
+            name="CameraType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
             ],
         ),
         migrations.CreateModel(
-            name='PTZSettings',
+            name="PTZSettings",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('pan_speed', models.FloatField(blank=True, null=True)),
-                ('pan_left_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('pan_left_stop_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('pan_right_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('pan_right_stop_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('tilt_speed', models.FloatField(blank=True, null=True)),
-                ('tilt_up_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('tilt_up_stop_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('tilt_down_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('tilt_down_stop_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('zoom_speed', models.FloatField(blank=True, null=True)),
-                ('zoom_in_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('zoom_in_stop_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('zoom_out_url', models.CharField(blank=True, max_length=255, null=True)),
-                ('zoom_out_stop_url', models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("pan_speed", models.FloatField(blank=True, null=True)),
+                (
+                    "pan_left_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "pan_left_stop_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "pan_right_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "pan_right_stop_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("tilt_speed", models.FloatField(blank=True, null=True)),
+                (
+                    "tilt_up_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "tilt_up_stop_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "tilt_down_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "tilt_down_stop_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("zoom_speed", models.FloatField(blank=True, null=True)),
+                (
+                    "zoom_in_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "zoom_in_stop_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "zoom_out_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "zoom_out_stop_url",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Stream',
+            name="Stream",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('name', models.CharField(max_length=255)),
-                ('protocol', models.CharField(max_length=4)),
-                ('port', models.PositiveSmallIntegerField()),
-                ('url', models.CharField(max_length=255)),
-                ('camera_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='streams', to='camera.cameratype')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("name", models.CharField(max_length=255)),
+                ("protocol", models.CharField(max_length=4)),
+                ("port", models.PositiveSmallIntegerField()),
+                ("url", models.CharField(max_length=255)),
+                (
+                    "camera_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="streams",
+                        to="camera.cameratype",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='cameratype',
-            name='ptz_settings',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='camera.ptzsettings'),
+            model_name="cameratype",
+            name="ptz_settings",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT, to="camera.ptzsettings"
+            ),
         ),
         migrations.CreateModel(
-            name='Camera',
+            name="Camera",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enabled', models.BooleanField()),
-                ('name', models.CharField(max_length=255)),
-                ('host', models.CharField(max_length=255)),
-                ('username', models.CharField(max_length=255)),
-                ('password', models.CharField(max_length=255)),
-                ('require_motion_to_detect', models.BooleanField()),
-                ('camera_type', models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='camera.cameratype')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enabled", models.BooleanField()),
+                ("name", models.CharField(max_length=255)),
+                ("host", models.CharField(max_length=255)),
+                ("username", models.CharField(max_length=255)),
+                ("password", models.CharField(max_length=255)),
+                ("require_motion_to_detect", models.BooleanField()),
+                (
+                    "camera_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        to="camera.cameratype",
+                    ),
+                ),
             ],
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('camera', '0010_stream_force_tcp'),
+        ("camera", "0010_stream_force_tcp"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='camera',
-            name='last_ping',
+            model_name="camera",
+            name="last_ping",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

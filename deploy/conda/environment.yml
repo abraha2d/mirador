@@ -17,6 +17,8 @@ dependencies:
   - python-dateutil
   - pytorch =2.0.0
   - pytorch-cuda =11.8
+  - ruff
+  - ruff-lsp
   - torchaudio
   - torchvision =0.15.1
   - ultralytics

@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('storage', '0001_initial'),
+        ("storage", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='picture',
-            name='file',
+            model_name="picture",
+            name="file",
             field=models.CharField(max_length=255),
         ),
         migrations.AlterField(
-            model_name='video',
-            name='file',
+            model_name="video",
+            name="file",
             field=models.CharField(max_length=255),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schedule', '0001_initial'),
+        ("schedule", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='schedulepart',
-            name='enabled',
+            model_name="schedulepart",
+            name="enabled",
             field=models.BooleanField(default=True),
         ),
     ]

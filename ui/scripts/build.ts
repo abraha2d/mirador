@@ -5,9 +5,9 @@ import esbuild, { type BuildOptions } from "esbuild";
 
 const watch = process.argv.includes("--watch");
 
-const servedir = "build"
-const publicPath = "/static"
-const outdir = `${servedir}${publicPath}`
+const servedir = "build";
+const publicPath = "/static";
+const outdir = `${servedir}${publicPath}`;
 
 const options: BuildOptions = {
   bundle: true,
@@ -53,7 +53,7 @@ if (watch) {
   const ctx = await esbuild.context(options);
   await ctx.watch();
 
-  const {host} = await ctx.serve({
+  const { host } = await ctx.serve({
     port: 2999,
     servedir,
   });

@@ -19,8 +19,10 @@ cache_download() {
   echo "$DEPLOY_ROOT/_cache/$2"
 }
 
-MF_FILE="Mambaforge-$(uname)-$(uname -m).sh"
-MF_URL="https://github.com/conda-forge/miniforge/releases/latest/download/$MF_FILE"
+# Latest Mambaforge with Python 3.10
+MF_VERSION="24.3.0-0"
+MF_FILE="Mambaforge-$MF_VERSION-$(uname)-$(uname -m).sh"
+MF_URL="https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/$MF_FILE"
 
 get_base_env() {
   base_env="/opt/mf"
@@ -38,4 +40,3 @@ get_base_env() {
 
   echo "$base_env"
 }
-

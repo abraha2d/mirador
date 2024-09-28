@@ -17,6 +17,7 @@
             <excludedPath path="/db.sqlite3" />
             <excludedPath path="/db.sqlite3-shm" />
             <excludedPath path="/db.sqlite3-wal" />
+            <excludedPath path="/.ruff_cache" />
           </excludedPaths>
         </serverdata>
       </paths>

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('camera', '0008_lowercase_protocols'),
+        ("camera", "0008_lowercase_protocols"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='camera',
-            name='last_ping',
+            model_name="camera",
+            name="last_ping",
             field=models.DateTimeField(null=True),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('camera', '0005_restructure_camera_detection_links'),
+        ("camera", "0005_restructure_camera_detection_links"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ptzsettings',
-            name='enabled',
+            model_name="ptzsettings",
+            name="enabled",
             field=models.BooleanField(),
         ),
     ]

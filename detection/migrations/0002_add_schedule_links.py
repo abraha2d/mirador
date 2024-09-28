@@ -5,21 +5,30 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schedule', '0001_initial'),
-        ('detection', '0001_initial'),
+        ("schedule", "0001_initial"),
+        ("detection", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='motiondetectionsettings',
-            name='schedule',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='schedule.schedule'),
+            model_name="motiondetectionsettings",
+            name="schedule",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="schedule.schedule",
+            ),
         ),
         migrations.AddField(
-            model_name='sounddetectionsettings',
-            name='schedule',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='schedule.schedule'),
+            model_name="sounddetectionsettings",
+            name="schedule",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="schedule.schedule",
+            ),
         ),
     ]
