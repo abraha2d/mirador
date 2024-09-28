@@ -1,45 +1,70 @@
-cache:
-  - key: conda-$CI_COMMIT_REF_SLUG
+.caches:
+  - &cache_envs
+    key: envs-$CI_COMMIT_REF_SLUG
     fallback_keys:
-      - conda-$CI_DEFAULT_BRANCH
-      - conda-default
+      - envs-$CI_DEFAULT_BRANCH
+      - envs-default
     paths:
-      - /opt/conda/
-  - key: node_modules-$CI_COMMIT_REF_SLUG
+      - deploy/envs/
+
+  - &cache_envs_pull
+    <<: *cache_envs
+    policy: pull
+
+  - &cache_node_modules
+    key: node_modules-$CI_COMMIT_REF_SLUG
     fallback_keys:
       - node_modules-$CI_DEFAULT_BRANCH
       - node_modules-default
     paths:
       - ui/node_modules/
 
-image: condaforge/mambaforge:24.3.0-0
+  - &cache_node_modules_pull
+    <<: *cache_node_modules
+    policy: pull
 
-setup:conda:
+image: busybox:glibc
+
+setup:envs:
+  cache:
+    - *cache_envs
   script:
-    - deploy/scripts/setup_conda.sh
+    - deploy/scripts/setup_envs.sh
 
 setup:node:
-  needs: [setup:conda]
+  cache:
+    - *cache_envs_pull
+    - *cache_node_modules
+  needs: [setup:envs]
   script:
-    - deploy/scripts/setup_node.sh
-    - deploy/envs/_base/bin/bun --revision
+    - deploy/scripts/setup_node_modules.sh
 
 setup:migrations:
-  needs: [setup:conda]
+  cache:
+    - *cache_envs_pull
+  needs: [setup:envs]
   script:
     - deploy/scripts/setup_migrations.sh
 
 build:
+  cache:
+    - *cache_envs_pull
+    - *cache_node_modules_pull
   needs: [setup:node]
   script:
     - deploy/scripts/build.sh
 
 lint:biome:
+  cache:
+    - *cache_envs_pull
+    - *cache_node_modules_pull
   needs: [setup:node]
   script:
     - deploy/scripts/lint_biome.sh
 
 lint:ruff:
-  needs: [setup:conda]
+  cache:
+    - *cache_envs_pull
+  needs: [setup:envs]
   script:
     - deploy/scripts/lint_ruff.sh

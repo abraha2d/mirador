@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 DEPLOY_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
 DEPLOY_ROOT=$(dirname "$DEPLOY_SCRIPTS")
 
@@ -25,10 +27,7 @@ MF_FILE="Mambaforge-$MF_VERSION-$(uname)-$(uname -m).sh"
 MF_URL="https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/$MF_FILE"
 
 get_base_env() {
-  base_env="/opt/conda"  # condaforge/mambaforge Docker image
-  if [ ! -d "$base_env" ]; then
-    base_env="$DEPLOY_ROOT/envs/_base"
-  fi
+  base_env="$DEPLOY_ROOT/envs/_base"
 
   if [[ ! -f "$base_env/bin/activate" ]]; then
     echo "Downloading Mambaforge..." 1>&2

@@ -5,4 +5,3 @@ DEPLOY_ROOT=$(dirname "$DEPLOY_SCRIPTS")
 
 sudo cp -a "$DEPLOY_ROOT/systemd"/* /etc/systemd/system/
 sudo systemctl daemon-reload
-
