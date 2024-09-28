@@ -1,29 +1,45 @@
 cache:
-  paths: &setup_paths
-    - ui/node_modules/
+  - key: conda-$CI_COMMIT_REF_SLUG
+    fallback_keys:
+      - conda-$CI_DEFAULT_BRANCH
+      - conda-default
+    paths:
+      - /opt/conda/
+  - key: node_modules-$CI_COMMIT_REF_SLUG
+    fallback_keys:
+      - node_modules-$CI_DEFAULT_BRANCH
+      - node_modules-default
+    paths:
+      - ui/node_modules/
 
 image: condaforge/mambaforge:24.3.0-0
 
-setup:
+setup:conda:
   script:
-    - deploy/scripts/setup.sh
+    - deploy/scripts/setup_conda.sh
+
+setup:node:
+  needs: [setup:conda]
+  script:
+    - deploy/scripts/setup_node.sh
     - deploy/envs/_base/bin/bun --revision
-  artifacts:
-    paths: *setup_paths
+
+setup:migrations:
+  needs: [setup:conda]
+  script:
+    - deploy/scripts/setup_migrations.sh
 
 build:
-  needs: [setup]
+  needs: [setup:node]
   script:
     - deploy/scripts/build.sh
 
 lint:biome:
-  needs: [setup]
+  needs: [setup:node]
   script:
-    - &activate_base_env . /opt/conda/bin/activate
-    - cd ui && bun run biome ci .
+    - deploy/scripts/lint_biome.sh
 
 lint:ruff:
-  needs: [setup]
+  needs: [setup:conda]
   script:
-    - &activate_base_env . /opt/conda/bin/activate
-    - ruff check
+    - deploy/scripts/lint_ruff.sh

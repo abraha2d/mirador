@@ -22,6 +22,7 @@
     "appver": "find src -type f -print0 | LC_COLLATE=C sort -z | xargs -0 sha1sum | sha1sum | cut -c1-7",
     "build": "scripts/build.ts",
     "check": "biome check .",
+    "check:ci": "biome ci .",
     "start": "bun run build --watch"
   },
   "devDependencies": {
