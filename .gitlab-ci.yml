@@ -23,7 +23,7 @@
     <<: *cache_node_modules
     policy: pull
 
-image: busybox:glibc
+image: ubuntu:24.04
 
 setup:envs:
   cache:
