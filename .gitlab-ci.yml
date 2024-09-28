@@ -23,7 +23,7 @@
     <<: *cache_node_modules
     policy: pull
 
-image: ubuntu:24.04
+image: bash:24.04
 
 setup:envs:
   cache:

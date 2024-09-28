@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -14,7 +14,8 @@ source() {
 cache_download() {
   mkdir -p "$DEPLOY_ROOT/_cache"
   if [[ ! -f "$DEPLOY_ROOT/_cache/$2" ]]; then
-    curl -L "$1" -o "$DEPLOY_ROOT/_cache/$2"
+    # Not guaranteed to have `curl` at this point, only `bash` and busybox `wget`)
+    wget "$1" -O "$DEPLOY_ROOT/_cache/$2"
   else
     echo "[_cache] Found $2" 1>&2
   fi
