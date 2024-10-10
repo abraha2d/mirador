@@ -21,7 +21,7 @@ const options: BuildOptions = {
   entryPoints: ["src/index.tsx"],
   format: "esm",
   jsx: "automatic",
-  jsxDev: true,
+  // jsxDev: true,
   logLevel: "info",
   metafile: true,
   minify: !watch,
