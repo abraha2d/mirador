@@ -4,7 +4,7 @@ from io import FileIO
 import os
 from pathlib import Path
 from random import randrange
-from select import PIPE_BUF, select
+from select import select
 from subprocess import TimeoutExpired
 from time import perf_counter
 from traceback import print_exception
@@ -164,7 +164,7 @@ def segment_hxxx(
                     _wlist.append(rawaudio_out_fd)
                 _wlist = filter_fds(_wlist)
 
-                rlist, wlist, _ = select(_rlist, _wlist, [])
+                rlist, wlist, _ = select(_rlist, _wlist, [], 1)
 
                 if hxxx_in_fd in rlist:
                     num_bytes = hxxx_in_fd._fileio.readinto(read_buffer)
