@@ -16,6 +16,7 @@ import ffmpeg
 from camera.models import Camera
 from storage.models import Video
 from worker.management.commands.constants import (
+    AUDIO_RATE,
     CODEC_RAWAUDIO,
     FF_GLOBAL_ARGS,
     HXXX_NALU_HEADER,
@@ -86,6 +87,7 @@ def segment_hxxx(
     record_params = {
         "movflags": "+faststart",
         "vcodec": "copy",
+        "ar": AUDIO_RATE,
     }
 
     current_date = timezone.now()
@@ -111,12 +113,19 @@ def segment_hxxx(
             rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
             rawaudio_out_fd = LazyFD(rawaudio_out_path, os.O_WRONLY, "w")
 
-            ffmpeg_inputs = [ffmpeg.input(hxxx_out_path, framerate=frame_rate)]
+            ffmpeg_inputs = [
+                ffmpeg.input(
+                    hxxx_out_path,
+                    framerate=frame_rate,
+                    thread_queue_size=4194304,
+                )
+            ]
             if has_audio:
                 ffmpeg_inputs.append(
                     ffmpeg.input(
                         rawaudio_out_path,
                         **rawaudio_params,
+                        thread_queue_size=262144,
                     )
                 )
 

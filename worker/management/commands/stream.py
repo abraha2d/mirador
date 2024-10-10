@@ -10,6 +10,7 @@ from subprocess import TimeoutExpired
 from time import sleep
 
 from worker.management.commands.constants import (
+    AUDIO_RATE,
     CODEC_H264,
     DECODE_SIZE,
     CODEC_RAWAUDIO,
@@ -79,7 +80,7 @@ def handle_stream(camera_id):
     rawaudio_out_path = mkfifotemp(CODEC_RAWAUDIO)
     rawaudio_params = {
         "f": CODEC_RAWAUDIO,
-        "ar": 8000,  # TODO: adapt rate to source
+        "ar": AUDIO_RATE,  # TODO: adapt rate to source
         "channel_layout": "mono",  # TODO: adapt layout to source
     }
 

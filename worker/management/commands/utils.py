@@ -7,6 +7,7 @@ from os import mkfifo
 from os.path import join
 from tempfile import mkdtemp
 from worker.management.commands.constants import (
+    AUDIO_RATE,
     CODEC_H264,
     FF_GLOBAL_ARGS,
     FF_GLOBAL_PARAMS,
@@ -105,6 +106,7 @@ def get_ffmpeg_cmds(
         "f": "tee",
         "vcodec": "x264",
         "acodec": "aac",
+        "ar": AUDIO_RATE,
         **encode_params,
     }
 
